@@ -112,25 +112,22 @@
     });
 
     function accessPortal() {
-      const input    = document.getElementById('ticketInput').value.trim().toUpperCase();
-      const errorMsg = document.getElementById('errorMsg');
+  const input = document.getElementById('ticketInput').value.trim().toUpperCase();
+  const errorMsg = document.getElementById('errorMsg');
 
-      /* ──────────────────────────────────────────────────────────
-         ADD NEW TICKET IDs HERE each time you onboard a client.
-         Example: add 'SE-004' when you create SE-004.html
-      ────────────────────────────────────────────────────────── */
-      const validTickets = ['SE-001', 'SE-002', 'SE-003', ];
+  if (!input) {
+    errorMsg.style.display = 'block';
+    const inp = document.getElementById('ticketInput');
+    inp.classList.add('shake');
+    setTimeout(() => inp.classList.remove('shake'), 500);
+    return;
+  }
 
-      if (validTickets.includes(input)) {
-        errorMsg.style.display = 'none';
-        window.location.href = `dashboard.html?id=${input}`;/* flat folder — files are in same folder */
-      } else {
-        errorMsg.style.display = 'block';
-        const inp = document.getElementById('ticketInput');
-        inp.classList.add('shake');
-        setTimeout(() => inp.classList.remove('shake'), 500);
-      }
-    }
+  // Just redirect — dashboard.html will check Firestore
+  // and show "Ticket Not Found" if it doesn't exist
+  errorMsg.style.display = 'none';
+  window.location.href = `dashboard.html?id=${input}`;
+}
   </script>
 
 </body>

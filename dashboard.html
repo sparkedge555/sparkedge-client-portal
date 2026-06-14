@@ -223,48 +223,46 @@
       loadPaySettings();
 
       try {
-        db.collection('clients').doc(ticketId).onSnapshot(doc => {
-  if (!doc.exists) { showError(...); return; }
-  const clientData = doc.data();
-  window._clientData = clientData;
-  renderDashboard(clientData);
-  injectReferralRewardBanner(clientData);
-});
+  db.collection('clients').doc(ticketId).onSnapshot(doc => {
+    
+    // Hide loading screen
+    document.getElementById('loadingScreen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
 
-        if (!doc.exists) {
-          showError(`Ticket "${ticketId}" was not found. Please check with your project manager.`);
-          return;
-        }
+    if (!doc.exists) {
+      showError(`Ticket "${ticketId}" was not found. Please check with your project manager.`);
+      return;
+    }
 
-        const clientData = doc.data();
+    const clientData = doc.data();
 
-        // Update page title
-        document.title = `${clientData.clientName} — ${ticketId} — SparkEdge Client Portal`;
+    // Update page title
+    document.title = `${clientData.clientName} — ${ticketId} — SparkEdge`;
 
-        // Hide loading, show dashboard
-        document.getElementById('loadingScreen').style.display = 'none';
-        document.getElementById('app').style.display = 'block';
+    // Make available globally
+    window._clientData = clientData;
 
-        // Make clientData available globally (used by openPayModal in portal.js)
-        window._clientData = clientData;
+    // Render dashboard
+    if (typeof renderDashboard === 'function') {
+      renderDashboard(clientData);
+    }
 
-        // Render using existing portal.js renderDashboard function
-        if (typeof renderDashboard === 'function') {
-          renderDashboard(clientData);
-        } else {
-          // Fallback: wait for portal.js to load
-          window.addEventListener('load', () => {
-            if (typeof renderDashboard === 'function') renderDashboard(clientData);
-          });
-        }
+    // Inject referral reward banners
+    injectReferralRewardBanner(clientData);
 
-        // Inject referral reward banners (for the referrer side)
-        injectReferralRewardBanner(clientData);
+  }, error => {
+    showError('Connection error: ' + error.message + '. Please try again.');
+  });
 
-      } catch(e) {
-        showError('Connection error: ' + e.message + '. Please try again.');
-      }
-    })();
+} catch(e) {
+  showError('Error: ' + e.message);
+}
+   
+})(); // ← closes init() IIFE
+
+/* ══════════════════════════════════════════════════════
+     SHOW ERROR HELPER (global scope)
+  ══════════════════════════════════════════════════════ */
 
     function showError(msg) {
       document.getElementById('loadingScreen').style.display = 'none';
@@ -367,17 +365,8 @@
           alert('Copied!');
         });
     }
-    // 
 
-    const waBtn = document.getElementById('waFloat');
-if (waBtn && clientData.managerWA) {
-  waBtn.href = `https://wa.me/${clientData.managerWA}`;
-}
   </script>
-  <a id="waFloat" href="#" target="_blank"
-   style="position:fixed;bottom:24px;right:24px;width:52px;height:52px;background:#25D366;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(37,211,102,.4);z-index:500;font-size:24px;text-decoration:none;">
-  💬
-</a>
 
 </body>
 </html>
