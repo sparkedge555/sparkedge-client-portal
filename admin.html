@@ -523,23 +523,108 @@ const HARDCODED_MEMBERS = [
 ];
 // ▲▲▲ END OF MEMBER CONFIG — save file and git push ▲▲▲
 
-function getMembers(){
-  try{
-    const stored = JSON.parse(localStorage.getItem(AUTH_KEY)) || [];
-    // Merge: hardcoded as base, localStorage overrides (for updates made on this device)
-    const merged = [...HARDCODED_MEMBERS];
-    stored.forEach(sm => {
-      const idx = merged.findIndex(hm => hm.id === sm.id || hm.password === sm.password);
-      if(idx >= 0) merged[idx] = sm; // update existing
-      else merged.push(sm); // add new
-    });
-    return merged;
-  }catch{ return HARDCODED_MEMBERS; }
+/* ══════════════════════════════════════════════════════
+   FIREBASE TEAM MEMBERS — real-time sync
+   Members are stored in Firestore collection: 'team'
+   Document ID = member.id
+   Falls back to HARDCODED_MEMBERS if Firestore fails
+══════════════════════════════════════════════════════ */
+
+// In-memory cache — populated on login and kept live via onSnapshot
+window._teamCache = [...HARDCODED_MEMBERS];
+window._teamListenerAttached = false;
+
+function getDb() {
+  if (!window._fbInitDone) {
+    const firebaseConfig = {
+      apiKey: "AIzaSyA0rufGe1NcKnsalr7VFnIuRLwfjPyD0QE",
+      authDomain: "sparkedge-client-portal.firebaseapp.com",
+      projectId: "sparkedge-client-portal",
+      storageBucket: "sparkedge-client-portal.firebasestorage.app",
+      messagingSenderId: "848868473172",
+      appId: "1:848868473172:web:2111dd537b9bc7549370c1"
+    };
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    window._fbInitDone = true;
+  }
+  return firebase.firestore();
 }
-function saveMembers(m){
-  localStorage.setItem(AUTH_KEY, JSON.stringify(m));
-  // Show reminder to re-share file
-  console.log('[SparkEdge] Members updated in localStorage. To share with team on other devices, use Export and re-share admin.html, or update HARDCODED_MEMBERS in the file.');
+
+/* Attach a live listener — called once after login */
+function attachTeamListener() {
+  if (window._teamListenerAttached) return;
+  window._teamListenerAttached = true;
+  try {
+    getDb().collection('team').onSnapshot(snapshot => {
+      const fsMembers = [];
+      snapshot.forEach(doc => fsMembers.push({ id: doc.id, ...doc.data() }));
+      // Merge: Firestore wins over hardcoded for same IDs
+      const merged = [...HARDCODED_MEMBERS];
+      fsMembers.forEach(fm => {
+        const idx = merged.findIndex(hm => hm.id === fm.id);
+        if (idx >= 0) merged[idx] = fm;
+        else merged.push(fm);
+      });
+      window._teamCache = merged;
+      // Re-render team page if it's currently open
+      const teamPage = document.getElementById('page-team');
+      if (teamPage && teamPage.classList.contains('active')) {
+        renderTeamPage();
+      }
+      // Also refresh member count badge in sidebar
+      const badge = document.getElementById('teamMemberCountBadge');
+      if (badge) badge.textContent = window._teamCache.length;
+    }, err => {
+      console.warn('[SparkEdge] Firestore team listener error:', err.message);
+      // Fall back to localStorage + hardcoded on error
+      try {
+        const stored = JSON.parse(localStorage.getItem(AUTH_KEY)) || [];
+        const merged = [...HARDCODED_MEMBERS];
+        stored.forEach(sm => {
+          const idx = merged.findIndex(hm => hm.id === sm.id || hm.password === sm.password);
+          if (idx >= 0) merged[idx] = sm; else merged.push(sm);
+        });
+        window._teamCache = merged;
+      } catch(e) { window._teamCache = [...HARDCODED_MEMBERS]; }
+    });
+  } catch(e) {
+    console.warn('[SparkEdge] Could not attach team listener:', e.message);
+  }
+}
+
+/* Sync read — returns from in-memory cache (always fast) */
+function getMembers() {
+  return window._teamCache || [...HARDCODED_MEMBERS];
+}
+
+/* Write — saves to Firestore AND localStorage as backup */
+async function saveMembers(membersArray) {
+  // Always save to localStorage as instant fallback
+  localStorage.setItem(AUTH_KEY, JSON.stringify(membersArray));
+  // Save each member to Firestore
+  try {
+    const db = getDb();
+    const batch = db.batch();
+    membersArray.forEach(m => {
+      if (!m.id) m.id = 'mem_' + Date.now() + '_' + Math.random().toString(36).slice(2,6);
+      const ref = db.collection('team').doc(m.id);
+      batch.set(ref, m);
+    });
+    await batch.commit();
+    showToast('✅ Team synced to Firestore!');
+  } catch(e) {
+    console.warn('[SparkEdge] Firestore save failed, using localStorage only:', e.message);
+    showToast('⚠️ Saved locally — Firestore sync failed.');
+  }
+}
+
+/* Delete a single member from Firestore */
+async function deleteMemberFromFirestore(memberId) {
+  try {
+    await getDb().collection('team').doc(memberId).delete();
+  } catch(e) {
+    console.warn('[SparkEdge] Could not delete from Firestore:', e.message);
+  }
 }
 function getSettingsPwd(){
   return localStorage.getItem(SETTINGS_AUTH_KEY)||'Settings@1';
@@ -550,6 +635,8 @@ window.SE_USER = null; // set on login
 
 (function(){
   // Check session
+  // Pre-seed cache from hardcoded members immediately
+if(typeof HARDCODED_MEMBERS !== 'undefined') window._teamCache = [...HARDCODED_MEMBERS];
   const sess = sessionStorage.getItem('se_session');
   if(sess){
     try{
@@ -588,15 +675,15 @@ window.SE_USER = null; // set on login
   }
 
   function doUnlock(){
-    const screen = document.getElementById('adminLoginScreen');
-    screen.style.opacity='0'; screen.style.transition='opacity .3s';
-    setTimeout(()=>{screen.style.display='none';}, 300);
-    document.getElementById('adminPwdError').style.display='none';
-    // update sidebar user badge after unlock
-    if(typeof updateUserBadge==='function') updateUserBadge();
-    // Apply permission restrictions
-    if(typeof applyPermissions==='function') applyPermissions();
-  }
+  const screen = document.getElementById('adminLoginScreen');
+  screen.style.opacity='0'; screen.style.transition='opacity .3s';
+  setTimeout(()=>{screen.style.display='none';}, 300);
+  document.getElementById('adminPwdError').style.display='none';
+  if(typeof updateUserBadge==='function') updateUserBadge();
+  if(typeof applyPermissions==='function') applyPermissions();
+  // Attach Firestore real-time listener for team members
+  if(typeof attachTeamListener==='function') attachTeamListener();
+}
 
   function togglePwdView(){
     const inp = document.getElementById('adminPwdInput');
@@ -1262,29 +1349,20 @@ function toggleSidebar(){
     <div id="teamMemberList"></div>
 
     <!-- Cross-device sharing alert -->
-    <div id="memberSharingAlert" style="margin-top:20px;background:rgba(245,158,11,.07);border:1px solid rgba(245,158,11,.25);border-radius:12px;padding:16px 20px;display:none;">
-      <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:#F59E0B;margin-bottom:10px;">⚠️ Team Member passwords are saved to THIS browser only</div>
-      <div style="font-size:12px;color:var(--text-muted);line-height:1.8;margin-bottom:14px;">
-        If your team member is opening admin.html on a <strong style="color:var(--text);">different device or browser</strong>, their password won't work — because member data is stored only in your browser's localStorage, not inside the file itself.<br><br>
-
-        <strong style="color:var(--text);">✅ The Fix — Use the ⬇ Config button (recommended):</strong><br><br>
-
-        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:2px;">
-          <div style="font-weight:700;color:#22C55E;margin-bottom:8px;font-size:12px;">📄 How to use the downloaded Config file:</div>
-          <div style="display:grid;grid-template-columns:22px 1fr;gap:6px 10px;font-size:12px;color:var(--text-muted);">
-            <span style="color:#F59E0B;font-weight:700;">1.</span><span>Click <strong style="color:var(--text);">⬇ Config</strong> button on the team member's card — a <code style="background:var(--bg-raised);padding:1px 5px;border-radius:4px;color:#22C55E;">member-config-name.txt</code> file downloads.</span>
-            <span style="color:#F59E0B;font-weight:700;">2.</span><span>Open <strong style="color:var(--text);">admin.html</strong> in any text editor (Notepad, VS Code, Notepad++).</span>
-            <span style="color:#F59E0B;font-weight:700;">3.</span><span>Press <strong style="color:var(--text);">Ctrl+F</strong> and search for: <code style="background:var(--bg-raised);padding:1px 5px;border-radius:4px;color:#F59E0B;">PASTE MEMBER CONFIG</code> — you will land exactly at the marked line.</span>
-            <span style="color:#F59E0B;font-weight:700;">4.</span><span>Open the downloaded <code style="background:var(--bg-raised);padding:1px 5px;border-radius:4px;color:#22C55E;">.txt</code> file — copy the <strong style="color:var(--text);">JSON object</strong> (the part starting with <code style="background:var(--bg-raised);padding:1px 5px;border-radius:4px;">{</code> and ending with <code style="background:var(--bg-raised);padding:1px 5px;border-radius:4px;">}</code>).</span>
-            <span style="color:#F59E0B;font-weight:700;">5.</span><span>Paste it inside the <code style="background:var(--bg-raised);padding:1px 5px;border-radius:4px;">[ ]</code> brackets at the marked line. If another member is already there, add a <strong style="color:var(--text);">comma</strong> after their <code style="background:var(--bg-raised);padding:1px 5px;border-radius:4px;">}</code> then paste.</span>
-            <span style="color:#F59E0B;font-weight:700;">6.</span><span>Save the file → then run in terminal: <code style="background:var(--bg-raised);padding:1px 5px;border-radius:4px;color:#22C55E;">git add admin.html &amp;&amp; git commit -m "Add member" &amp;&amp; git push</code></span>
-            <span style="color:#F59E0B;font-weight:700;">7.</span><span>Done — your team member opens the updated admin.html (from GitHub/shared link) and their password works on <strong style="color:var(--text);">any device, any browser</strong>.</span>
-          </div>
-        </div>
-      </div>
-      <button onclick="exportEmbedMembers()" style="background:linear-gradient(135deg,#F59E0B,#D97706);border:none;border-radius:8px;padding:10px 20px;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:#fff;cursor:pointer;">📤 Export & Share File (Embed Passwords)</button>
-    </div>
+   <div id="memberSharingAlert" style="margin-top:20px;background:rgba(34,197,94,.07);border:1px solid rgba(34,197,94,.25);border-radius:12px;padding:16px 20px;display:none;">
+  <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:#22C55E;margin-bottom:8px;">✅ Team Members sync automatically via Firestore</div>
+  <div style="font-size:12px;color:var(--text-muted);line-height:1.8;">
+    Any member you add, edit, or suspend here is updated <strong style="color:var(--text);">instantly on all devices</strong>.<br>
+    Members can log in from any browser — no config files, no re-sharing of admin.html needed.<br><br>
+    <strong style="color:var(--text);">What still needs manual sharing:</strong><br>
+    • <strong>Tickets</strong> — still use ⬇ Export / ⬆ Import to sync ticket data across devices.<br>
+    • <strong>HARDCODED_MEMBERS</strong> in the file still acts as an offline fallback if Firestore is unreachable.
   </div>
+  <div style="margin-top:12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+    <span id="firestoreTeamStatus" style="font-size:11px;padding:4px 12px;border-radius:20px;background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.3);color:#22C55E;">🟢 Firestore connected</span>
+    <span style="font-size:11px;color:var(--text-dim);">Members: <strong id="firestoreMemberCount" style="color:var(--text);">—</strong></span>
+  </div>
+</div>
 
   <!-- ════ PAGE: WORKFLOW ════ -->
   <div class="page-view" id="page-workflow" style="padding:28px;">
@@ -1500,69 +1578,50 @@ function toggleSidebar(){
          EXPORT / IMPORT GUIDE
     ══════════════════════════════════════════════════════ -->
     <div style="margin-top:32px;">
-      <div style="font-family:'Syne',sans-serif;font-size:17px;font-weight:800;margin-bottom:6px;color:var(--text);">💾 Export / Import Guide</div>
-      <div style="font-size:12px;color:var(--text-muted);margin-bottom:16px;">How to back up your data and move it between devices or team members.</div>
+  <div style="font-family:'Syne',sans-serif;font-size:17px;font-weight:800;margin-bottom:6px;color:var(--text);">💾 Export / Import Guide</div>
+  <div style="font-size:12px;color:var(--text-muted);margin-bottom:16px;">Tickets and finance data still use Export/Import. Team members now sync automatically via Firestore.</div>
 
-      <div class="workflow-step">
-        <div class="wf-num" style="background:linear-gradient(135deg,#22C55E,#16A34A);font-size:14px;">⬇</div>
-        <div>
-          <div class="wf-title">📤 How to Export Data</div>
-          <div class="wf-desc">
-            <strong>What gets exported:</strong> All tickets, vouchers, team members, and settings — packed into a single <code>.json</code> file.<br><br>
-            <strong>Step 1:</strong> Go to the top-right header → click <strong>⬇ Export</strong> button.<br>
-            <strong>Step 2:</strong> A file like <code>sparkedge-admin-2025-05-15.json</code> downloads automatically.<br>
-            <strong>Step 3:</strong> Save this file to Google Drive, WhatsApp Saved Messages, or email it to yourself.<br><br>
-            <strong>When to export:</strong><br>
-            • After adding/updating any tickets<br>
-            • After adding team members<br>
-            • Before switching devices<br>
-            • As a weekly backup habit
-          </div>
-          <div class="wf-timing">💡 Tip: Export = your backup. If browser data is cleared, you can restore everything from this file.</div>
-        </div>
-      </div>
-
-      <div class="workflow-step">
-        <div class="wf-num" style="background:linear-gradient(135deg,#3B82F6,#1D4ED8);font-size:14px;">⬆</div>
-        <div>
-          <div class="wf-title">📥 How to Import Data (New Device / New Browser)</div>
-          <div class="wf-desc">
-            <strong>Situation:</strong> You're on a new laptop, cleared your browser, or team member needs the same data.<br><br>
-            <strong>Step 1:</strong> Open admin.html in your browser (or go to the admin URL if hosted).<br>
-            <strong>Step 2:</strong> Log in with your owner password.<br>
-            <strong>Step 3:</strong> Click <strong>⬆ Import</strong> in the header.<br>
-            <strong>Step 4:</strong> Open your exported <code>.json</code> file in any text editor (Notepad, VS Code) → Copy all the text.<br>
-            <strong>Step 5:</strong> Paste it into the Import modal → click <strong>Import & Merge</strong>.<br>
-            <strong>Step 6:</strong> All your tickets, vouchers, and members are restored instantly.<br><br>
-            <strong>Rules:</strong><br>
-            • Duplicate ticket IDs: existing ticket is updated (not doubled)<br>
-            • New tickets: added fresh<br>
-            • Your current data is NOT deleted — it's merged safely
-          </div>
-          <div class="wf-timing">💡 The import is non-destructive — it only adds or updates, never wipes.</div>
-        </div>
-      </div>
-
-      <div class="workflow-step">
-        <div class="wf-num" style="background:linear-gradient(135deg,#8B5CF6,#6D28D9);font-size:14px;">🔄</div>
-        <div>
-          <div class="wf-title">🔄 Keeping Two Devices in Sync</div>
-          <div class="wf-desc">
-            Because data lives in your browser's localStorage (not a cloud server), two devices don't auto-sync. Here's the workflow:<br><br>
-            <strong>Device A (Bihar / Owner's laptop):</strong><br>
-            1. Make changes (add tickets, update status, etc.)<br>
-            2. Export → save JSON<br>
-            3. Send JSON to Device B via WhatsApp, email, or shared Drive<br><br>
-            <strong>Device B (Delhi / Team member's device):</strong><br>
-            1. Receive the JSON file<br>
-            2. Open admin.html → Import → paste JSON → Import & Merge<br>
-            3. All updates now visible<br><br>
-            <strong>Repeat this sync whenever major changes are made.</strong>
-          </div>
-          <div class="wf-timing">💡 Best practice: Treat Export → Share → Import as your "save & sync" workflow until you move to a hosted solution.</div>
-        </div>
-      </div>
+  <div style="background:rgba(34,197,94,.07);border:1px solid rgba(34,197,94,.25);border-radius:var(--radius);padding:16px 20px;margin-bottom:16px;">
+    <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:#22C55E;margin-bottom:8px;">✅ Team Members — Auto-Sync via Firestore (No Export Needed)</div>
+    <div style="font-size:12px;color:var(--text-muted);line-height:1.8;">
+      Team members are now stored in <strong style="color:var(--text);">Firebase Firestore</strong>. When you add, edit, suspend, or remove a member:<br>
+      • The change appears on <strong style="color:var(--text);">every device instantly</strong> — no file sharing needed.<br>
+      • The member can log in from <strong style="color:var(--text);">any browser, any device</strong> within seconds.<br>
+      • No need to download Config files or re-share admin.html for team changes.<br>
+      • Passwords are still checked from the in-memory cache — login is instant even on slow connections.
     </div>
+  </div>
+
+  <div class="workflow-step">
+    <div class="wf-num" style="background:linear-gradient(135deg,#22C55E,#16A34A);font-size:14px;">⬇</div>
+    <div>
+      <div class="wf-title">📤 Export — for Tickets & Finance data</div>
+      <div class="wf-desc">
+        <strong>What gets exported:</strong> All tickets, vouchers, and settings. Team members are excluded — they live in Firestore now.<br><br>
+        <strong>Step 1:</strong> Click <strong>⬇ Export</strong> in the top-right header.<br>
+        <strong>Step 2:</strong> A <code>sparkedge-admin-YYYY-MM-DD.json</code> file downloads.<br>
+        <strong>Step 3:</strong> Save to Google Drive or email as a backup.<br><br>
+        <strong>When to export:</strong> After adding/updating tickets · Before switching devices · Weekly backup habit.
+      </div>
+      <div class="wf-timing">💡 Export = your ticket backup. Team members don't need it anymore.</div>
+    </div>
+  </div>
+
+  <div class="workflow-step">
+    <div class="wf-num" style="background:linear-gradient(135deg,#3B82F6,#1D4ED8);font-size:14px;">⬆</div>
+    <div>
+      <div class="wf-title">📥 Import — for restoring Tickets on a new device</div>
+      <div class="wf-desc">
+        <strong>Step 1:</strong> Open admin.html → log in → click <strong>⬆ Import</strong>.<br>
+        <strong>Step 2:</strong> Open your exported <code>.json</code> in Notepad → copy all text.<br>
+        <strong>Step 3:</strong> Paste into Import modal → click <strong>Import & Merge</strong>.<br>
+        <strong>Step 4:</strong> Tickets restored. Team members reload automatically from Firestore.<br><br>
+        <strong>Safe:</strong> Import only adds or updates — never deletes your existing data.
+      </div>
+      <div class="wf-timing">💡 Team members sync on their own — only tickets need import.</div>
+    </div>
+  </div>
+</div>
 
     <!-- ══════════════════════════════════════════════════════
          TEAM MANAGEMENT & PASSWORD SHARING GUIDE
@@ -1571,22 +1630,24 @@ function toggleSidebar(){
       <div style="font-family:'Syne',sans-serif;font-size:17px;font-weight:800;margin-bottom:6px;color:var(--text);">👥 Team Management Guide</div>
       <div style="font-size:12px;color:var(--text-muted);margin-bottom:16px;">How to add team members, set permissions, and ensure they can log in from anywhere.</div>
 
-      <div class="workflow-step">
-        <div class="wf-num" style="font-size:14px;">➕</div>
-        <div>
-          <div class="wf-title">➕ How to Add a Team Member</div>
-          <div class="wf-desc">
-            <strong>Step 1:</strong> Go to <strong>Team</strong> page in the sidebar.<br>
-            <strong>Step 2:</strong> Click <strong>+ Invite Member</strong> (visible only to Owner).<br>
-            <strong>Step 3:</strong> Fill in their name, role, email, and set a unique password (e.g. Priya@2025).<br>
-            <strong>Step 4:</strong> Choose a Permission Preset or manually tick individual permissions.<br>
-            <strong>Step 5:</strong> Click <strong>💾 Save Member</strong>.<br>
-            <strong>Step 6:</strong> Click <strong>"Export & Share File"</strong> on the Team page — this creates an <code>admin-with-team.html</code> file with their password embedded.<br>
-            <strong>Step 7:</strong> Send them: (a) the admin-with-team.html file + (b) their password + (c) instructions to open the file and log in.
-          </div>
-          <div class="wf-timing">⚠️ If you just send the admin.html without embedding — their password won't work on their device because it's stored only in YOUR browser.</div>
-        </div>
-      </div>
+     <div class="workflow-step">
+  <div class="wf-num" style="font-size:14px;">➕</div>
+  <div>
+    <div class="wf-title">➕ How to Add a Team Member (Firestore — instant sync)</div>
+    <div class="wf-desc">
+      <strong>Step 1:</strong> Go to <strong>Team</strong> in the sidebar → click <strong>+ Invite Member</strong>.<br>
+      <strong>Step 2:</strong> Fill name, role, email, WhatsApp, and a unique password.<br>
+      <strong>Step 3:</strong> Set permissions using the preset or custom checkboxes.<br>
+      <strong>Step 4:</strong> Click <strong>💾 Save Member</strong>.<br>
+      <strong>Step 5:</strong> That's it. The member is saved to Firestore instantly.<br><br>
+      <strong>The member can now:</strong><br>
+      • Open <code>admin.html</code> on <strong>any device</strong> — their password works immediately.<br>
+      • No config file download needed. No file sharing. No git push required.<br>
+      • If you suspend them, they lose access within seconds on all devices.
+    </div>
+    <div class="wf-timing">✅ No more Export → Share → Embed workflow for team members.</div>
+  </div>
+</div>
 
       <div class="workflow-step">
         <div class="wf-num" style="font-size:14px;">🔑</div>
@@ -3435,6 +3496,8 @@ function renderTeamPage(){
   // Show cross-device sharing alert for owner
   const sharingAlert = document.getElementById('memberSharingAlert');
   if(sharingAlert && isOwner()) sharingAlert.style.display = 'block';
+  const countEl = document.getElementById('firestoreMemberCount');
+if(countEl) countEl.textContent = members.length + ' member(s)';
 
   list.innerHTML = members.map((m,i) => {
     const permLabels = {
@@ -3517,7 +3580,7 @@ function applyPermissionPreset(preset){
   });
 }
 
-function saveMember(){
+async function saveMember(){
   if(!isOwner()){ showToast('⛔ Only owner can manage members.'); return; }
   const name = document.getElementById('mm_name').value.trim();
   const pwd = document.getElementById('mm_password').value.trim();
@@ -3557,29 +3620,36 @@ function saveMember(){
     members.push(memberData);
     showToast('✅ Member added! They can now login with their password.');
   }
-  saveMembers(members);
-  document.getElementById('memberModal').classList.remove('open');
-  renderTeamPage();
+  await saveMembers(members);
+window._teamCache = members;
+document.getElementById('memberModal').classList.remove('open');
+renderTeamPage();
 }
 
-function toggleMemberStatus(idx){
+async function toggleMemberStatus(idx){
   if(!isOwner()) return;
   const members = getMembers();
   if(!members[idx]) return;
   members[idx].status = members[idx].status === 'active' ? 'suspended' : 'active';
-  saveMembers(members);
+  await saveMembers(members);
+  window._teamCache = members;
   renderTeamPage();
-  showToast(members[idx].status==='active' ? '✅ Member activated.' : '⛔ Member suspended.');
+  showToast(members[idx].status==='active' ? '✅ Member activated on all devices.' : '⛔ Member suspended on all devices.');
 }
 
-function deleteMember(idx){
+async function deleteMember(idx){
   if(!isOwner()) return;
   if(!confirm('Remove this team member? They will lose login access immediately.')) return;
   const members = getMembers();
+  const removed = members[idx];
   members.splice(idx, 1);
-  saveMembers(members);
+  // Delete from Firestore
+  if (removed && removed.id) await deleteMemberFromFirestore(removed.id);
+  // Save remaining to Firestore + localStorage
+  await saveMembers(members);
+  window._teamCache = members;
   renderTeamPage();
-  showToast('🗑 Member removed.');
+  showToast('🗑 Member removed from all devices.');
 }
 
 function downloadMemberConfig(idx){
@@ -3868,6 +3938,10 @@ window.deleteTicket = function(){
 
 /* ── Call applyPermissions on load if user already in session ── */
 if(window.SE_USER){ applyPermissions(); }
+// If already logged in from session, attach listener immediately
+if(window.SE_USER && typeof attachTeamListener === 'function'){
+  attachTeamListener();
+}
 
 /* ══════════════════════════════════════════════════════
    SHARE CLIENT MESSAGE — RESPONSIVE BUILD
