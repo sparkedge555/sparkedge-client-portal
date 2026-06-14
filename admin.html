@@ -637,17 +637,18 @@ window.SE_USER = null; // set on login
   // Check session
   // Pre-seed cache from hardcoded members immediately
 if(typeof HARDCODED_MEMBERS !== 'undefined') window._teamCache = [...HARDCODED_MEMBERS];
- const sess = sessionStorage.getItem('se_session');
+const sess = sessionStorage.getItem('se_session');
 if(sess){
   try{
     window.SE_USER = JSON.parse(sess);
     document.getElementById('adminLoginScreen').style.display='none';
-    // Defer until full script is parsed
     setTimeout(() => {
       if(typeof updateUserBadge==='function') updateUserBadge();
       if(typeof applyPermissions==='function') applyPermissions();
       if(typeof attachTeamListener==='function') attachTeamListener();
-    }, 0);
+      if(typeof syncTicketsFromFirestore==='function') syncTicketsFromFirestore();
+      if(typeof syncVouchersFromFirestore==='function') syncVouchersFromFirestore();
+    }, 300);
   }catch{}
 }
 
@@ -709,11 +710,13 @@ err.style.display='block';
   screen.style.opacity='0'; screen.style.transition='opacity .3s';
   setTimeout(()=>{screen.style.display='none';}, 300);
   document.getElementById('adminPwdError').style.display='none';
-  if(typeof updateUserBadge==='function') updateUserBadge();
-  if(typeof applyPermissions==='function') applyPermissions();
-  if(typeof attachTeamListener==='function') attachTeamListener();
-  if(typeof syncTicketsFromFirestore==='function') syncTicketsFromFirestore();
-  if(typeof syncVouchersFromFirestore==='function') syncVouchersFromFirestore();
+  setTimeout(()=>{
+    if(typeof updateUserBadge==='function') updateUserBadge();
+    if(typeof applyPermissions==='function') applyPermissions();
+    if(typeof attachTeamListener==='function') attachTeamListener();
+    if(typeof syncTicketsFromFirestore==='function') syncTicketsFromFirestore();
+    if(typeof syncVouchersFromFirestore==='function') syncVouchersFromFirestore();
+  }, 300);
 }
 
   function togglePwdView(){
@@ -921,7 +924,7 @@ function toggleSidebar(){
               <div class="field"><label>Ticket ID</label><input id="e_ticketId" placeholder="SE-001" readonly style="opacity:.5;cursor:not-allowed;"/></div>
               <div class="field"><label>Client Name</label><input id="e_clientName" placeholder="Rohan Mehta"/></div>
               <div class="field full"><label>Project Name</label><input id="e_projectName" placeholder="Brand Identity & Logo Design"/></div>
-              <div class="field"><label>WhatsApp Number</label><input id="e_whatsapp" placeholder="+91 98765 43210"/></div>
+              <div class="field"><label>WhatsApp Number</label><input id="e_whatsapp" placeholder="+91 98765 xxxxx" oninput="updateWALink()"/></div>
               <div class="field"><label>Client Email</label><input id="e_clientEmail" placeholder="client@email.com"/></div>
             </div>
           </div>
@@ -1085,7 +1088,7 @@ function toggleSidebar(){
           <div class="card-body">
             <div class="wa-block">
               <div class="wa-input">
-                <input id="wa_message" placeholder="Type a quick message..." value="Hi! Here's your project update link:"/>
+                <input id="wa_message" placeholder="Type a quick message..." value="Hi! Here's your project update link:" oninput="updateWALink()"/>
               </div>
               <a class="wa-btn" id="waLink" href="#" target="_blank">
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 1.5C4.41 1.5 1.5 4.41 1.5 8c0 1.19.32 2.31.88 3.27L1.5 14.5l3.3-.87C5.74 14.18 6.85 14.5 8 14.5c3.59 0 6.5-2.91 6.5-6.5S11.59 1.5 8 1.5z" stroke="#25D366" stroke-width="1.2"/><path d="M6 5.5c0-.28.22-.5.5-.5h.5c.28 0 .5.22.5.5v1c0 .28-.22.5-.5.5A2.5 2.5 0 019.5 10c0-.28.22-.5.5-.5h1c.28 0 .5.22.5.5v.5c0 .28-.22.5-.5.5A4.5 4.5 0 015.5 6.5c0-.28.22-.5.5-.5H6z" fill="#25D366"/></svg>
@@ -2119,12 +2122,20 @@ let currentTicketId = null;
 async function syncTicketsFromFirestore() {
   try {
     const snapshot = await getDb().collection('clients').get();
-    if (snapshot.empty) return; // nothing in Firestore yet, keep local defaults
+    if (snapshot.empty) return;
     const fsTickets = [];
     snapshot.forEach(doc => fsTickets.push({ ticketId: doc.id, ...doc.data() }));
-    tickets = fsTickets;
+    const local = loadTickets();
+    const merged = [...local];
+    fsTickets.forEach(ft => {
+      const idx = merged.findIndex(lt => lt.ticketId === ft.ticketId);
+      if (idx >= 0) { merged[idx] = { ...merged[idx], ...ft }; }
+      else { merged.push(ft); }
+    });
+    tickets = merged;
     saveTickets(tickets);
     renderDashboard();
+    document.getElementById('ticketCountBadge').textContent = tickets.length;
     if (document.getElementById('page-tickets').classList.contains('active')) renderTicketList();
   } catch(e) {
     console.warn('Could not sync tickets from Firestore:', e.message);
@@ -2238,6 +2249,7 @@ function ticketCardHTML(t) {
    EDITOR
 ══════════════════════ */
 function openEditor(ticketId) {
+  _discType = 'none';
   currentTicketId = ticketId;
   const t = tickets.find(x=>x.ticketId===ticketId);
   if(!t) return;
@@ -2295,8 +2307,7 @@ function openEditor(ticketId) {
 document.querySelectorAll('.share-tpl-btn').forEach(b => b.classList.remove('active'));
 document.getElementById('shareCustomMsg').value = '';
 buildShareMsg();
-  document.getElementById('e_whatsapp').addEventListener('input', updateWALink);
-  document.getElementById('wa_message').addEventListener('input', updateWALink);
+  
 
   showPage('editor');
   document.getElementById('topbarTitle').textContent = 'Editing '+t.ticketId;
@@ -3282,13 +3293,11 @@ function loadDiscountFields(t){
   const disc = t.discount||{};
   setDiscType(disc.type||'none');
   if(disc.type && disc.type!=='none'){
-    setTimeout(()=>{
-      const el=document.getElementById('e_discountValue');
-      if(el) el.value=disc.value||'';
-      const re=document.getElementById('e_discountReason');
-      if(re) re.value=disc.reason||'';
-      recalcDiscountedTotal();
-    },50);
+    const el = document.getElementById('e_discountValue');
+    if(el) el.value = disc.value||'';
+    const re = document.getElementById('e_discountReason');
+    if(re) re.value = disc.reason||'';
+    setTimeout(()=>{ recalcDiscountedTotal(); }, 100);
   }
 }
 
@@ -3982,7 +3991,6 @@ window.openEditorSafe = function(ticketId){
     return;
   }
   _origOpenEditor(ticketId);
-  showPage('editor');
 };
 
 // Patch saveCurrentTicket to check permissions

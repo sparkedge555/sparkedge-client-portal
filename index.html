@@ -95,9 +95,7 @@
         </svg>
       </button>
 
-      <p id="errorMsg" class="error-msg" style="display:none">
-        ⚠️ Invalid Ticket ID. Please check with your project manager.
-      </p>
+      <p id="errorMsg" class="error-msg" style="display:none"></p>
 
       <div class="login-footer">
         Need help? &nbsp;<a href="mailto:sparkedge555@gmail.com">sparkedge555@gmail.com</a>
@@ -112,19 +110,28 @@
     });
 
     function accessPortal() {
-  const input = document.getElementById('ticketInput').value.trim().toUpperCase();
+  const raw = document.getElementById('ticketInput').value.trim();
+  const input = raw.toUpperCase();
   const errorMsg = document.getElementById('errorMsg');
+  const inp = document.getElementById('ticketInput');
 
-  if (!input) {
+  function shake(msg) {
+    errorMsg.textContent = msg;
     errorMsg.style.display = 'block';
-    const inp = document.getElementById('ticketInput');
     inp.classList.add('shake');
     setTimeout(() => inp.classList.remove('shake'), 500);
+  }
+
+  if (!input) {
+    shake('Please enter your Ticket ID (e.g. SE-001)');
     return;
   }
 
-  // Just redirect — dashboard.html will check Firestore
-  // and show "Ticket Not Found" if it doesn't exist
+  if (!/^SE-\d{2,4}$/i.test(input)) {
+    shake('Ticket IDs look like SE-001. Please check with your project manager.');
+    return;
+  }
+
   errorMsg.style.display = 'none';
   window.location.href = `dashboard.html?id=${input}`;
 }
