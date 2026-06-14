@@ -123,7 +123,7 @@
 
       if (validTickets.includes(input)) {
         errorMsg.style.display = 'none';
-        window.location.href = `tickets/${input}.html`;/* flat folder — files are in same folder */
+        window.location.href = `dashboard.html?id=${input}`;/* flat folder — files are in same folder */
       } else {
         errorMsg.style.display = 'block';
         const inp = document.getElementById('ticketInput');

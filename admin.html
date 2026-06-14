@@ -7,6 +7,8 @@
 <!-- =========================
      FAVICONS & APP ICONS
 ========================= -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
 <!-- Standard Favicon -->
 <link rel="icon" type="image/x-icon" href="./favicons/favicon.ico">
@@ -757,6 +759,9 @@ function toggleSidebar(){
         <button class="btn btn-primary" onclick="generateAndDownload()">
           ⬇ Generate & Download File
         </button>
+        <button class="btn btn-green" onclick="saveToFirestore()">
+      ☁️ Save to Firestore (Live)
+      </button>
       </div>
     </div>
 
@@ -2364,6 +2369,35 @@ function generateAndDownload() {
   a.click();
   URL.revokeObjectURL(url);
   showToast('File downloaded! → Move to clients/ folder → Push to GitHub');
+}
+
+async function saveToFirestore() {
+  const data = collectFormData();
+
+  // Firebase config — same as dashboard.html
+  if (!window._fbInitDone) {
+    const firebaseConfig = {
+      apiKey: "AIzaSyA0rufGe1NcKnsalr7VFnIuRLwfjPyD0QE",
+      authDomain: "sparkedge-client-portal.firebaseapp.com",
+      projectId: "sparkedge-client-portal",
+      storageBucket: "sparkedge-client-portal.firebasestorage.app",
+      messagingSenderId: "848868473172",
+      appId: "1:848868473172:web:2111dd537b9bc7549370c1"
+    };
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    window._fbInitDone = true;
+  }
+
+  try {
+    showToast('Saving to Firestore...');
+    await firebase.firestore()
+      .collection('clients')
+      .doc(data.ticketId)
+      .set(data);
+    showToast('✅ Saved to Firestore! Client portal is live instantly.');
+  } catch(e) {
+    alert('Error saving: ' + e.message);
+  }
 }
 
 /* ══════════════════════
