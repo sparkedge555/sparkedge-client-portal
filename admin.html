@@ -711,8 +711,9 @@ err.style.display='block';
   document.getElementById('adminPwdError').style.display='none';
   if(typeof updateUserBadge==='function') updateUserBadge();
   if(typeof applyPermissions==='function') applyPermissions();
-  // Attach Firestore real-time listener for team members
   if(typeof attachTeamListener==='function') attachTeamListener();
+  if(typeof syncTicketsFromFirestore==='function') syncTicketsFromFirestore();
+  if(typeof syncVouchersFromFirestore==='function') syncVouchersFromFirestore();
 }
 
   function togglePwdView(){
@@ -895,10 +896,10 @@ function toggleSidebar(){
       </div>
       <div style="margin-left:auto;display:flex;gap:8px;">
         <button class="btn btn-red btn-sm" onclick="deleteTicket()">🗑 Delete</button>
-        <button class="btn btn-secondary" onclick="saveCurrentTicket()">💾 Save</button>
-        <button class="btn btn-primary" onclick="generateAndDownload()">
-          ⬇ Generate & Download File
-        </button>
+        <button class="btn btn-secondary" onclick="saveCurrentTicket()">💾 Save (syncs live)</button>
+        <button class="btn btn-primary" style="width:100%;margin-bottom:8px;" onclick="generateAndDownload()">
+  ⬇ Download Offline Backup (.html)
+</button>
         <button class="btn btn-green" onclick="saveToFirestore()">
       ☁️ Save to Firestore (Live)
       </button>
@@ -2115,6 +2116,21 @@ function defaultTickets() {
 let tickets = loadTickets();
 let currentTicketId = null;
 
+async function syncTicketsFromFirestore() {
+  try {
+    const snapshot = await getDb().collection('clients').get();
+    if (snapshot.empty) return; // nothing in Firestore yet, keep local defaults
+    const fsTickets = [];
+    snapshot.forEach(doc => fsTickets.push({ ticketId: doc.id, ...doc.data() }));
+    tickets = fsTickets;
+    saveTickets(tickets);
+    renderDashboard();
+    if (document.getElementById('page-tickets').classList.contains('active')) renderTicketList();
+  } catch(e) {
+    console.warn('Could not sync tickets from Firestore:', e.message);
+  }
+}
+
 /* ══════════════════════
    NAVIGATION
 ══════════════════════ */
@@ -2422,13 +2438,6 @@ function addTimeline() {
    COLLECT FORM DATA
 ══════════════════════ */
 function collectFormData() {
-  const stages = [...document.querySelectorAll('#stagesList .stage-row')].map(row => {
-    const inputs = row.querySelectorAll('input');
-    const sel = row.querySelector('select');
-    const note = inputs[1] ? inputs[1].value.trim() : '';
-    return { name:inputs[0].value.trim(), amount:parseInt(inputs[1]?.previousElementSibling?.value||inputs[0].value)||0, status:sel.value, note };
-  });
-  // Re-collect properly: top row inputs vs note row input
   const stagesFinal = [...document.querySelectorAll('#stagesList .stage-row')].map(row => {
     const topInputs = row.querySelectorAll('.stage-row-top input');
     const noteInput = row.querySelector('.stage-row-note-row input');
@@ -2506,12 +2515,18 @@ function saveDocTracker() {
 /* ══════════════════════
    SAVE TICKET (to localStorage)
 ══════════════════════ */
-function saveCurrentTicket() {
+async function saveCurrentTicket() {
   const data = collectFormData();
   const idx = tickets.findIndex(t=>t.ticketId===currentTicketId);
   if(idx>=0) tickets[idx] = data;
   saveTickets(tickets);
-  showToast('Ticket saved!');
+  // Also push to Firestore so it's live + synced across devices
+  try {
+    await getDb().collection('clients').doc(data.ticketId).set(data, { merge: true });
+    showToast('✅ Ticket saved & synced live!');
+  } catch(e) {
+    showToast('⚠️ Saved locally — Firestore sync failed.');
+  }
 }
 
 /* ══════════════════════
@@ -2790,6 +2805,7 @@ function createTicket() {
   };
   tickets.push(newTicket);
   saveTickets(tickets);
+  getDb().collection('clients').doc(id).set(newTicket).catch(e=>console.warn('Firestore create failed:', e.message));
   document.getElementById('ticketCountBadge').textContent = tickets.length;
   showToast('Ticket '+id+' created!');
   // clear form
@@ -2803,14 +2819,16 @@ function createTicket() {
 function deleteTicket() {
   document.getElementById('deleteModal').classList.add('open');
 }
-function confirmDelete() {
-  tickets = tickets.filter(t=>t.ticketId!==currentTicketId);
+async function confirmDelete() {
+  const idToDelete = currentTicketId;
+  tickets = tickets.filter(t=>t.ticketId!==idToDelete);
   saveTickets(tickets);
   closeModal('deleteModal');
   showToast('Ticket deleted');
   showPage('tickets');
   renderTicketList();
   document.getElementById('ticketCountBadge').textContent = tickets.length;
+  try { await getDb().collection('clients').doc(idToDelete).delete(); } catch(e){ console.warn('Firestore delete failed:', e.message); }
 }
 
 /* ══════════════════════
@@ -2883,7 +2901,20 @@ function loadVouchers() {
   try { return JSON.parse(localStorage.getItem(VOUCHER_KEY)) || []; }
   catch { return []; }
 }
-function saveVouchers(v) { localStorage.setItem(VOUCHER_KEY, JSON.stringify(v)); }
+async function saveVouchers(v) {
+  localStorage.setItem(VOUCHER_KEY, JSON.stringify(v));
+  try {
+    await getDb().collection('vouchers').doc('all').set({ list: v });
+  } catch(e) { console.warn('Voucher Firestore sync failed:', e.message); }
+}
+async function syncVouchersFromFirestore() {
+  try {
+    const doc = await getDb().collection('vouchers').doc('all').get();
+    if (doc.exists && doc.data().list) {
+      localStorage.setItem(VOUCHER_KEY, JSON.stringify(doc.data().list));
+    }
+  } catch(e) { console.warn('Voucher sync failed:', e.message); }
+}
 
 function renderReferrals() {
   const vouchers = loadVouchers();
@@ -3175,7 +3206,7 @@ function loadSettings(){
   if(s.bankAcc) document.getElementById('s_bankAcc').value=s.bankAcc;
   if(s.ifsc) document.getElementById('s_ifsc').value=s.ifsc;
 }
-function saveSettings(){
+async function saveSettings(){
   const s={
     agencyName:document.getElementById('s_agencyName').value,
     ownerName:document.getElementById('s_ownerName').value,
@@ -3188,7 +3219,12 @@ function saveSettings(){
     ifsc:document.getElementById('s_ifsc').value,
   };
   localStorage.setItem(SETTINGS_KEY,JSON.stringify(s));
-  showToast('Settings saved!');
+  try {
+    await getDb().collection('settings').doc('agency').set(s);
+    showToast('✅ Settings saved & synced live to client portal!');
+  } catch(e) {
+    showToast('⚠️ Saved locally — Firestore sync failed.');
+  }
 }
 function changeAdminPwd(){
   const newPwd=document.getElementById('s_newPwd').value.trim();

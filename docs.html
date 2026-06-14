@@ -46,6 +46,8 @@
 <meta name="apple-mobile-web-app-title" content="SparkEdge">
 <!-- Google Fonts -->
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet"/>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <style>
 :root {
   --bg:#0A0A0F;--bg-card:#111118;--bg-raised:#16161F;--border:#1E1E2E;
@@ -790,16 +792,43 @@ const HARDCODED_MEMBERS = [
     "addedAt": "15/5/2026"
   }
 ];
-function getMembers(){
-  try{
-    const stored = JSON.parse(localStorage.getItem(AUTH_KEY)) || [];
+let _teamCacheDocs = [...HARDCODED_MEMBERS];
+
+function getDbDocs() {
+  if (!window._fbInitDoneDocs) {
+    const firebaseConfig = {
+      apiKey: "AIzaSyA0rufGe1NcKnsalr7VFnIuRLwfjPyD0QE",
+      authDomain: "sparkedge-client-portal.firebaseapp.com",
+      projectId: "sparkedge-client-portal",
+      storageBucket: "sparkedge-client-portal.firebasestorage.app",
+      messagingSenderId: "848868473172",
+      appId: "1:848868473172:web:2111dd537b9bc7549370c1"
+    };
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    window._fbInitDoneDocs = true;
+  }
+  return firebase.firestore();
+}
+
+async function fetchTeamFromFirestore() {
+  try {
+    const snapshot = await getDbDocs().collection('team').get();
+    const fsMembers = [];
+    snapshot.forEach(doc => fsMembers.push({ id: doc.id, ...doc.data() }));
     const merged = [...HARDCODED_MEMBERS];
-    stored.forEach(sm => {
-      const idx = merged.findIndex(hm => hm.id === sm.id || hm.password === sm.password);
-      if(idx >= 0) merged[idx] = sm; else merged.push(sm);
+    fsMembers.forEach(fm => {
+      const idx = merged.findIndex(hm => hm.id === fm.id);
+      if (idx >= 0) merged[idx] = fm; else merged.push(fm);
     });
-    return merged;
-  }catch{ return HARDCODED_MEMBERS; }
+    _teamCacheDocs = merged;
+  } catch(e) {
+    console.warn('Firestore team fetch failed:', e.message);
+  }
+  return _teamCacheDocs;
+}
+
+function getMembers(){
+  return _teamCacheDocs;
 }
 
 window.DOCS_USER = null;
@@ -818,7 +847,7 @@ window.DOCS_USER = null;
   }catch{}
 })();
 
-function doLogin(){
+async function doLogin(){
   const val = document.getElementById('loginPass').value.trim();
   const err = document.getElementById('loginError');
   err.classList.remove('show');
@@ -830,6 +859,10 @@ function doLogin(){
     unlockDocs();
     return;
   }
+
+  // Refresh team list from Firestore first
+  await fetchTeamFromFirestore();
+
   // Member check
   const members = getMembers();
   const member = members.find(m => m.password === val && m.status === 'active');
@@ -2754,7 +2787,7 @@ function resetFixedContent(){
       5. Or use <strong style="color:var(--text);">📤 Export & Embed All</strong> to auto-patch and download the updated file in one click.
     </div>
     <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
-      <button onclick="exportEmbedMembersDocs()" style="background:linear-gradient(135deg,#F59E0B,#D97706);border:none;border-radius:8px;padding:9px 16px;font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:#fff;cursor:pointer;">📤 Export & Embed All Members</button>
+
     </div>
   </div>
 
@@ -2810,8 +2843,26 @@ function resetFixedContent(){
 ════════════════════════════════════════════ */
 
 function isOwner(){ return window.DOCS_USER && window.DOCS_USER.role === 'owner'; }
+async function saveMembers(membersArray) {
+  localStorage.setItem(AUTH_KEY, JSON.stringify(membersArray));
+  try {
+    const db = getDbDocs();
+    const batch = db.batch();
+    membersArray.forEach(m => {
+      if (!m.id) m.id = 'mem_' + Date.now();
+      const ref = db.collection('team').doc(m.id);
+      batch.set(ref, m);
+    });
+    await batch.commit();
+    showToast('✅ Team synced to Firestore!');
+  } catch(e) {
+    showToast('⚠️ Saved locally — Firestore sync failed.');
+  }
+}
 
-function saveMembers(m){ localStorage.setItem(AUTH_KEY, JSON.stringify(m)); }
+async function deleteMemberFromFirestore(memberId) { try { await getDbDocs().collection('team').doc(memberId).delete(); } catch(e){} }
+
+
 
 function showTeamSection(){
   if(!isOwner()){
@@ -2866,7 +2917,6 @@ function renderTeamPage(){
       <div class="team-card-actions">
         <button class="t-btn t-btn-edit" onclick="openEditMemberModal(${i})">✏️ Edit</button>
         <button class="t-btn ${active?'t-btn-suspend':'t-btn-activate'}" onclick="toggleMemberStatus(${i})">${active?'⛔ Suspend':'✅ Activate'}</button>
-        <button class="t-btn t-btn-config" onclick="downloadMemberConfig(${i})">⬇ Config</button>
         <button class="t-btn t-btn-welcome" onclick="downloadWelcomeNote(${i})">📩 Welcome</button>
         <button class="t-btn t-btn-del" onclick="deleteMember(${i})">🗑 Remove</button>
       </div>
@@ -2925,7 +2975,7 @@ function applyPermPreset(preset){
   });
 }
 
-function saveMember(){
+async function saveMember(){
   const name = document.getElementById('mm_name').value.trim();
   const pwd  = document.getElementById('mm_password').value.trim();
   if(!name){ alert('Name is required.'); return; }
@@ -2956,28 +3006,32 @@ function saveMember(){
 
   if(editIdx>=0 && members[editIdx]){ members[editIdx]=data; showToast('✅ Member updated!'); }
   else { members.push(data); showToast('✅ Member added! Click Config to get embed instructions.'); }
-  saveMembers(members);
+  await saveMembers(members);
+  window._teamCacheDocs = members;
   closeMemberModal();
   renderTeamPage();
 }
 
-function toggleMemberStatus(idx){
+async function toggleMemberStatus(idx){
   const members = getMembers();
   if(!members[idx]) return;
   members[idx].status = members[idx].status==='active' ? 'suspended' : 'active';
-  saveMembers(members);
+  await saveMembers(members);
+  window._teamCacheDocs = members;
   renderTeamPage();
-  showToast(members[idx].status==='active' ? '✅ Member activated.' : '⛔ Member suspended.');
+  showToast(members[idx].status==='active' ? '✅ Member activated on all devices.' : '⛔ Member suspended on all devices.');
 }
 
-function deleteMember(idx){
-  if(!confirm('Remove this member? They will lose access immediately.')) return;
+async function deleteMember(idx){
+  if(!confirm('Remove this member? They lose access immediately.')) return;
   const members = getMembers();
-  const name = members[idx]?.name;
+  const removed = members[idx];
   members.splice(idx,1);
-  saveMembers(members);
+  if(removed && removed.id) await deleteMemberFromFirestore(removed.id);
+  await saveMembers(members);
+  window._teamCacheDocs = members;
   renderTeamPage();
-  showToast('🗑 '+name+' removed.');
+  showToast('🗑 '+removed?.name+' removed from all devices.');
 }
 
 function downloadMemberConfig(idx){
@@ -3007,67 +3061,6 @@ ${json}`;
   showToast('✅ Config for '+m.name+' downloaded!');
 }
 
-function downloadWelcomeNote(idx){
-  const members = getMembers();
-  const m = members[idx];
-  if(!m){ showToast('Member not found.'); return; }
-  const permList = (m.permissions||[]).map(p=>`<li>${PERM_LABELS[p]||p}</li>`).join('');
-  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"/><title>Welcome — ${m.name}</title>
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;600&display=swap" rel="stylesheet"/>
-  <style>*{box-sizing:border-box;margin:0;padding:0;}body{background:#0A0A14;color:#E0E0F0;font-family:'DM Sans',sans-serif;padding:40px 20px;min-height:100vh;}
-  .wrap{max-width:580px;margin:0 auto;}.logo{display:flex;align-items:center;gap:10px;margin-bottom:28px;}
-  .li{width:38px;height:38px;background:linear-gradient(135deg,#FF6B35,#FF3CAC);border-radius:10px;display:flex;align-items:center;justify-content:center;}
-  .ln{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;background:linear-gradient(135deg,#FF6B35,#FF3CAC);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
-  h1{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;margin-bottom:6px;}
-  .card{background:#0E0E1A;border:1px solid #1E1E30;border-radius:14px;padding:20px;margin-bottom:16px;}
-  .ct{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#555570;margin-bottom:12px;}
-  .row{display:flex;gap:8px;padding:8px 0;border-bottom:1px solid #141422;font-size:12px;}
-  .row:last-child{border:none;}.rl{color:#555570;min-width:100px;font-weight:600;}.rv{color:#E0E0F0;}
-  .pwd-box{background:linear-gradient(135deg,rgba(255,107,53,.08),rgba(255,60,172,.08));border:1px solid rgba(255,107,53,.3);border-radius:12px;padding:18px;margin-bottom:16px;text-align:center;}
-  .pwd{font-family:monospace;font-size:24px;font-weight:700;color:#FF6B35;letter-spacing:3px;margin-top:8px;}
-  ul{list-style:none;display:flex;flex-direction:column;gap:5px;}
-  li{font-size:12px;color:#A0A0C0;padding:7px 12px;background:#141422;border-radius:7px;border-left:3px solid rgba(59,130,246,.5);}
-  .footer{text-align:center;margin-top:24px;font-size:11px;color:#3A3A5A;}</style></head>
-  <body><div class="wrap">
-  <div class="logo"><div class="li"><svg width="18" height="18" viewBox="0 0 28 28" fill="none"><path d="M16 3L6 16H14L12 25L22 12H14L16 3Z" fill="white"/></svg></div><span class="ln">SparkEdge</span></div>
-  <h1>Welcome, ${m.name}! 🎉</h1>
-  <p style="font-size:13px;color:#7A7A9A;margin-bottom:20px;">You've been added to the SparkEdge Docs workspace.</p>
-  <div class="card"><div class="ct">Your Profile</div>
-  <div class="row"><span class="rl">Name</span><span class="rv">${m.name}</span></div>
-  <div class="row"><span class="rl">Designation</span><span class="rv">${m.role||'Team Member'}</span></div>
-  ${m.email?`<div class="row"><span class="rl">Email</span><span class="rv">${m.email}</span></div>`:''}
-  ${m.wa?`<div class="row"><span class="rl">WhatsApp</span><span class="rv">${m.wa}</span></div>`:''}
-  <div class="row"><span class="rl">Status</span><span class="rv" style="color:#22C55E;font-weight:700;">✅ Active</span></div></div>
-  <div class="pwd-box"><div style="font-size:12px;font-weight:700;color:#FF6B35;">🔐 Your Login Password — Keep Private</div><div class="pwd">${m.password}</div>
-  <div style="font-size:11px;color:#7A7A9A;margin-top:8px;">Open docs.html and enter this password to login.</div></div>
-  <div class="card"><div class="ct">Your Permissions</div>${permList?`<ul>${permList}</ul>`:'<p style="font-size:12px;color:#7A7A9A;">No specific permissions — contact owner.</p>'}</div>
-  <div class="footer">© ${new Date().getFullYear()} SparkEdge · Docs Workspace</div>
-  </div></body></html>`;
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([html],{type:'text/html'}));
-  a.download = 'welcome-'+m.name.replace(/\s+/g,'-').toLowerCase()+'.html';
-  a.click();
-  showToast('📩 Welcome note for '+m.name+' downloaded!');
-}
-
-function exportEmbedMembersDocs(){
-  const members = getMembers();
-  const json = JSON.stringify(members, null, 2);
-  const newCode = `const HARDCODED_MEMBERS = ${json};`;
-  fetch(window.location.href)
-    .then(r=>r.text())
-    .then(src=>{
-      const patched = src.replace(/const HARDCODED_MEMBERS = \[[\s\S]*?\];/, newCode);
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(new Blob([patched],{type:'text/html'}));
-      a.download = 'docs-with-team.html';
-      a.click();
-      showToast('✅ docs-with-team.html downloaded! Share this file.');
-    })
-    .catch(()=>{
-      alert('Auto-embed failed (local file:// protocol).\n\nManual: open docs.html → find HARDCODED_MEMBERS → replace [] with:\n'+json);
-    });
-}
 </script>
 
 </body>
