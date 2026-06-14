@@ -1,0 +1,1320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>SparkEdge — Owner Master Guide 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --bg:#060610;--bg1:#0C0C1A;--bg2:#111124;--bg3:#161630;
+  --border:rgba(255,255,255,.07);--border2:rgba(255,255,255,.12);
+  --accent:#FF6B35;--accent2:#FF3CAC;--gold:#FFB347;--green:#22C55E;
+  --blue:#3B82F6;--purple:#9B7FD4;--red:#EF4444;--cyan:#4CC9F0;
+  --text:#F0F0FA;--muted:#7A7A9A;--dim:#3A3A5A;
+  --grad:linear-gradient(135deg,#FF6B35,#FF3CAC);
+  --hf:'Syne',sans-serif;--bf:'DM Sans',sans-serif;--mf:'JetBrains Mono',monospace;
+  --r:14px;--rs:8px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:var(--bf);line-height:1.75;overflow-x:hidden;}
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-thumb{background:var(--accent);border-radius:2px;}
+
+/* NAV */
+.nav{position:sticky;top:0;z-index:200;display:flex;align-items:center;justify-content:space-between;padding:0 40px;height:60px;background:rgba(6,6,16,.95);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);}
+.nav-logo{font-family:var(--hf);font-size:15px;font-weight:800;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.nav-right{display:flex;align-items:center;gap:10px;}
+.nav-chip{background:rgba(255,107,53,.1);border:1px solid rgba(255,107,53,.25);color:var(--accent);font-family:var(--mf);font-size:10px;font-weight:600;padding:4px 12px;border-radius:20px;letter-spacing:.1em;}
+.nav-chip.green{background:rgba(34,197,94,.1);border-color:rgba(34,197,94,.25);color:var(--green);}
+
+/* HERO */
+.hero{padding:70px 52px 50px;max-width:1100px;margin:0 auto;position:relative;}
+.hero::before{content:'';position:absolute;top:-80px;right:-80px;width:500px;height:500px;background:radial-gradient(circle,rgba(255,107,53,.08) 0%,transparent 65%);pointer-events:none;}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;background:rgba(255,107,53,.08);border:1px solid rgba(255,107,53,.2);color:var(--accent);font-family:var(--mf);font-size:10px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;padding:5px 14px;border-radius:20px;margin-bottom:22px;}
+.eyebrow-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:blink 2s ease infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:.3;}}
+h1{font-family:var(--hf);font-size:clamp(26px,4.5vw,52px);font-weight:800;letter-spacing:-.03em;line-height:1.1;margin-bottom:18px;}
+h1 span{background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;display:block;}
+.hero-desc{font-size:15px;color:var(--muted);max-width:640px;line-height:1.8;margin-bottom:32px;}
+.chip-row{display:flex;flex-wrap:wrap;gap:8px;}
+.chip{display:flex;align-items:center;gap:7px;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--rs);padding:6px 14px;font-family:var(--mf);font-size:11px;color:var(--muted);}
+.chip b{color:var(--gold);}
+
+/* TOC */
+.toc-wrap{max-width:1100px;margin:0 auto;padding:0 52px 50px;}
+.toc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;}
+.toc-card{background:var(--bg1);border:1px solid var(--border);border-radius:var(--r);padding:14px 18px;cursor:pointer;text-decoration:none;transition:all .2s;display:block;}
+.toc-card:hover{border-color:rgba(255,107,53,.35);transform:translateY(-2px);}
+.toc-num{font-family:var(--mf);font-size:10px;color:var(--accent);font-weight:600;margin-bottom:5px;letter-spacing:.1em;}
+.toc-title{font-family:var(--hf);font-size:13px;font-weight:700;color:var(--text);}
+.toc-sub{font-size:11px;color:var(--muted);margin-top:3px;}
+
+/* SECTION WRAPPER */
+.section{max-width:1100px;margin:0 auto;padding:0 52px 60px;}
+.section-hdr{margin-bottom:28px;padding-top:60px;}
+.section-eyebrow{font-family:var(--mf);font-size:10px;font-weight:600;color:var(--accent);letter-spacing:.2em;text-transform:uppercase;display:flex;align-items:center;gap:14px;margin-bottom:12px;}
+.section-eyebrow::after{content:'';flex:1;height:1px;background:rgba(255,107,53,.2);}
+.section-title{font-family:var(--hf);font-size:clamp(20px,3vw,32px);font-weight:800;letter-spacing:-.02em;line-height:1.15;}
+.section-sub{font-size:14px;color:var(--muted);margin-top:8px;line-height:1.7;}
+
+/* CARDS */
+.card{background:var(--bg1);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:16px;}
+.card-hdr{padding:18px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;}
+.card-icon{width:38px;height:38px;border-radius:var(--rs);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.ci-orange{background:rgba(255,107,53,.12);border:1px solid rgba(255,107,53,.25);}
+.ci-green{background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.25);}
+.ci-blue{background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.25);}
+.ci-gold{background:rgba(255,179,71,.12);border:1px solid rgba(255,179,71,.25);}
+.ci-purple{background:rgba(155,127,212,.12);border:1px solid rgba(155,127,212,.25);}
+.ci-red{background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.25);}
+.card-title{font-family:var(--hf);font-size:15px;font-weight:700;}
+.card-sub{font-size:11px;color:var(--muted);margin-top:2px;}
+.card-body{padding:22px;}
+
+/* FILE TABLE */
+.file-tbl{width:100%;border-collapse:collapse;font-size:12.5px;}
+.file-tbl th{text-align:left;padding:10px 14px;font-family:var(--mf);font-size:9px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:var(--dim);border-bottom:1px solid var(--border);background:var(--bg2);}
+.file-tbl td{padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:top;}
+.file-tbl tr:last-child td{border-bottom:none;}
+.file-tbl tr:hover td{background:rgba(255,255,255,.02);}
+.fname{font-family:var(--mf);font-weight:700;color:var(--accent);}
+.tag{display:inline-block;font-size:9px;font-weight:700;padding:2px 8px;border-radius:4px;letter-spacing:.05em;}
+.tag-new{background:rgba(34,197,94,.12);color:var(--green);border:1px solid rgba(34,197,94,.25);}
+.tag-changed{background:rgba(255,107,53,.12);color:var(--accent);border:1px solid rgba(255,107,53,.25);}
+.tag-same{background:rgba(122,122,154,.1);color:var(--muted);border:1px solid var(--border);}
+.tag-delete{background:rgba(239,68,68,.1);color:var(--red);border:1px solid rgba(239,68,68,.2);}
+.tag-local{background:rgba(155,127,212,.1);color:var(--purple);border:1px solid rgba(155,127,212,.2);}
+
+/* STEP LIST */
+.step-list{display:flex;flex-direction:column;gap:0;}
+.step{display:flex;gap:18px;padding:18px 0;border-bottom:1px solid var(--border);}
+.step:last-child{border-bottom:none;}
+.step-num{width:34px;height:34px;flex-shrink:0;background:var(--grad);border-radius:9px;display:flex;align-items:center;justify-content:center;font-family:var(--hf);font-size:14px;font-weight:800;color:#fff;margin-top:2px;}
+.step-body .st{font-family:var(--hf);font-size:14px;font-weight:700;margin-bottom:6px;}
+.step-body .sd{font-size:13px;color:var(--muted);line-height:1.75;}
+.step-body .sd strong{color:var(--text);}
+.step-body .sd code{background:rgba(255,107,53,.08);border:1px solid rgba(255,107,53,.2);border-radius:4px;padding:1px 7px;font-family:var(--mf);font-size:11px;color:var(--accent);}
+
+/* CODE BLOCK */
+.code-block{background:rgba(0,0,0,.6);border:1px solid var(--border2);border-radius:var(--rs);padding:16px 20px;font-family:var(--mf);font-size:12px;color:#A0E0FF;white-space:pre;overflow-x:auto;margin:12px 0;line-height:1.8;}
+.code-block .cm{color:var(--dim);}
+.code-block .ck{color:#FF9F7E;}
+.code-block .cv{color:var(--green);}
+
+/* BOXES */
+.box{border-radius:var(--r);padding:16px 20px;margin:12px 0;font-size:13px;line-height:1.8;}
+.box strong{font-weight:700;}
+.box-warn{background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.2);border-left:3px solid #F59E0B;color:var(--text);}
+.box-warn strong{color:#F59E0B;}
+.box-success{background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.2);border-left:3px solid var(--green);color:var(--text);}
+.box-success strong{color:var(--green);}
+.box-info{background:rgba(59,130,246,.06);border:1px solid rgba(59,130,246,.2);border-left:3px solid var(--blue);color:var(--text);}
+.box-info strong{color:var(--blue);}
+.box-danger{background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.2);border-left:3px solid var(--red);color:var(--text);}
+.box-danger strong{color:var(--red);}
+.box-orange{background:rgba(255,107,53,.06);border:1px solid rgba(255,107,53,.2);border-left:3px solid var(--accent);color:var(--text);}
+.box-orange strong{color:var(--accent);}
+
+/* GRID CARDS */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;}
+.mini-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:16px 18px;}
+.mc-label{font-family:var(--mf);font-size:9px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:var(--dim);margin-bottom:6px;}
+.mc-val{font-family:var(--hf);font-size:22px;font-weight:800;}
+.mc-val.orange{background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.mc-val.green{color:var(--green);}
+.mc-val.blue{color:var(--blue);}
+.mc-val.gold{color:var(--gold);}
+.mc-sub{font-size:11px;color:var(--muted);margin-top:4px;line-height:1.5;}
+
+/* PERMISSION TABLE */
+.perm-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0;}
+.perm-item{display:flex;align-items:flex-start;gap:10px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--rs);padding:11px 13px;}
+.perm-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:5px;}
+.pd-green{background:var(--green);}
+.pd-red{background:var(--red);}
+.perm-text{font-size:12px;color:var(--muted);line-height:1.5;}
+.perm-text strong{color:var(--text);display:block;font-size:12px;margin-bottom:2px;}
+
+/* COMPARE */
+.compare{display:grid;grid-template-columns:1fr 1fr;gap:0;margin:6px 0;border-radius:var(--rs);overflow:hidden;}
+.compare-before{background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.15);border-right:none;padding:11px 15px;font-size:12px;color:#FCA5A5;line-height:1.6;}
+.compare-after{background:rgba(34,197,94,.07);border:1px solid rgba(34,197,94,.15);padding:11px 15px;font-size:12px;color:#86EFAC;line-height:1.6;}
+.compare-hdr{display:grid;grid-template-columns:1fr 1fr;gap:0;margin-bottom:4px;}
+.compare-hdr .bh{font-family:var(--mf);font-size:9px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--red);padding:5px 15px;}
+.compare-hdr .ah{font-family:var(--mf);font-size:9px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--green);padding:5px 15px;}
+
+/* FLOW */
+.flow-list{display:flex;flex-direction:column;gap:8px;}
+.flow-item{display:flex;gap:14px;padding:14px 18px;background:var(--bg1);border:1px solid var(--border);border-radius:var(--r);transition:border-color .2s;}
+.flow-item:hover{border-color:rgba(255,107,53,.25);}
+.flow-num{width:28px;height:28px;border-radius:7px;background:var(--grad);display:flex;align-items:center;justify-content:center;font-family:var(--hf);font-size:12px;font-weight:800;color:#fff;flex-shrink:0;}
+.flow-title{font-family:var(--hf);font-size:13px;font-weight:700;margin-bottom:3px;}
+.flow-desc{font-size:12px;color:var(--muted);line-height:1.6;}
+.flow-tag{display:inline-block;font-size:9px;font-weight:700;padding:2px 8px;border-radius:4px;margin-top:6px;font-family:var(--mf);}
+.ft-orange{background:rgba(255,107,53,.12);color:var(--accent);}
+.ft-green{background:rgba(34,197,94,.12);color:var(--green);}
+.ft-blue{background:rgba(59,130,246,.12);color:var(--blue);}
+.ft-gold{background:rgba(255,179,71,.12);color:var(--gold);}
+.ft-red{background:rgba(239,68,68,.12);color:var(--red);}
+
+/* INLINE CODE */
+code{background:rgba(255,107,53,.08);border:1px solid rgba(255,107,53,.2);border-radius:4px;padding:1px 7px;font-family:var(--mf);font-size:11px;color:var(--accent);}
+
+/* DIVIDER */
+.divider{height:1px;background:linear-gradient(90deg,transparent,var(--border2),transparent);margin:40px 0;}
+
+/* FOOTER */
+footer{background:var(--bg1);border-top:1px solid var(--border);padding:28px 52px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;}
+.f-brand{font-family:var(--hf);font-size:14px;font-weight:800;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.f-copy{font-family:var(--mf);font-size:10px;color:var(--dim);}
+
+/* STAT ROW */
+.stat-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin:16px 0;}
+.stat{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:16px 18px;text-align:center;}
+.stat-val{font-family:var(--hf);font-size:26px;font-weight:800;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.stat-lbl{font-family:var(--mf);font-size:9px;color:var(--dim);letter-spacing:.12em;text-transform:uppercase;margin-top:4px;}
+
+/* CHECKLIST */
+.checklist{display:flex;flex-direction:column;gap:7px;margin:12px 0;}
+.check-item{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--rs);}
+.check-icon{font-size:14px;flex-shrink:0;margin-top:1px;}
+.check-text{font-size:12.5px;color:var(--muted);line-height:1.5;}
+.check-text strong{color:var(--text);}
+
+/* URL PILL */
+.url-pill{display:inline-block;background:rgba(0,0,0,.5);border:1px solid var(--border2);border-radius:var(--rs);padding:8px 16px;font-family:var(--mf);font-size:12px;color:#A0E0FF;margin:4px 0;}
+
+/* FIRESTORE STATUS */
+.fs-status{display:flex;align-items:center;gap:8px;background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.2);border-radius:var(--rs);padding:8px 14px;font-size:12px;color:var(--green);font-weight:600;margin:8px 0;}
+.fs-dot{width:8px;height:8px;border-radius:50%;background:var(--green);animation:blink 2s ease infinite;}
+
+/* RESPONSIVE */
+@media(max-width:768px){
+  .nav{padding:0 18px;}
+  .hero,.section,.toc-wrap{padding-left:18px;padding-right:18px;}
+  .g2,.g3{grid-template-columns:1fr;}
+  .compare{grid-template-columns:1fr;}
+  .compare-before{border-right:1px solid rgba(239,68,68,.15);border-bottom:none;}
+  .perm-grid{grid-template-columns:1fr;}
+  footer{padding:20px 18px;}
+}
+
+/* ANCHOR OFFSET */
+[id]{scroll-margin-top:80px;}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-logo">⚡ SparkEdge</div>
+  <div class="nav-right">
+    <span class="nav-chip">OWNER MASTER GUIDE</span>
+    <span class="nav-chip green">Updated June 2026</span>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="eyebrow"><span class="eyebrow-dot"></span> Internal Document · Owner Eyes Only</div>
+  <h1>SparkEdge Complete<span>Owner Master Guide</span></h1>
+  <p class="hero-desc">Every single thing you need to know about how your site works — all files, all fixes, all flows, all permissions, Firebase setup, team management, and what to do when something breaks. Written specifically for Raunak (Owner).</p>
+  <div class="chip-row">
+    <div class="chip"><span>📁</span> Files: <b>11 total</b></div>
+    <div class="chip"><span>☁️</span> Backend: <b>Firebase Firestore</b></div>
+    <div class="chip"><span>🌐</span> Host: <b>GitHub Pages</b></div>
+    <div class="chip"><span>👥</span> Team: <b>Multi-user with permissions</b></div>
+    <div class="chip"><span>🔐</span> Auth: <b>Password-based login</b></div>
+    <div class="chip"><span>₹</span> Cost: <b>₹0 / month (Firebase free tier)</b></div>
+  </div>
+</section>
+
+<!-- TABLE OF CONTENTS -->
+<div class="toc-wrap">
+  <div style="font-family:var(--mf);font-size:10px;font-weight:600;color:var(--dim);letter-spacing:.2em;text-transform:uppercase;margin-bottom:14px;">Jump to section →</div>
+  <div class="toc-grid">
+    <a href="#s1" class="toc-card"><div class="toc-num">01</div><div class="toc-title">All Your Files</div><div class="toc-sub">What every file does</div></a>
+    <a href="#s2" class="toc-card"><div class="toc-num">02</div><div class="toc-title">How Firebase Works</div><div class="toc-sub">Firestore, collections, rules</div></a>
+    <a href="#s3" class="toc-card"><div class="toc-num">03</div><div class="toc-title">Admin Panel Guide</div><div class="toc-sub">Everything in admin.html</div></a>
+    <a href="#s4" class="toc-card"><div class="toc-num">04</div><div class="toc-title">Team Management</div><div class="toc-sub">Adding, suspending, removing members</div></a>
+    <a href="#s5" class="toc-card"><div class="toc-num">05</div><div class="toc-title">Docs Generator</div><div class="toc-sub">docs.html — all features</div></a>
+    <a href="#s6" class="toc-card"><div class="toc-num">06</div><div class="toc-title">Client Portal Flow</div><div class="toc-sub">index.html + dashboard.html</div></a>
+    <a href="#s7" class="toc-card"><div class="toc-num">07</div><div class="toc-title">CRM Guide</div><div class="toc-sub">lead-management-crm.html</div></a>
+    <a href="#s8" class="toc-card"><div class="toc-num">08</div><div class="toc-title">Passwords & Security</div><div class="toc-sub">Every password explained</div></a>
+    <a href="#s9" class="toc-card"><div class="toc-num">09</div><div class="toc-title">GitHub Deployment</div><div class="toc-sub">How to push and go live</div></a>
+    <a href="#s10" class="toc-card"><div class="toc-num">10</div><div class="toc-title">Adding New Clients</div><div class="toc-sub">Step-by-step new ticket flow</div></a>
+    <a href="#s11" class="toc-card"><div class="toc-num">11</div><div class="toc-title">Bugs Fixed</div><div class="toc-sub">What was broken, what's fixed</div></a>
+    <a href="#s12" class="toc-card"><div class="toc-num">12</div><div class="toc-title">Before vs After</div><div class="toc-sub">What changed from old system</div></a>
+    <a href="#s13" class="toc-card"><div class="toc-num">13</div><div class="toc-title">Daily Workflow</div><div class="toc-sub">Routine for you and Pinkesh</div></a>
+    <a href="#s14" class="toc-card"><div class="toc-num">14</div><div class="toc-title">Troubleshooting</div><div class="toc-sub">When something breaks</div></a>
+    <a href="#s15" class="toc-card"><div class="toc-num">15</div><div class="toc-title">Firebase Console</div><div class="toc-sub">How to use it directly</div></a>
+    <a href="#s16" class="toc-card"><div class="toc-num">16</div><div class="toc-title">Export / Import</div><div class="toc-sub">Backup and team sync</div></a>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SECTION 1 — ALL YOUR FILES
+══════════════════════════════════════════ -->
+<div class="section" id="s1">
+  <div class="section-hdr">
+    <div class="section-eyebrow">01 — FILE MAP</div>
+    <div class="section-title">Every File You Have — What It Does</div>
+    <div class="section-sub">Your complete SparkEdge system has 11 files. Here is what every single one does, who can access it, and whether it uses Firebase.</div>
+  </div>
+
+  <div class="card">
+    <div class="card-hdr">
+      <div class="card-icon ci-orange">📁</div>
+      <div><div class="card-title">Complete File List</div><div class="card-sub">Status as of June 2026 — after all updates applied</div></div>
+    </div>
+    <div class="card-body" style="padding:0;">
+      <table class="file-tbl">
+        <thead><tr><th>File Name</th><th>What It Does</th><th>Who Can Open It</th><th>Uses Firebase?</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><span class="fname">admin.html</span></td>
+            <td style="color:var(--muted);">Your main internal control panel. Manage tickets, team members, finance, referral vouchers, settings. <strong style="color:var(--text);">Only you and your team use this — never share with clients.</strong></td>
+            <td style="color:var(--muted);">You (RAUNAK@1) + Pinkesh (Pinkesh@1)</td>
+            <td><span style="color:var(--green);font-weight:600;">Yes — reads/writes tickets, team, settings, vouchers</span></td>
+            <td><span class="tag tag-changed">UPDATED</span></td>
+          </tr>
+          <tr>
+            <td><span class="fname">index.html</span></td>
+            <td style="color:var(--muted);">The client-facing login page. Client types their Ticket ID (e.g. SE-001) here. It redirects them to dashboard.html. <strong style="color:var(--text);">Now checks Firestore — no more editing validTickets[] array ever.</strong></td>
+            <td style="color:var(--muted);">All clients (public)</td>
+            <td><span style="color:var(--green);font-weight:600;">Yes — validates ticket ID against Firestore</span></td>
+            <td><span class="tag tag-changed">UPDATED</span></td>
+          </tr>
+          <tr>
+            <td><span class="fname">dashboard.html</span></td>
+            <td style="color:var(--muted);">The universal client dashboard. One file handles ALL clients — reads <code>?id=SE-001</code> from URL, fetches from Firestore, shows live project data. <strong style="color:var(--text);">Replaces all SE-XXX.html files forever.</strong></td>
+            <td style="color:var(--muted);">Clients via portal link</td>
+            <td><span style="color:var(--green);font-weight:600;">Yes — live Firestore read + real-time updates</span></td>
+            <td><span class="tag tag-new">NEW FILE</span></td>
+          </tr>
+          <tr>
+            <td><span class="fname">portal.js</span></td>
+            <td style="color:var(--muted);">JavaScript that renders the client dashboard UI — progress bar, payment stages, timeline, deliverables. Works with dashboard.html.</td>
+            <td style="color:var(--muted);">Not opened directly — loaded by dashboard.html</td>
+            <td style="color:var(--muted);">No — purely UI rendering</td>
+            <td><span class="tag tag-same">UNCHANGED</span></td>
+          </tr>
+          <tr>
+            <td><span class="fname">style.css</span></td>
+            <td style="color:var(--muted);">All visual styles for the login page and client dashboard.</td>
+            <td style="color:var(--muted);">Not opened directly — loaded by index.html and dashboard.html</td>
+            <td style="color:var(--muted);">No</td>
+            <td><span class="tag tag-same">UNCHANGED</span></td>
+          </tr>
+          <tr>
+            <td><span class="fname">docs.html</span></td>
+            <td style="color:var(--muted);">Internal document generator. Creates Invoice, SOW, Proposal, Welcome Packet, Service Agreement, etc. for Web, Billing, Design, and Landing Page services. Has its own login. Drafts saved in browser localStorage. <strong style="color:var(--text);">Team management (Pinkesh) now syncs via Firestore inside this file too.</strong></td>
+            <td style="color:var(--muted);">You (RAUNAK@1) + Pinkesh (Pinkesh@1)</td>
+            <td><span style="color:var(--gold);font-weight:600;">Partial — team members sync via Firestore; drafts stay local</span></td>
+            <td><span class="tag tag-changed">UPDATED (team sync)</span></td>
+          </tr>
+          <tr>
+            <td><span class="fname">lead-management-crm.html</span></td>
+            <td style="color:var(--muted);">Full lead/CRM tracker. Add leads, track pipeline stages, follow-ups, analytics, quick reply scripts. Completely standalone — no Firebase connection. Data in browser localStorage.</td>
+            <td style="color:var(--muted);">You (RAUNAK@1) + Pinkesh (Pinkesh@1 — hardcoded in file)</td>
+            <td style="color:var(--muted);">No — localStorage only. Export/Import JSON for sync.</td>
+            <td><span class="tag tag-same">UNCHANGED</span></td>
+          </tr>
+          <tr>
+            <td><span class="fname">lead.html</span></td>
+            <td style="color:var(--muted);">The 24-Hour Client Close Playbook — internal sales reference guide with scripts, objections, and closing techniques. Read-only reference document.</td>
+            <td style="color:var(--muted);">You and team (internal)</td>
+            <td style="color:var(--muted);">No</td>
+            <td><span class="tag tag-same">UNCHANGED</span></td>
+          </tr>
+          <tr>
+            <td><span class="fname">tools.html</span></td>
+            <td style="color:var(--muted);">Internal tools hub — links to all your internal tools in one place.</td>
+            <td style="color:var(--muted);">You and team (internal)</td>
+            <td style="color:var(--muted);">No</td>
+            <td><span class="tag tag-same">UNCHANGED</span></td>
+          </tr>
+          <tr>
+            <td><span class="fname">sparkedge_website_guide.html</span></td>
+            <td style="color:var(--muted);">Website management reference guide.</td>
+            <td style="color:var(--muted);">Internal</td>
+            <td style="color:var(--muted);">No</td>
+            <td><span class="tag tag-same">UNCHANGED</span></td>
+          </tr>
+          <tr>
+            <td><span class="fname">client-management-guide.html</span></td>
+            <td style="color:var(--muted);">Complete client engine and management guide.</td>
+            <td style="color:var(--muted);">Internal</td>
+            <td style="color:var(--muted);">No</td>
+            <td><span class="tag tag-same">UNCHANGED</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="box box-danger">
+    <strong>🗑 DELETE these old files from your GitHub repo — they are dead:</strong><br/>
+    <code>SE-001.html</code> &nbsp; <code>SE-002.html</code> &nbsp; <code>SE-003.html</code> &nbsp; and any future <code>SE-XXX.html</code><br/>
+    The new <code>dashboard.html</code> handles ALL clients from one single file. You never need to create individual client HTML files again.
+  </div>
+
+  <div class="box box-warn">
+    <strong>⚠️ Local-only files (by design):</strong><br/>
+    <code>lead-management-crm.html</code> and <code>docs.html</code> drafts use browser localStorage intentionally. They are standalone tools that don't need Firebase. Export JSON regularly as backup.
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SECTION 2 — HOW FIREBASE WORKS
+══════════════════════════════════════════ -->
+<div class="section" id="s2">
+  <div class="section-hdr">
+    <div class="section-eyebrow">02 — FIREBASE</div>
+    <div class="section-title">How Firebase Works in Your System</div>
+    <div class="section-sub">Firebase is Google's cloud database. You're using the free "Spark" plan — no credit card needed, never expires for your usage level.</div>
+  </div>
+
+  <div class="g3" style="margin-bottom:16px;">
+    <div class="mini-card"><div class="mc-label">Project ID</div><div class="mc-val orange" style="font-size:14px;font-family:var(--mf);">sparkedge-client-portal</div><div class="mc-sub">Your Firebase project name</div></div>
+    <div class="mini-card"><div class="mc-label">Daily Read Limit (Free)</div><div class="mc-val green">50,000</div><div class="mc-sub">You use ~200/day with 50 clients</div></div>
+    <div class="mini-card"><div class="mc-label">Daily Write Limit (Free)</div><div class="mc-val blue">20,000</div><div class="mc-sub">You use ~50/day</div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-hdr"><div class="card-icon ci-blue">☁️</div><div><div class="card-title">Firestore Collections — What's Stored Where</div><div class="card-sub">Firestore organizes data in "collections" (like folders) with "documents" (like files)</div></div></div>
+    <div class="card-body">
+      <div class="flow-list">
+        <div class="flow-item">
+          <div class="flow-num" style="background:linear-gradient(135deg,#3B82F6,#6C63FF);">📂</div>
+          <div>
+            <div class="flow-title"><code>clients</code> collection</div>
+            <div class="flow-desc">Stores every client ticket. Each document ID = the Ticket ID (SE-001, SE-002 etc.). Contains all ticket data: client name, project, payment stages, deliverables, timeline, files, progress. <strong style="color:var(--text);">Written by admin.html when you click "Save to Firestore". Read by dashboard.html in real-time.</strong></div>
+            <span class="flow-tag ft-blue">Read: dashboard.html</span>
+            <span class="flow-tag ft-orange">Write: admin.html</span>
+          </div>
+        </div>
+        <div class="flow-item">
+          <div class="flow-num" style="background:linear-gradient(135deg,#22C55E,#16A34A);">📂</div>
+          <div>
+            <div class="flow-title"><code>team</code> collection</div>
+            <div class="flow-desc">Stores all team members added via Team page in admin.html and docs.html. Each document ID = the member's <code>id</code> field. Contains name, role, email, password, permissions, status. <strong style="color:var(--text);">This is how Pinkesh can log in from any device — his account lives here.</strong></div>
+            <span class="flow-tag ft-green">Read: admin.html + docs.html login</span>
+            <span class="flow-tag ft-orange">Write: admin.html Team page</span>
+          </div>
+        </div>
+        <div class="flow-item">
+          <div class="flow-num" style="background:linear-gradient(135deg,#FFB347,#FF6B35);">📂</div>
+          <div>
+            <div class="flow-title"><code>settings</code> collection — document: <code>agency</code></div>
+            <div class="flow-desc">Stores your agency settings: UPI ID, bank details, owner name, email, phone. <strong style="color:var(--text);">When you save Settings in admin.html, this updates. dashboard.html reads this — so if you change your UPI ID, every client's payment modal updates automatically without touching any file.</strong></div>
+            <span class="flow-tag ft-gold">Read: dashboard.html payment modal</span>
+            <span class="flow-tag ft-orange">Write: admin.html Settings page</span>
+          </div>
+        </div>
+        <div class="flow-item">
+          <div class="flow-num" style="background:linear-gradient(135deg,#FF3CAC,#9B7FD4);">📂</div>
+          <div>
+            <div class="flow-title"><code>vouchers</code> collection — document: <code>all</code></div>
+            <div class="flow-desc">Stores all referral vouchers as a JSON list inside one document. Syncs when you create, use, or delete vouchers in admin.html.</div>
+            <span class="flow-tag ft-orange">Read + Write: admin.html Referrals page</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-hdr"><div class="card-icon ci-orange">🔑</div><div><div class="card-title">Your Firebase Config (Already Embedded)</div><div class="card-sub">This is already inside admin.html, dashboard.html, and docs.html — you don't need to change it</div></div></div>
+    <div class="card-body">
+      <div class="code-block"><span class="cm">// This config is already inside your files — just for reference</span>
+<span class="ck">const</span> <span class="cv">firebaseConfig</span> = {
+  apiKey: <span class="cv">"AIzaSyA0rufGe1NcKnsalr7VFnIuRLwfjPyD0QE"</span>,
+  authDomain: <span class="cv">"sparkedge-client-portal.firebaseapp.com"</span>,
+  projectId: <span class="cv">"sparkedge-client-portal"</span>,
+  storageBucket: <span class="cv">"sparkedge-client-portal.firebasestorage.app"</span>,
+  messagingSenderId: <span class="cv">"848868473172"</span>,
+  appId: <span class="cv">"1:848868473172:web:2111dd537b9bc7549370c1"</span>
+};</div>
+      <div class="box box-info"><strong>Good news:</strong> You never need to change this. It is already embedded in the correct files. Firebase API keys for web apps are safe to be public — they are restricted by Firebase security rules on Google's server side.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-hdr"><div class="card-icon ci-red">🛡️</div><div><div class="card-title">Firebase Security Rules — IMPORTANT</div><div class="card-sub">If saving to Firestore fails, this is why</div></div></div>
+    <div class="card-body">
+      <p style="font-size:13px;color:var(--muted);margin-bottom:14px;">Go to <strong style="color:var(--text);">console.firebase.google.com</strong> → Your project → Firestore Database → Rules tab. Your rules must allow reads and writes. Paste this:</p>
+      <div class="code-block"><span class="ck">rules_version</span> = <span class="cv">'2'</span>;
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if true;
+    }
+  }
+}</div>
+      <div class="box box-warn"><strong>⚠️ Note:</strong> These are open rules — fine for your private use case since admin.html is password-protected. If you want extra security in future, rules can be tightened to require Firebase Auth. For now, this is correct for your setup.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SECTION 3 — ADMIN PANEL GUIDE
+══════════════════════════════════════════ -->
+<div class="section" id="s3">
+  <div class="section-hdr">
+    <div class="section-eyebrow">03 — ADMIN PANEL</div>
+    <div class="section-title">admin.html — Every Feature Explained</div>
+    <div class="section-sub">Your main control room. Here is what every section does and exactly how to use it.</div>
+  </div>
+
+  <div class="box box-orange"><strong>🔐 How to Login:</strong> Open admin.html → Type <code>RAUNAK@1</code> → Press Enter. For Pinkesh: he types <code>Pinkesh@1</code>. Password is checked against Firestore first, then hardcoded fallback. Session stays active until you close the browser or click "Log Out".</div>
+
+  <div class="flow-list">
+    <div class="flow-item">
+      <div class="flow-num">1</div>
+      <div>
+        <div class="flow-title">Dashboard — Home Screen</div>
+        <div class="flow-desc">Shows total clients, active projects, completed, and total revenue. Lists all tickets. Stats auto-calculate from your ticket data. Also has a "How This Admin Panel Works" guide at the bottom.</div>
+        <span class="flow-tag ft-blue">View only — no editing here</span>
+      </div>
+    </div>
+    <div class="flow-item">
+      <div class="flow-num">2</div>
+      <div>
+        <div class="flow-title">Tickets Page — All Client Tickets</div>
+        <div class="flow-desc">Lists every ticket with name, project, progress bar, status pill, and doc tracker count. Click any ticket card or the "Edit" button to open the editor. Also shows how many of 4 documents have been sent.</div>
+        <span class="flow-tag ft-orange">Click a ticket → opens editor</span>
+      </div>
+    </div>
+    <div class="flow-item">
+      <div class="flow-num">3</div>
+      <div>
+        <div class="flow-title">Ticket Editor — The Main Workspace</div>
+        <div class="flow-desc">Where you build and update everything for a client. Has sections for: Client Identity (name, email, phone), Dates &amp; Status (start date, deadline, progress slider), Payment (total amount, payment stages with paid/pending/upcoming), Project Files (Google Drive links etc.), Deliverables Checklist, Timeline Updates, Manager Note, Doc Tracker (track which documents you've sent), WhatsApp quick link, and Share Client Message templates.</div>
+        <div style="margin-top:10px;">
+          <span class="flow-tag ft-green">Save (syncs live)</span>
+          <span class="flow-tag ft-orange">Save to Firestore</span>
+          <span class="flow-tag ft-blue">Download Backup (.html)</span>
+        </div>
+        <div class="box box-info" style="margin-top:10px;"><strong>Save vs Save to Firestore:</strong> "Save (syncs live)" saves to both localStorage AND Firestore in one click — use this normally. "Save to Firestore" does the same thing. "Download Offline Backup" generates a standalone HTML file for offline use — this is optional now since Firestore is the real source of truth.</div>
+      </div>
+    </div>
+    <div class="flow-item">
+      <div class="flow-num">4</div>
+      <div>
+        <div class="flow-title">New Ticket — Create a Client</div>
+        <div class="flow-desc">Fill Ticket ID (SE-003, SE-004 etc.), client name, project name, dates, amount, status. Click "Create Ticket &amp; Open Editor" — ticket is created in localStorage AND pushed to Firestore automatically. Client can log in immediately after you save.</div>
+        <span class="flow-tag ft-green">No more adding to validTickets[] — Firestore handles it</span>
+      </div>
+    </div>
+    <div class="flow-item">
+      <div class="flow-num">5</div>
+      <div>
+        <div class="flow-title">Referrals — Voucher System</div>
+        <div class="flow-desc">Create referral codes (e.g. SE-REF-ROHAN) for existing clients. Set discount % or flat ₹ for the new client, and a reward for the referrer. When a new client uses the code, redeem it here — both tickets automatically update with the discount/reward info. Stats show total vouchers, active, used, total discount given.</div>
+      </div>
+    </div>
+    <div class="flow-item">
+      <div class="flow-num">6</div>
+      <div>
+        <div class="flow-title">Clients Page — Quick Overview</div>
+        <div class="flow-desc">Shows all clients with avatar, ticket ID, project name, payment progress (paid vs total), and status. Quick "Edit →" button. Visible to members with <code>view_clients</code> permission.</div>
+      </div>
+    </div>
+    <div class="flow-item">
+      <div class="flow-num">7</div>
+      <div>
+        <div class="flow-title">Finance Page — Revenue Tracker</div>
+        <div class="flow-desc">Shows Total Revenue, Amount Collected (paid stages), Pending (due now), and Upcoming (future milestones). Below that, a bar chart per client showing how much is paid vs total. Visible to members with <code>view_finance</code> permission.</div>
+      </div>
+    </div>
+    <div class="flow-item">
+      <div class="flow-num">8</div>
+      <div>
+        <div class="flow-title">Team Page — Member Management</div>
+        <div class="flow-desc">Add, edit, suspend, or remove team members. All changes sync to Firestore instantly — Pinkesh sees the change within seconds on his device. Shows each member's permissions as colored tags. Only you (Owner) can see this page.</div>
+        <span class="flow-tag ft-gold">Owner only</span>
+      </div>
+    </div>
+    <div class="flow-item">
+      <div class="flow-num">9</div>
+      <div>
+        <div class="flow-title">Settings — Your Business Details</div>
+        <div class="flow-desc">Change agency name, owner name, email, phone, UPI ID, bank details, and passwords. When saved, settings sync to Firestore — client payment modal updates automatically everywhere. Protected by a secondary Settings password (default: <code>Settings@1</code> — change this!).</div>
+        <span class="flow-tag ft-red">Owner only</span>
+      </div>
+    </div>
+    <div class="flow-item">
+      <div class="flow-num">10</div>
+      <div>
+        <div class="flow-title">Export / Import Buttons (Top Right)</div>
+        <div class="flow-desc"><strong style="color:var(--green);">⬇ Export</strong> downloads a JSON file with all tickets, vouchers, and settings — use as backup. <strong style="color:var(--blue);">⬆ Import</strong> merges a JSON file into your current data — never deletes, only adds or updates. Team members do NOT need export/import for their login — that's handled by Firestore.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SECTION 4 — TEAM MANAGEMENT
+══════════════════════════════════════════ -->
+<div class="section" id="s4">
+  <div class="section-hdr">
+    <div class="section-eyebrow">04 — TEAM</div>
+    <div class="section-title">Team Management — Complete Guide</div>
+    <div class="section-sub">How members work, what permissions exist, how adding a member works cross-device, and how to remove someone instantly.</div>
+  </div>
+
+  <div class="box box-success">
+    <strong>✅ Big Change from Old System:</strong> Previously you had to download a config file, paste code, re-share admin.html. Now — you add a member → click Save → <strong>they can log in from any browser on any device within seconds.</strong> Firestore handles it. No file sharing needed for team changes.
+  </div>
+
+  <div class="card">
+    <div class="card-hdr"><div class="card-icon ci-orange">👑</div><div><div class="card-title">Roles Explained</div></div></div>
+    <div class="card-body">
+      <div class="g2">
+        <div class="mini-card">
+          <div class="mc-label">Owner</div>
+          <div style="font-size:12px;color:var(--muted);line-height:1.8;margin-top:6px;">
+            Password: <code>RAUNAK@1</code><br/>
+            Full access to everything<br/>
+            Can add/remove team members<br/>
+            Can access Settings<br/>
+            Can see Finance<br/>
+            Can delete tickets<br/>
+            Cannot be removed or suspended
+          </div>
+        </div>
+        <div class="mini-card">
+          <div class="mc-label">Team Member (e.g. Pinkesh)</div>
+          <div style="font-size:12px;color:var(--muted);line-height:1.8;margin-top:6px;">
+            Password: <code>Pinkesh@1</code><br/>
+            Access only what you grant<br/>
+            Cannot access Settings<br/>
+            Cannot manage other members<br/>
+            Can be suspended instantly<br/>
+            Stored in Firestore → works anywhere
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-hdr"><div class="card-icon ci-green">🧑‍💻</div><div><div class="card-title">All Permissions — What Each One Does</div></div></div>
+    <div class="card-body">
+      <div class="perm-grid">
+        <div class="perm-item"><div class="perm-dot pd-green"></div><div class="perm-text"><strong>👁 View Tickets</strong>Can see all client tickets, progress, payment stages — but cannot edit anything.</div></div>
+        <div class="perm-item"><div class="perm-dot pd-green"></div><div class="perm-text"><strong>✏️ Edit Tickets</strong>Can update ticket fields, progress slider, timeline entries, deliverables, files. Can save changes.</div></div>
+        <div class="perm-item"><div class="perm-dot pd-green"></div><div class="perm-text"><strong>➕ Create Tickets</strong>Can use the New Ticket form to onboard new clients. Creates ticket in Firestore instantly.</div></div>
+        <div class="perm-item"><div class="perm-dot pd-red"></div><div class="perm-text"><strong>🗑 Delete Tickets</strong>Can permanently delete a ticket from admin and Firestore. Only give to very senior, trusted members.</div></div>
+        <div class="perm-item"><div class="perm-dot pd-green"></div><div class="perm-text"><strong>💰 View Finance</strong>Can open the Finance page and see revenue totals, payment breakdown by client.</div></div>
+        <div class="perm-item"><div class="perm-dot pd-green"></div><div class="perm-text"><strong>👥 View Clients</strong>Can open the Clients overview page and see all clients in a list format.</div></div>
+        <div class="perm-item"><div class="perm-dot pd-green"></div><div class="perm-text"><strong>⬇ Export / Import</strong>Can use the Export and Import buttons to backup or restore ticket data.</div></div>
+      </div>
+
+      <div class="box box-info" style="margin-top:14px;"><strong>Pinkesh's current permissions:</strong> view_tickets, edit_tickets, view_clients, export — this means he can see and edit tickets, see clients, and export data. He cannot delete tickets, see finance, or create new tickets. You can change this anytime from the Team page.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-hdr"><div class="card-icon ci-purple">➕</div><div><div class="card-title">How to Add a New Team Member — Step by Step</div></div></div>
+    <div class="card-body">
+      <div class="step-list">
+        <div class="step"><div class="step-num">1</div><div class="step-body"><div class="st">Go to admin.html → Team page (in sidebar)</div><div class="sd">Log in as owner (RAUNAK@1). Click "Team" in the left sidebar. You'll see the Team &amp; Access Management page.</div></div></div>
+        <div class="step"><div class="step-num">2</div><div class="step-body"><div class="st">Click "+ Invite Member"</div><div class="sd">A modal opens. Fill: Full Name, Role (e.g. Designer), Email, WhatsApp, and a unique Password (minimum 6 characters, cannot be RAUNAK@1, must be unique among all members).</div></div></div>
+        <div class="step"><div class="step-num">3</div><div class="step-body"><div class="st">Set Permissions</div><div class="sd">Choose a preset (Full / Basic / View Only) or check individual permission boxes. Basic Member = view_tickets + edit_tickets + view_clients is a safe default for most team members.</div></div></div>
+        <div class="step"><div class="step-num">4</div><div class="step-body"><div class="st">Click "💾 Save Member"</div><div class="sd">The member is saved to Firestore AND localStorage instantly. A toast confirms "✅ Team synced to Firestore!"</div></div></div>
+        <div class="step"><div class="step-num">5</div><div class="step-body"><div class="st">Tell the member their password</div><div class="sd">The new member opens admin.html on any device → types their password → they're in. <strong>That's it. No file sharing. No git push. Works immediately on any device worldwide.</strong></div></div></div>
+        <div class="step"><div class="step-num">6</div><div class="step-body"><div class="st">Optional — Download Welcome Note</div><div class="sd">Click "📩 Welcome" on their team card → downloads a beautiful HTML file with their name, role, password, permissions, and step-by-step login instructions. Open in browser → Print as PDF → Send to them on WhatsApp.</div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-hdr"><div class="card-icon ci-red">⛔</div><div><div class="card-title">How to Suspend or Remove a Member</div></div></div>
+    <div class="card-body">
+      <div class="g2">
+        <div>
+          <div style="font-family:var(--hf);font-size:13px;font-weight:700;margin-bottom:10px;">⛔ Suspend (Temporary)</div>
+          <div class="step-list">
+            <div class="step"><div class="step-num" style="font-size:11px;width:26px;height:26px;border-radius:7px;">1</div><div class="step-body"><div class="sd">Team page → find the member card</div></div></div>
+            <div class="step"><div class="step-num" style="font-size:11px;width:26px;height:26px;border-radius:7px;">2</div><div class="step-body"><div class="sd">Click "⛔ Suspend" button</div></div></div>
+            <div class="step"><div class="step-num" style="font-size:11px;width:26px;height:26px;border-radius:7px;">3</div><div class="step-body"><div class="sd">Their status changes to Suspended in Firestore — they are locked out within seconds on ALL devices. Their account is preserved but inactive.</div></div></div>
+          </div>
+          <div class="box box-success" style="margin-top:10px;"><strong>To re-activate:</strong> Click "✅ Activate" on their card — they can log in again immediately.</div>
+        </div>
+        <div>
+          <div style="font-family:var(--hf);font-size:13px;font-weight:700;margin-bottom:10px;">🗑 Remove (Permanent)</div>
+          <div class="step-list">
+            <div class="step"><div class="step-num" style="font-size:11px;width:26px;height:26px;border-radius:7px;">1</div><div class="step-body"><div class="sd">Team page → find the member card</div></div></div>
+            <div class="step"><div class="step-num" style="font-size:11px;width:26px;height:26px;border-radius:7px;">2</div><div class="step-body"><div class="sd">Click "🗑 Remove" → confirm in the popup</div></div></div>
+            <div class="step"><div class="step-num" style="font-size:11px;width:26px;height:26px;border-radius:7px;">3</div><div class="step-body"><div class="sd">Member deleted from Firestore AND localStorage. Locked out on all devices instantly. Permanent — cannot be undone except by re-adding them.</div></div></div>
+          </div>
+          <div class="box box-danger" style="margin-top:10px;"><strong>⚠️ Note about HARDCODED_MEMBERS:</strong> Pinkesh is also hardcoded in the file as a fallback. If you remove him from Firestore but his entry is still in HARDCODED_MEMBERS in admin.html, he can still log in. To completely remove someone also in HARDCODED_MEMBERS, you must also edit that array in the file and re-deploy.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-hdr"><div class="card-icon ci-gold">📋</div><div><div class="card-title">HARDCODED_MEMBERS — What Is It and Why It Exists</div></div></div>
+    <div class="card-body">
+      <p style="font-size:13px;color:var(--muted);line-height:1.75;margin-bottom:14px;">Both admin.html and docs.html have a <code>HARDCODED_MEMBERS</code> array near the top of their JavaScript. This is a fallback safety net — if Firestore is unreachable (no internet, Firebase down), members in this array can still log in.</p>
+      <p style="font-size:13px;color:var(--muted);line-height:1.75;margin-bottom:14px;">Pinkesh is currently hardcoded in both files. His Firestore entry will always take priority (Firestore wins over hardcoded for same IDs), but if Firestore fails, the hardcoded entry is the backup.</p>
+      <div class="box box-info"><strong>When to update HARDCODED_MEMBERS manually:</strong><br/>
+      • When you add a completely new member you want to work even offline<br/>
+      • When you permanently remove someone (remove from array + Firestore)<br/>
+      • When someone's password changes (update in both places)<br/>
+      <br/>
+      <strong>How to update it:</strong> Open admin.html (or docs.html) in VS Code / Notepad → find <code>const HARDCODED_MEMBERS = [</code> → edit the array → save file → git push.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SECTION 5 — DOCS GENERATOR
+══════════════════════════════════════════ -->
+<div class="section" id="s5">
+  <div class="section-hdr">
+    <div class="section-eyebrow">05 — DOCS GENERATOR</div>
+    <div class="section-title">docs.html — Document Generator Guide</div>
+    <div class="section-sub">Everything about how the doc generator works, what documents it creates, and how team sync works inside it.</div>
+  </div>
+
+  <div class="card">
+    <div class="card-hdr"><div class="card-icon ci-purple">📄</div><div><div class="card-title">What docs.html Does</div></div></div>
+    <div class="card-body">
+      <p style="font-size:13px;color:var(--muted);line-height:1.75;margin-bottom:16px;">docs.html is an internal document factory. You fill a form, preview the document, and download it as an HTML file. Open that HTML in a browser → Print as PDF → Send to client on WhatsApp or email.</p>
+
+      <div class="g2">
+        <div>
+          <div style="font-family:var(--hf);font-size:13px;font-weight:700;margin-bottom:10px;">Service Categories</div>
+          <div class="checklist">
+            <div class="check-item"><span class="check-icon">🌐</span><div class="check-text"><strong>Web Services</strong> — Proposal, Invoice, SOW/Agreement, Welcome Packet, Service Agreement</div></div>
+            <div class="check-item"><span class="check-icon">🧾</span><div class="check-text"><strong>Billing Software</strong> — Billing Proposal, Invoice, Setup Agreement, Handover Doc</div></div>
+            <div class="check-item"><span class="check-icon">🎨</span><div class="check-text"><strong>Creative &amp; Design</strong> — Creative Quote, Invoice, Delivery Note</div></div>
+            <div class="check-item"><span class="check-icon">📣</span><div class="check-text"><strong>Landing Pages</strong> — LP Proposal, Invoice, Content Brief, Delivery Note</div></div>
+          </div>
+        </div>
+        <div>
+          <div style="font-family:var(--hf);font-size:13px;font-weight:700;margin-bottom:10px;">Key Features</div>
+          <div class="checklist">
+            <div class="check-item"><span class="check-icon">💾</span><div class="check-text"><strong>Save Drafts</strong> — Save client info so you don't retype. Stored in browser localStorage.</div></div>
+            <div class="check-item"><span class="check-icon">⚙️</span><div class="check-text"><strong>Edit Fixed Defaults</strong> — Owner can override default values (UPI, inclusions, contact) per session.</div></div>
+            <div class="check-item"><span class="check-icon">⬇</span><div class="check-text"><strong>Export/Import Drafts</strong> — Share saved drafts with team via JSON export.</div></div>
+            <div class="check-item"><span class="check-icon">👁</span><div class="check-text"><strong>Live Preview</strong> — See the document as you type. Ctrl+P in preview → Save as PDF.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-hdr"><div class="card-icon ci-blue">🔐</div><div><div class="card-title">Login System in docs.html</div><div class="card-sub">Slightly different from admin.html</div></div></div>
+    <div class="card-body">
+      <div class="g2">
+        <div class="mini-card">
+          <div class="mc-label">Owner Login</div>
+          <div style="font-size:13px;font-weight:700;color:var(--text);margin:6px 0;">RAUNAK@1</div>
+          <div class="mc-sub">Full access. Can see ⚙️ Edit Fixed Defaults, Team Management section inside docs.html, and all features.</div>
+        </div>
+        <div class="mini-card">
+          <div class="mc-label">Member Login (Pinkesh)</div>
+          <div style="font-size:13px;font-weight:700;color:var(--text);margin:6px 0;">Pinkesh@1</div>
+          <div class="mc-sub">Can access Doc Generator. Cannot see Team Management or Edit Fixed Defaults. Permissions set by owner.</div>
+        </div>
+      </div>
+      <div class="box box-success" style="margin-top:14px;"><strong>Team sync in docs.html:</strong> Pinkesh's account in docs.html is read from Firestore (same <code>team</code> collection as admin.html). So if you update his permissions or suspend him in admin.html, it affects docs.html too — no separate management needed.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-hdr"><div class="card-icon ci-gold">📋</div><div><div class="card-title">Document Sending Order — The Golden Rule</div></div></div>
+    <div class="card-body">
+      <div class="flow-list">
+        <div class="flow-item"><div class="flow-num" style="background:linear-gradient(135deg,#3B82F6,#6C63FF);">1</div><div><div class="flow-title">Client Proposal</div><div class="flow-desc">Send BEFORE the client pays anything. After discovery call. Sets expectations, shows price, deliverables, timeline.</div><span class="flow-tag ft-blue">Before advance</span></div></div>
+        <div class="flow-item"><div class="flow-num" style="background:var(--grad);">2</div><div><div class="flow-title">Invoice (Advance)</div><div class="flow-desc">Send AFTER advance payment received. Set Payment Type to "Advance (50%)", Status to "Paid", add UTR/transaction ID.</div><span class="flow-tag ft-orange">After advance payment</span></div></div>
+        <div class="flow-item"><div class="flow-num" style="background:linear-gradient(135deg,#9B7FD4,#6C63FF);">3</div><div><div class="flow-title">SOW / Agreement</div><div class="flow-desc">Send same day as invoice. Legalises the scope — what's included, what's not, revision policy, payment split.</div><span class="flow-tag ft-orange">Same day as invoice</span></div></div>
+        <div class="flow-item"><div class="flow-num" style="background:linear-gradient(135deg,#22C55E,#16A34A);">4</div><div><div class="flow-title">Welcome Packet</div><div class="flow-desc">Send on kickoff day. Warm document explaining what happens next, timelines, how to reach you.</div><span class="flow-tag ft-green">Kickoff day</span></div></div>
+        <div class="flow-item"><div class="flow-num" style="background:linear-gradient(135deg,#FFB347,#FF6B35);">5</div><div><div class="flow-title">Final Invoice + Delivery Note</div><div class="flow-desc">Send when project is done. Invoice with Final (50%) payment, then Delivery Note after final payment received.</div><span class="flow-tag ft-gold">On delivery</span></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SECTION 6 — CLIENT PORTAL FLOW
+══════════════════════════════════════════ -->
+<div class="section" id="s6">
+  <div class="section-hdr">
+    <div class="section-eyebrow">06 — CLIENT PORTAL</div>
+    <div class="section-title">How Clients Access Their Dashboard</div>
+    <div class="section-sub">The complete flow from client typing their ticket ID to seeing their live project dashboard.</div>
+  </div>
+
+  <div class="card">
+    <div class="card-hdr"><div class="card-icon ci-green">🌐</div><div><div class="card-title">Portal URLs — What to Share With Who</div></div></div>
+    <div class="card-body">
+      <div style="font-family:var(--hf);font-size:12px;font-weight:700;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.1em;">Share with ALL clients (public entry point)</div>
+      <div class="url-pill">https://YOUR-USERNAME.github.io/sparkedge-portal/</div>
+      <div style="font-size:12px;color:var(--muted);margin:6px 0 18px;">Client types their Ticket ID → redirected to their dashboard. Works for all future clients automatically.</div>
+
+      <div style="font-family:var(--hf);font-size:12px;font-weight:700;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.1em;">Direct Dashboard Link (bookmark for yourself)</div>
+      <div class="url-pill">https://YOUR-USERNAME.github.io/sparkedge-portal/dashboard.html?id=SE-001</div>
+      <div style="font-size:12px;color:var(--muted);margin:6px 0 18px;">Replace SE-001 with any ticket ID. Works instantly for any ticket saved in Firestore.</div>
+
+      <div style="font-family:var(--hf);font-size:12px;font-weight:700;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.1em;">Admin Panel (share ONLY with team, never clients)</div>
+      <div class="url-pill">https://YOUR-USERNAME.github.io/sparkedge-portal/admin.html</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-hdr"><div class="card-icon ci-orange">🔄</div><div><div class="card-title">The Complete Flow — Step by Step</div></div></div>
+    <div class="card-body">
+      <div class="flow-list">
+        <div class="flow-item"><div class="flow-num">1</div><div><div class="flow-title">Client opens the portal URL</div><div class="flow-desc">Goes to your GitHub Pages URL. Sees the login page (index.html) — SparkEdge branded, asks for Ticket ID.</div></div></div>
+        <div class="flow-item"><div class="flow-num">2</div><div><div class="flow-title">Client types their Ticket ID (e.g. SE-001)</div><div class="flow-desc">The ID is validated by format (must match SE-XXX pattern). If format is wrong, shows error. If format is correct, redirects immediately to dashboard.html?id=SE-001.</div></div></div>
+        <div class="flow-item"><div class="flow-num">3</div><div><div class="flow-title">dashboard.html loads and fetches from Firestore</div><div class="flow-desc">Shows a loading spinner. Fetches the ticket document from Firestore <code>clients</code> collection using the ID. If ticket doesn't exist in Firestore, shows "Ticket Not Found" error. If found, renders the dashboard.</div></div></div>
+        <div class="flow-item"><div class="flow-num">4</div><div><div class="flow-title">Dashboard renders with live data</div><div class="flow-desc">Client sees: project name, status, progress bar, payment stages (paid/pending/upcoming), deliverables checklist, timeline updates, files to download, manager's note. Data is live — whenever you update in admin.html and save, client sees it within 2 seconds.</div></div></div>
+        <div class="flow-item"><div class="flow-num">5</div><div><div class="flow-title">Client clicks "Pay Now"</div><div class="flow-desc">Payment modal opens with bill summary, UPI button, UPI ID (from Firestore settings), and bank details. UPI deep link pre-fills the exact balance amount. Client pays, sends you screenshot on WhatsApp.</div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="box box-warn">
+    <strong>⚠️ Old SE-001.html links are dead:</strong> If you previously shared <code>SE-001.html</code> with a client, that link no longer works after you delete the file. Reshare: <code>dashboard.html?id=SE-001</code> or tell them to use the portal entry and type SE-001. The data is exactly the same — just accessed differently now.
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SECTION 7 — CRM GUIDE
+══════════════════════════════════════════ -->
+<div class="section" id="s7">
+  <div class="section-hdr">
+    <div class="section-eyebrow">07 — CRM</div>
+    <div class="section-title">lead-management-crm.html — CRM Guide</div>
+    <div class="section-sub">Your standalone lead tracker. No Firebase — everything is localStorage. Here's what it does and how team sync works for it.</div>
+  </div>
+
+  <div class="card">
+    <div class="card-hdr"><div class="card-icon ci-orange">🎯</div><div><div class="card-title">What the CRM Does</div></div></div>
+    <div class="card-body">
+      <div class="g2">
+        <div class="checklist">
+          <div class="check-item"><span class="check-icon">📊</span><div class="check-text"><strong>Dashboard</strong> — Stats, pipeline breakdown, top sources, recent activity, overdue follow-ups alert</div></div>
+          <div class="check-item"><span class="check-icon">🔁</span><div class="check-text"><strong>Pipeline Board</strong> — Kanban view. Not Contacted → Contacted → Follow-up → Won → Lost</div></div>
+          <div class="check-item"><span class="check-icon">🎯</span><div class="check-text"><strong>All Active Leads</strong> — Cards with search, filters by stage, source, service, month</div></div>
+          <div class="check-item"><span class="check-icon">✅</span><div class="check-text"><strong>Won Clients</strong> — All converted clients with revenue stats</div></div>
+          <div class="check-item"><span class="check-icon">❌</span><div class="check-text"><strong>Lost Leads</strong> — Lost deals with reason analysis</div></div>
+          <div class="check-item"><span class="check-icon">⏰</span><div class="check-text"><strong>Follow-up Tracker</strong> — Overdue (red alert), due today, upcoming — sorted by urgency</div></div>
+        </div>
+        <div class="checklist">
+          <div class="check-item"><span class="check-icon">📋</span><div class="check-text"><strong>Sheet View</strong> — Excel-style sortable table of all leads</div></div>
+          <div class="check-item"><span class="check-icon">📈</span><div class="check-text"><strong>Analytics</strong> — Revenue, conversion rate, service breakdown, source performance, lost reasons</div></div>
+          <div class="check-item"><span class="check-icon">💬</span><div class="check-text"><strong>Quick Replies</strong> — 10 pre-built WhatsApp script stages, Hindi + English, for the full sales funnel</div></div>
+          <div class="check-item"><span class="check-icon">🗺️</span><div class="check-text"><strong>Workflow Guide</strong> — Contextual — shows owner guide OR member guide based on who's logged in</div></div>
+          <div class="check-item"><span class="check-icon">🧑‍💻</span><div class="check-text"><strong>Team &amp; Members</strong> — Owner only. Add members, set CRM-specific permissions, export team config</div></div>
+          <div class="check-item"><span class="check-icon">⬇⬆</span><div class="check-text"><strong>Export/Import</strong> — Downloads JSON + CSV. Import merges without deleting.</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-hdr"><div class="card-icon ci-red">⚠️</div><div><div class="card-title">CRM Team Sync — Still Uses Export/Import (By Design)</div></div></div>
+    <div class="card-body">
+      <p style="font-size:13px;color:var(--muted);line-height:1.75;margin-bottom:14px;">Unlike admin.html, the CRM does NOT use Firebase. Lead data is stored in browser localStorage. This is intentional — the CRM is designed to be a fast, offline-capable personal tool.</p>
+      <div class="compare-hdr"><div class="bh">❌ Problem (Cross-Device)</div><div class="ah">✅ Solution</div></div>
+      <div class="compare">
+        <div class="compare-before">Pinkesh adds 10 leads on his device. You open CRM on your device — his leads aren't there. Data is trapped per browser.</div>
+        <div class="compare-after">Pinkesh clicks Export → gets a JSON file → sends to you on WhatsApp → you click Import → his leads merge in. Done in 2 minutes.</div>
+      </div>
+      <div class="box box-info" style="margin-top:14px;"><strong>CRM Team Password Sync:</strong> The CRM has its own HARDCODED_MEMBERS array separate from admin.html. To add/update Pinkesh's CRM access: CRM → Team → add/edit member → click "📤 Export Team Config" → copies a code snippet → paste it into lead-management-crm.html replacing the HARDCODED_MEMBERS array → save file → git push → Pinkesh gets access on any device.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SECTION 8 — PASSWORDS & SECURITY
+══════════════════════════════════════════ -->
+<div class="section" id="s8">
+  <div class="section-hdr">
+    <div class="section-eyebrow">08 — SECURITY</div>
+    <div class="section-title">Every Password in Your System</div>
+    <div class="section-sub">Complete list of every password, where it's used, and how to change it.</div>
+  </div>
+
+  <div class="card">
+    <div class="card-hdr"><div class="card-icon ci-red">🔐</div><div><div class="card-title">Password Reference Table</div></div></div>
+    <div class="card-body" style="padding:0;">
+      <table class="file-tbl">
+        <thead><tr><th>Password</th><th>Used In</th><th>What It Unlocks</th><th>How to Change</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><code>RAUNAK@1</code></td>
+            <td style="color:var(--muted);">admin.html, docs.html</td>
+            <td style="color:var(--muted);">Owner — full access to everything in both tools</td>
+            <td style="color:var(--muted);">admin.html Settings → Security section (instructions shown). MUST also edit the file and git push to make permanent.</td>
+          </tr>
+          <tr>
+            <td><code>Pinkesh@1</code></td>
+            <td style="color:var(--muted);">admin.html, docs.html, CRM (hardcoded)</td>
+            <td style="color:var(--muted);">Pinkesh's member access — limited permissions</td>
+            <td style="color:var(--muted);">admin.html Team page → Edit Pinkesh → change password → Save. Syncs to Firestore instantly. Also update HARDCODED_MEMBERS in the file and git push.</td>
+          </tr>
+          <tr>
+            <td><code>Settings@1</code></td>
+            <td style="color:var(--muted);">admin.html Settings page (secondary lock)</td>
+            <td style="color:var(--muted);">Unlocks the Settings page for non-owners who somehow get in (extra protection)</td>
+            <td style="color:var(--muted);">admin.html Settings → scroll to "Settings Password" card at bottom → enter new password → Update. Saves to localStorage on that device only.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-hdr"><div class="card-icon ci-orange">🛡️</div><div><div class="card-title">Security Rules You Must Follow</div></div></div>
+    <div class="card-body">
+      <div class="checklist">
+        <div class="check-item"><span class="check-icon">✅</span><div class="check-text"><strong>Never share RAUNAK@1 with anyone.</strong> Give team members their own unique passwords instead.</div></div>
+        <div class="check-item"><span class="check-icon">✅</span><div class="check-text"><strong>Every member must have a unique password.</strong> No two members can have the same password — the system blocks duplicates.</div></div>
+        <div class="check-item"><span class="check-icon">✅</span><div class="check-text"><strong>Minimum 6 characters</strong> for all member passwords. Mix letters, numbers, and a symbol (e.g. Priya@2025).</div></div>
+        <div class="check-item"><span class="check-icon">✅</span><div class="check-text"><strong>If someone leaves — suspend them immediately.</strong> Go to Team page → click ⛔ Suspend → they lose access within seconds on all devices.</div></div>
+        <div class="check-item"><span class="check-icon">✅</span><div class="check-text"><strong>Change Settings@1 password.</strong> Go to admin.html Settings → Settings Password card → set a new one only you know.</div></div>
+        <div class="check-item"><span class="check-icon">✅</span><div class="check-text"><strong>Never link admin.html publicly.</strong> Share it only via private WhatsApp DM. It contains all client and financial data.</div></div>
+        <div class="check-item"><span class="check-icon">✅</span><div class="check-text"><strong>Export backup before clearing browser data.</strong> Settings → Export → saves JSON to your device.</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SECTION 9 — GITHUB DEPLOYMENT
+══════════════════════════════════════════ -->
+<div class="section" id="s9">
+  <div class="section-hdr">
+    <div class="section-eyebrow">09 — DEPLOYMENT</div>
+    <div class="section-title">How to Deploy / Update to GitHub Pages</div>
+    <div class="section-sub">Every time you make a file change, here's the exact process to push it live.</div>
+  </div>
+
+  <div class="card">
+    <div class="card-hdr"><div class="card-icon ci-green">🚀</div><div><div class="card-title">First-Time Setup (If Not Done Already)</div></div></div>
+    <div class="card-body">
+      <div class="step-list">
+        <div class="step"><div class="step-num">1</div><div class="step-body"><div class="st">Create GitHub Repository</div><div class="sd">Go to github.com → New repository → name it <code>sparkedge-portal</code> → Public → Create. Public is required for GitHub Pages (free hosting).</div></div></div>
+        <div class="step"><div class="step-num">2</div><div class="step-body"><div class="st">Upload all your files</div><div class="sd">On your computer, open terminal/command prompt in your project folder. Run:<br/><code>git init</code><br/><code>git add .</code><br/><code>git commit -m "Initial SparkEdge portal setup"</code><br/><code>git remote add origin https://github.com/YOUR-USERNAME/sparkedge-portal.git</code><br/><code>git push -u origin main</code></div></div></div>
+        <div class="step"><div class="step-num">3</div><div class="step-body"><div class="st">Enable GitHub Pages</div><div class="sd">On GitHub → your repository → Settings → Pages → Source: "Deploy from a branch" → Branch: main → Folder: / (root) → Save. Your site goes live at <code>https://YOUR-USERNAME.github.io/sparkedge-portal/</code> in about 60 seconds.</div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-hdr"><div class="card-icon ci-orange">🔄</div><div><div class="card-title">Everyday Update Command (Run in Terminal)</div></div></div>
+    <div class="card-body">
+      <div class="code-block"><span class="cm"># Navigate to your project folder first</span>
+cd path/to/your/sparkedge-portal
+
+<span class="cm"># Stage all changed files</span>
+git add .
+
+<span class="cm"># Commit with a description of what you changed</span>
+git commit -m "<span class="cv">Updated: fixed bug / added SE-005 / changed UPI ID</span>"
+
+<span class="cm"># Push to GitHub — site goes live in ~60 seconds</span>
+git push</div>
+      <div class="box box-success"><strong>✅ That's it.</strong> After <code>git push</code>, wait 60 seconds and your changes are live at your GitHub Pages URL. You'll see the action running in your GitHub repository under the "Actions" tab.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-hdr"><div class="card-icon ci-blue">📁</div><div><div class="card-title">What Your Repo Folder Should Look Like</div></div></div>
+    <div class="card-body">
+      <div class="code-block">sparkedge-portal/
+├── index.html          <span class="cm">← Client portal login</span>
+├── admin.html          <span class="cm">← Your internal admin panel</span>
+├── dashboard.html      <span class="cm">← Universal client dashboard (NEW)</span>
+├── docs.html           <span class="cm">← Document generator</span>
+├── portal.js           <span class="cm">← Dashboard UI renderer</span>
+├── style.css           <span class="cm">← All portal styles</span>
+├── lead-management-crm.html
+├── lead.html
+├── tools.html
+├── sparkedge_website_guide.html
+├── client-management-guide.html
+└── favicons/           <span class="cm">← Favicon folder (all icon files)</span>
+    ├── favicon.ico
+    ├── favicon-16x16.png
+    └── ... etc</div>
+      <div class="box box-danger"><strong>⚠️ Do NOT have these in your repo anymore:</strong> Delete <code>SE-001.html</code>, <code>SE-002.html</code>, <code>SE-003.html</code>, and any other individual client files. They are no longer used.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SECTION 10 — ADDING NEW CLIENTS
+══════════════════════════════════════════ -->
+<div class="section" id="s10">
+  <div class="section-hdr">
+    <div class="section-eyebrow">10 — NEW CLIENTS</div>
+    <div class="section-title">How to Add a New Client — Complete Workflow</div>
+    <div class="section-sub">The new process. No git push needed for client data. No HTML files to create. Takes 2 minutes.</div>
+  </div>
+
+  <div class="box box-success">
+    <strong>✅ New Workflow vs Old:</strong> Old system = create HTML file → move to folder → add to validTickets[] array in index.html → git push → wait 60 seconds. <strong>New system = fill form in admin.html → click Save → done. Client can log in in 2 seconds.</strong>
+  </div>
+
+  <div class="card">
+    <div class="card-hdr"><div class="card-icon ci-green">➕</div><div><div class="card-title">Step-by-Step: Add a New Client</div></div></div>
+    <div class="card-body">
+      <div class="step-list">
+        <div class="step"><div class="step-num">1</div><div class="step-body"><div class="st">Open admin.html → Click "New Ticket" in sidebar</div><div class="sd">You'll see the New Ticket form on the right side of the screen.</div></div></div>
+        <div class="step"><div class="step-num">2</div><div class="step-body"><div class="st">Fill the basic details</div><div class="sd">Ticket ID: use the next number in sequence (SE-003, SE-004 etc.). Client Name, Project Name, Start Date, Deadline, WhatsApp Number, Email, Total Amount, and initial Status. Click <strong>"Create Ticket &amp; Open Editor →"</strong></div></div></div>
+        <div class="step"><div class="step-num">3</div><div class="step-body"><div class="st">Full Editor Opens — Fill Everything</div><div class="sd">Now add: Payment Stages (Advance, Final etc. with amounts and statuses), Deliverables Checklist (what you'll deliver), Timeline (kickoff entry auto-added), Project Files (Google Drive links), Manager Note (welcome message to client).</div></div></div>
+        <div class="step"><div class="step-num">4</div><div class="step-body"><div class="st">Click "💾 Save (syncs live)"</div><div class="sd">This saves to localStorage AND pushes to Firestore. Client is now live — they can log in at <code>dashboard.html?id=SE-003</code> immediately. You'll see toast: "✅ Ticket saved &amp; synced live!"</div></div></div>
+        <div class="step"><div class="step-num">5</div><div class="step-body"><div class="st">Share the portal link with client</div><div class="sd">Send the client: <code>https://YOUR-SITE.github.io/sparkedge-portal/</code> and their Ticket ID. Or send the direct link: <code>dashboard.html?id=SE-003</code>. They'll see their live project dashboard immediately.</div></div></div>
+        <div class="step"><div class="step-num">6</div><div class="step-body"><div class="st">(Optional) Download Offline Backup</div><div class="sd">Click "⬇ Download Offline Backup (.html)" to get a standalone HTML file. Keep this in a Google Drive folder as your backup. You don't need to push this to GitHub anymore — Firestore is the live source. But keeping a backup is good practice.</div></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SECTION 11 — BUGS FIXED
+══════════════════════════════════════════ -->
+<div class="section" id="s11">
+  <div class="section-hdr">
+    <div class="section-eyebrow">11 — BUGS FIXED</div>
+    <div class="section-title">What Was Broken — What's Fixed Now</div>
+    <div class="section-sub">Every bug that was identified and fixed, explained in plain English.</div>
+  </div>
+
+  <div class="card">
+    <div class="card-hdr"><div class="card-icon ci-green">✅</div><div><div class="card-title">Bug 1 — Team Members Only Worked on One Browser</div></div></div>
+    <div class="card-body">
+      <div class="compare-hdr"><div class="bh">❌ Was Broken</div><div class="ah">✅ Fixed Now</div></div>
+      <div class="compare">
+        <div class="compare-before">You added Pinkesh in admin.html on your laptop. His account was saved in YOUR browser's localStorage. He opened admin.html on his own phone — his password didn't work because his phone had empty localStorage.</div>
+        <div class="compare-after">Team members are now saved to Firestore. Pinkesh types his password on any device, any browser, anywhere in the world — it fetches from Firestore and works immediately.</div>
+      </div>
+      <div class="box box-info" style="margin-top:12px;"><strong>How it was fixed:</strong> The <code>saveMembers()</code> function in admin.html was updated to be async and write to Firestore using <code>batch.set()</code>. The login function now checks Firestore directly if the local cache doesn't have the member. The <code>toggleMemberStatus()</code>, <code>deleteMember()</code>, and <code>saveMember()</code> functions were all made async with <code>await saveMembers()</code> calls. Same fix was applied to docs.html.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-hdr"><div class="card-icon ci-green">✅</div><div><div class="card-title">Bug 2 — Adding a New Client Required Editing Code and Git Push</div></div></div>
+    <div class="card-body">
+      <div class="compare-hdr"><div class="bh">❌ Was Broken</div><div class="ah">✅ Fixed Now</div></div>
+      <div class="compare">
+        <div class="compare-before">To add SE-003: create SE-003.html → edit the JavaScript data → move file to /clients folder → open index.html → find validTickets[] array → add 'SE-003' → save → git push → wait 60 seconds.</div>
+        <div class="compare-after">Fill the New Ticket form in admin.html → click Save → client can log in in 2 seconds. index.html checks Firestore — if the ticket exists there, it lets the client in. No file editing. No git push.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-hdr"><div class="card-icon ci-green">✅</div><div><div class="card-title">Bug 3 — Updating Client Data Required Git Push</div></div></div>
+    <div class="card-body">
+      <div class="compare-hdr"><div class="bh">❌ Was Broken</div><div class="ah">✅ Fixed Now</div></div>
+      <div class="compare">
+        <div class="compare-before">Rohan's progress changed to 70% → download SE-001.html → edit the file → git push → wait 60 seconds → Rohan sees update. Every single change required this entire process.</div>
+        <div class="compare-after">Change progress slider to 70% → click Save → Rohan sees it in under 2 seconds on his dashboard. No file download. No git push. dashboard.html uses Firestore real-time listener (onSnapshot).</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-hdr"><div class="card-icon ci-green">✅</div><div><div class="card-title">Bug 4 — 50 Clients = 50 HTML Files in Your Repo</div></div></div>
+    <div class="card-body">
+      <div class="compare-hdr"><div class="bh">❌ Was Broken</div><div class="ah">✅ Fixed Now</div></div>
+      <div class="compare">
+        <div class="compare-before">SE-001.html, SE-002.html... SE-050.html — 50 separate files in your repo. Hard to maintain, messy, every file had the full UI code duplicated.</div>
+        <div class="compare-after">1 file: dashboard.html. Serves all 100 clients from one URL. Client data stored in Firestore. The file reads ?id= from URL and fetches the right data. Repo is clean forever.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-hdr"><div class="card-icon ci-green">✅</div><div><div class="card-title">Bug 5 — UPI/Bank Details Hardcoded in Every Client File</div></div></div>
+    <div class="card-body">
+      <div class="compare-hdr"><div class="bh">❌ Was Broken</div><div class="ah">✅ Fixed Now</div></div>
+      <div class="compare">
+        <div class="compare-before">Your UPI ID was hardcoded in every SE-XXX.html file. Change UPI ID = had to edit and re-upload every single client file.</div>
+        <div class="compare-after">UPI ID and bank details stored in Firestore <code>settings/agency</code> document. Change it once in admin.html Settings → Save → every client's payment modal across all dashboards updates automatically. Takes 5 seconds.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SECTION 12 — BEFORE vs AFTER
+══════════════════════════════════════════ -->
+<div class="section" id="s12">
+  <div class="section-hdr">
+    <div class="section-eyebrow">12 — WHAT CHANGED</div>
+    <div class="section-title">Full Before vs After Comparison</div>
+  </div>
+
+  <div class="compare-hdr"><div class="bh">❌ Before (Old System)</div><div class="ah">✅ After (Firebase System)</div></div>
+  <div class="compare" style="margin-bottom:3px;"><div class="compare-before">Add new client → fill form → Download HTML → edit file → add ID to validTickets[] → git push → wait 60 seconds</div><div class="compare-after">Add new client → fill form → click Save → <strong>live in 2 seconds</strong></div></div>
+  <div class="compare" style="margin-bottom:3px;"><div class="compare-before">Update progress → download HTML → edit file → git push → wait</div><div class="compare-after">Drag slider → click Save → <strong>client sees it instantly</strong></div></div>
+  <div class="compare" style="margin-bottom:3px;"><div class="compare-before">50 clients = 50 HTML files in repo, all duplicated</div><div class="compare-after">50 clients = 50 Firestore documents, <strong>1 dashboard.html file</strong></div></div>
+  <div class="compare" style="margin-bottom:3px;"><div class="compare-before">Pinkesh opens admin.html on his laptop → localStorage empty → all data gone for him</div><div class="compare-after">Pinkesh signs in anywhere → <strong>sees live Firestore data instantly</strong></div></div>
+  <div class="compare" style="margin-bottom:3px;"><div class="compare-before">Browser cleared = all client data lost forever</div><div class="compare-after">Data in Google Cloud — <strong>impossible to lose from browser clear</strong></div></div>
+  <div class="compare" style="margin-bottom:3px;"><div class="compare-before">New ticket = edit index.html validTickets[] every time</div><div class="compare-after">index.html checks Firestore — <strong>automatically valid for all tickets</strong></div></div>
+  <div class="compare" style="margin-bottom:3px;"><div class="compare-before">Change UPI = edit every SE-XXX.html file manually</div><div class="compare-after">Change UPI in Settings → <strong>updates everywhere automatically</strong></div></div>
+  <div class="compare" style="margin-bottom:3px;"><div class="compare-before">Add team member = download config, paste code, re-share file</div><div class="compare-after">Add member in Team page → <strong>works on all devices instantly via Firestore</strong></div></div>
+  <div class="compare" style="margin-bottom:3px;"><div class="compare-before">Suspend member = change password in file, re-share, git push</div><div class="compare-after">Click ⛔ Suspend → <strong>locked out on all devices in seconds</strong></div></div>
+  <div class="compare" style="margin-bottom:16px;"><div class="compare-before">Backup = hope nothing goes wrong with browser or laptop</div><div class="compare-after">Backup = Google Firebase + your Export JSON + optional offline .html</div></div>
+
+  <div class="stat-row">
+    <div class="stat"><div class="stat-val">0</div><div class="stat-lbl">Git pushes needed for client updates</div></div>
+    <div class="stat"><div class="stat-val">&lt;2s</div><div class="stat-lbl">Time for client to see updates</div></div>
+    <div class="stat"><div class="stat-val">1</div><div class="stat-lbl">HTML file for all clients</div></div>
+    <div class="stat"><div class="stat-val">∞</div><div class="stat-lbl">Devices team can log in from</div></div>
+    <div class="stat"><div class="stat-val">₹0</div><div class="stat-lbl">Monthly cost (Firebase free tier)</div></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SECTION 13 — DAILY WORKFLOW
+══════════════════════════════════════════ -->
+<div class="section" id="s13">
+  <div class="section-hdr">
+    <div class="section-eyebrow">13 — DAILY WORKFLOW</div>
+    <div class="section-title">Your Daily Routine — What to Do When</div>
+  </div>
+
+  <div class="g2">
+    <div class="card">
+      <div class="card-hdr"><div class="card-icon ci-orange">👑</div><div><div class="card-title">Your Daily Workflow (Raunak)</div></div></div>
+      <div class="card-body">
+        <div class="checklist">
+          <div class="check-item"><span class="check-icon">🌅</span><div class="check-text"><strong>Morning:</strong> Open admin.html → check Dashboard for any overdue follow-ups or pending payments visible in ticket list</div></div>
+          <div class="check-item"><span class="check-icon">📞</span><div class="check-text"><strong>After client call/update:</strong> Open their ticket in admin.html → update progress, add timeline entry → click Save → done. Client sees it in 2 seconds.</div></div>
+          <div class="check-item"><span class="check-icon">💰</span><div class="check-text"><strong>After payment received:</strong> Open ticket → go to Payment Stages → change that stage from Pending to Paid → add note with date/UTR → Save</div></div>
+          <div class="check-item"><span class="check-icon">📄</span><div class="check-text"><strong>New project starts:</strong> docs.html → generate Proposal first, then Invoice, then SOW, then Welcome Packet in that order</div></div>
+          <div class="check-item"><span class="check-icon">💾</span><div class="check-text"><strong>Weekly (Friday evening):</strong> admin.html → click ⬇ Export → save JSON to Google Drive. This is your backup.</div></div>
+          <div class="check-item"><span class="check-icon">🎯</span><div class="check-text"><strong>Lead tracking:</strong> Open CRM (lead-management-crm.html) separately → add leads, update pipeline stages, check follow-up tracker</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-hdr"><div class="card-icon ci-blue">🧑‍💻</div><div><div class="card-title">Pinkesh's Daily Workflow</div></div></div>
+      <div class="card-body">
+        <div class="checklist">
+          <div class="check-item"><span class="check-icon">🌅</span><div class="check-text"><strong>Morning:</strong> Open admin.html on any device → type Pinkesh@1 → session starts. Tickets auto-load from Firestore.</div></div>
+          <div class="check-item"><span class="check-icon">✏️</span><div class="check-text"><strong>Update client:</strong> Click any ticket → update timeline, progress, deliverables → click Save → live instantly. He can do this from phone or laptop.</div></div>
+          <div class="check-item"><span class="check-icon">📄</span><div class="check-text"><strong>Create documents:</strong> Open docs.html → type Pinkesh@1 → generate invoices, proposals etc. → download HTML → Print as PDF → send to client</div></div>
+          <div class="check-item"><span class="check-icon">🎯</span><div class="check-text"><strong>Leads:</strong> Open CRM → add leads → at end of day, click Export → send JSON to you (Raunak) on WhatsApp for sync</div></div>
+          <div class="check-item"><span class="check-icon">🚫</span><div class="check-text"><strong>Pinkesh cannot:</strong> See Settings, manage team, delete tickets, see Finance (unless you give those permissions)</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SECTION 14 — TROUBLESHOOTING
+══════════════════════════════════════════ -->
+<div class="section" id="s14">
+  <div class="section-hdr">
+    <div class="section-eyebrow">14 — TROUBLESHOOTING</div>
+    <div class="section-title">When Something Breaks — How to Fix It</div>
+  </div>
+
+  <div class="flow-list">
+    <div class="flow-item">
+      <div class="flow-num" style="background:var(--red);font-size:12px;">!</div>
+      <div>
+        <div class="flow-title">"Firestore sync failed" toast appears when saving</div>
+        <div class="flow-desc"><strong style="color:var(--text);">Cause:</strong> Firebase security rules are blocking writes, OR no internet connection.<br/><strong style="color:var(--text);">Fix Step 1:</strong> Check your internet. If fine, go to console.firebase.google.com → Your project → Firestore Database → Rules → Make sure rules say <code>allow read, write: if true;</code><br/><strong style="color:var(--text);">Fix Step 2:</strong> If rules are correct, try refreshing the page and saving again. The toast "Saved locally — Firestore sync failed" means your data IS saved locally and will sync when connection restores.</div>
+        <span class="flow-tag ft-red">Most common issue</span>
+      </div>
+    </div>
+    <div class="flow-item">
+      <div class="flow-num" style="background:var(--red);font-size:12px;">!</div>
+      <div>
+        <div class="flow-title">Pinkesh's password doesn't work on his device</div>
+        <div class="flow-desc"><strong style="color:var(--text);">Cause:</strong> Either Firestore sync hasn't completed yet, or his account is suspended, or there's a typo in password.<br/><strong style="color:var(--text);">Fix:</strong> admin.html Team page → check if his status is "Active". Then check the password displayed matches what he typed (it's case-sensitive). If all correct, check Firestore console — see if his document exists in the <code>team</code> collection. If it doesn't exist there, re-save him from the Team page.</div>
+      </div>
+    </div>
+    <div class="flow-item">
+      <div class="flow-num" style="background:var(--red);font-size:12px;">!</div>
+      <div>
+        <div class="flow-title">Client types their Ticket ID but gets "Ticket Not Found" error</div>
+        <div class="flow-desc"><strong style="color:var(--text);">Cause:</strong> The ticket doesn't exist in Firestore yet (only in localStorage), OR the ticket ID is spelled differently (e.g. SE-1 vs SE-001).<br/><strong style="color:var(--text);">Fix:</strong> Open admin.html → open that ticket → click "☁️ Save to Firestore" → client refreshes → should work. Make sure the ticket ID in Firestore exactly matches what the client is typing.</div>
+      </div>
+    </div>
+    <div class="flow-item">
+      <div class="flow-num" style="background:var(--red);font-size:12px;">!</div>
+      <div>
+        <div class="flow-title">Admin panel shows no tickets after opening on a new device</div>
+        <div class="flow-desc"><strong style="color:var(--text);">Cause:</strong> admin.html reads tickets from localStorage first, then tries to sync from Firestore. On a new device, localStorage is empty and the sync happens in background.<br/><strong style="color:var(--text);">Fix:</strong> Wait 3–5 seconds after logging in — tickets load from Firestore automatically. If still not showing, use the ⬆ Import button and paste your last exported JSON to restore tickets to that device's localStorage.</div>
+      </div>
+    </div>
+    <div class="flow-item">
+      <div class="flow-num" style="background:var(--red);font-size:12px;">!</div>
+      <div>
+        <div class="flow-title">Client dashboard shows old data / doesn't show latest update</div>
+        <div class="flow-desc"><strong style="color:var(--text);">Cause:</strong> You saved to localStorage but forgot to push to Firestore, OR there's a browser cache issue on client's device.<br/><strong style="color:var(--text);">Fix:</strong> Go to admin.html → open ticket → click "☁️ Save to Firestore" (not just "Save locally"). Tell client to hard refresh their browser (Ctrl+Shift+R on PC, Cmd+Shift+R on Mac, or clear cache on phone).</div>
+      </div>
+    </div>
+    <div class="flow-item">
+      <div class="flow-num" style="background:var(--red);font-size:12px;">!</div>
+      <div>
+        <div class="flow-title">Dashboard shows "Loading..." forever (never loads)</div>
+        <div class="flow-desc"><strong style="color:var(--text);">Cause:</strong> Firebase SDK not loading (network issue), OR Firestore rules blocking read, OR the ticket ID doesn't exist.<br/><strong style="color:var(--text);">Fix:</strong> Open browser console (F12 → Console tab) → look for red error messages. Common ones: "Permission denied" = fix Firestore rules. "net::ERR_FAILED" = network issue. "app/duplicate-app" = page refresh needed.</div>
+      </div>
+    </div>
+    <div class="flow-item">
+      <div class="flow-num" style="background:var(--red);font-size:12px;">!</div>
+      <div>
+        <div class="flow-title">Export button downloads but import on another device doesn't work</div>
+        <div class="flow-desc"><strong style="color:var(--text);">Cause:</strong> The JSON format is wrong (file was modified) or pasted incorrectly.<br/><strong style="color:var(--text);">Fix:</strong> Open the downloaded JSON file in Notepad — it should start with <code>{"tickets":[</code>. Copy ALL the text (Ctrl+A, Ctrl+C). Go to Import modal → paste → click Import &amp; Merge. Make sure you're pasting the full content including the opening and closing braces.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SECTION 15 — FIREBASE CONSOLE
+══════════════════════════════════════════ -->
+<div class="section" id="s15">
+  <div class="section-hdr">
+    <div class="section-eyebrow">15 — FIREBASE CONSOLE</div>
+    <div class="section-title">Using Firebase Console Directly</div>
+    <div class="section-sub">The Firebase Console at console.firebase.google.com lets you see and manage everything from Google's side.</div>
+  </div>
+
+  <div class="card">
+    <div class="card-hdr"><div class="card-icon ci-blue">☁️</div><div><div class="card-title">Useful Things to Do in Firebase Console</div></div></div>
+    <div class="card-body">
+      <div class="flow-list">
+        <div class="flow-item">
+          <div class="flow-num" style="background:linear-gradient(135deg,#3B82F6,#1D4ED8);">👁</div>
+          <div>
+            <div class="flow-title">View All Client Data Live</div>
+            <div class="flow-desc">console.firebase.google.com → your project → Firestore Database → Data tab → click <code>clients</code> collection → see all tickets. You can click any document to see and edit fields directly from here — from your phone, anywhere.</div>
+          </div>
+        </div>
+        <div class="flow-item">
+          <div class="flow-num" style="background:linear-gradient(135deg,#22C55E,#16A34A);">👥</div>
+          <div>
+            <div class="flow-title">View Team Members in Firestore</div>
+            <div class="flow-desc">Firestore → Data → <code>team</code> collection → see all members. If a member can't log in, check if their document exists here and their status field says "active".</div>
+          </div>
+        </div>
+        <div class="flow-item">
+          <div class="flow-num" style="background:linear-gradient(135deg,#FFB347,#FF6B35);">⚙️</div>
+          <div>
+            <div class="flow-title">View / Edit Settings</div>
+            <div class="flow-desc">Firestore → Data → <code>settings</code> → document <code>agency</code> → see your UPI ID, bank details, owner name etc. You can edit directly here in an emergency without opening admin.html.</div>
+          </div>
+        </div>
+        <div class="flow-item">
+          <div class="flow-num" style="background:linear-gradient(135deg,#EF4444,#DC2626);">🛡️</div>
+          <div>
+            <div class="flow-title">Fix Security Rules</div>
+            <div class="flow-desc">Firestore → Rules tab → if saving fails, paste the open rules shown in Section 2 of this guide → Publish. Takes 30 seconds to go into effect.</div>
+          </div>
+        </div>
+        <div class="flow-item">
+          <div class="flow-num" style="background:linear-gradient(135deg,#9B7FD4,#6C63FF);">📊</div>
+          <div>
+            <div class="flow-title">Check Usage</div>
+            <div class="flow-desc">Firebase Console → Usage tab → see reads, writes, storage used. You're on the free Spark plan — 50,000 reads/day, 20,000 writes/day. With 50 clients, you use roughly 200 reads and 50 writes per day — well within free limits.</div>
+          </div>
+        </div>
+        <div class="flow-item">
+          <div class="flow-num" style="background:linear-gradient(135deg,#06D6A0,#059669);">💾</div>
+          <div>
+            <div class="flow-title">Export Firestore Data (Emergency Backup)</div>
+            <div class="flow-desc">Firebase Console → Firestore → Import/Export → Export to Google Cloud Storage (requires setting up a storage bucket). For simpler backup, use the ⬇ Export button in admin.html which downloads JSON directly.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SECTION 16 — EXPORT / IMPORT
+══════════════════════════════════════════ -->
+<div class="section" id="s16">
+  <div class="section-hdr">
+    <div class="section-eyebrow">16 — BACKUP</div>
+    <div class="section-title">Export / Import — Backup and Team Sync</div>
+    <div class="section-sub">What gets exported, when to do it, and how to use it across devices.</div>
+  </div>
+
+  <div class="g2">
+    <div class="card">
+      <div class="card-hdr"><div class="card-icon ci-green">⬇</div><div><div class="card-title">Export</div></div></div>
+      <div class="card-body">
+        <p style="font-size:13px;color:var(--muted);line-height:1.75;margin-bottom:12px;"><strong style="color:var(--text);">What gets exported:</strong> All tickets, vouchers, and settings. Team members are NOT included in export (they live in Firestore now).</p>
+        <div class="step-list">
+          <div class="step"><div class="step-num" style="width:26px;height:26px;border-radius:7px;font-size:12px;">1</div><div class="step-body"><div class="sd">admin.html → click ⬇ Export in top-right header</div></div></div>
+          <div class="step"><div class="step-num" style="width:26px;height:26px;border-radius:7px;font-size:12px;">2</div><div class="step-body"><div class="sd">File downloads: <code>sparkedge-admin-YYYY-MM-DD.json</code></div></div></div>
+          <div class="step"><div class="step-num" style="width:26px;height:26px;border-radius:7px;font-size:12px;">3</div><div class="step-body"><div class="sd">Save to Google Drive AND WhatsApp Saved Messages as weekly backup</div></div></div>
+        </div>
+        <div class="box box-info" style="margin-top:10px;"><strong>When to export:</strong> After adding/updating tickets, before switching devices, every Friday as weekly backup.</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-hdr"><div class="card-icon ci-blue">⬆</div><div><div class="card-title">Import</div></div></div>
+      <div class="card-body">
+        <p style="font-size:13px;color:var(--muted);line-height:1.75;margin-bottom:12px;"><strong style="color:var(--text);">Use when:</strong> Restoring tickets on a new device, or merging data from a team member.</p>
+        <div class="step-list">
+          <div class="step"><div class="step-num" style="width:26px;height:26px;border-radius:7px;font-size:12px;">1</div><div class="step-body"><div class="sd">admin.html → click ⬆ Import in top-right header</div></div></div>
+          <div class="step"><div class="step-num" style="width:26px;height:26px;border-radius:7px;font-size:12px;">2</div><div class="step-body"><div class="sd">Open your saved .json file in Notepad → Select All (Ctrl+A) → Copy (Ctrl+C)</div></div></div>
+          <div class="step"><div class="step-num" style="width:26px;height:26px;border-radius:7px;font-size:12px;">3</div><div class="step-body"><div class="sd">Paste into Import modal → click Import &amp; Merge</div></div></div>
+          <div class="step"><div class="step-num" style="width:26px;height:26px;border-radius:7px;font-size:12px;">4</div><div class="step-body"><div class="sd">Tickets are merged. Existing ticket IDs are updated (not duplicated). New tickets are added.</div></div></div>
+        </div>
+        <div class="box box-success" style="margin-top:10px;"><strong>Safe:</strong> Import NEVER deletes your existing data. It only adds or updates. You can safely run Import multiple times.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-hdr"><div class="card-icon ci-gold">📋</div><div><div class="card-title">What Uses What for Sync — Quick Reference</div></div></div>
+    <div class="card-body" style="padding:0;">
+      <table class="file-tbl">
+        <thead><tr><th>Data Type</th><th>Where It's Stored</th><th>How to Sync to Another Device</th></tr></thead>
+        <tbody>
+          <tr><td><span class="fname">Client Tickets</span></td><td style="color:var(--muted);">Firestore <code>clients</code> + localStorage backup</td><td style="color:var(--muted);">Automatic via Firestore. OR use Export → Import for localStorage refresh.</td></tr>
+          <tr><td><span class="fname">Team Members</span></td><td style="color:var(--muted);">Firestore <code>team</code> + HARDCODED_MEMBERS fallback</td><td style="color:var(--muted);"><strong style="color:var(--green);">Automatic — no action needed.</strong> Firestore syncs on login.</td></tr>
+          <tr><td><span class="fname">Settings (UPI etc.)</span></td><td style="color:var(--muted);">Firestore <code>settings/agency</code> + localStorage</td><td style="color:var(--muted);">Automatic via Firestore when you save in Settings page.</td></tr>
+          <tr><td><span class="fname">Referral Vouchers</span></td><td style="color:var(--muted);">Firestore <code>vouchers/all</code> + localStorage</td><td style="color:var(--muted);">Automatic via Firestore.</td></tr>
+          <tr><td><span class="fname">Doc Drafts (docs.html)</span></td><td style="color:var(--muted);">localStorage ONLY</td><td style="color:var(--muted);">docs.html ⬇ Export → send JSON file → ⬆ Import on other device.</td></tr>
+          <tr><td><span class="fname">CRM Leads</span></td><td style="color:var(--muted);">localStorage ONLY</td><td style="color:var(--muted);">CRM ⬇ Export → send JSON to Raunak → ⬆ Import. Manual daily sync.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- DIVIDER -->
+<div class="section" style="padding-bottom:20px;">
+  <div class="divider"></div>
+  <div class="box box-success">
+    <strong>✅ You're fully set up.</strong> Your SparkEdge system is now running on Firebase, fully cross-device, with real-time client dashboards, team management, and automatic syncing. The only things that still need manual Export/Import are: CRM lead data and docs.html draft data — everything else is in Firestore and syncs automatically.<br/><br/>
+    <strong>Remember the three numbers:</strong> Owner password = <code>RAUNAK@1</code> · Pinkesh password = <code>Pinkesh@1</code> · Settings password = <code>Settings@1</code> (change this one!)
+  </div>
+</div>
+
+<footer>
+  <div>
+    <div class="f-brand">⚡ SparkEdge</div>
+    <div style="font-size:11px;color:var(--dim);margin-top:4px;">sparkedge555@gmail.com · +91 91424 50715</div>
+  </div>
+  <div class="f-copy">Owner Master Guide · June 2026 · Internal Only — Do Not Share</div>
+</footer>
+
+</body>
+</html>
