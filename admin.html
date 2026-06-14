@@ -637,15 +637,21 @@ window.SE_USER = null; // set on login
   // Check session
   // Pre-seed cache from hardcoded members immediately
 if(typeof HARDCODED_MEMBERS !== 'undefined') window._teamCache = [...HARDCODED_MEMBERS];
-  const sess = sessionStorage.getItem('se_session');
-  if(sess){
-    try{
-      window.SE_USER = JSON.parse(sess);
-      document.getElementById('adminLoginScreen').style.display='none';
-    }catch{}
-  }
+ const sess = sessionStorage.getItem('se_session');
+if(sess){
+  try{
+    window.SE_USER = JSON.parse(sess);
+    document.getElementById('adminLoginScreen').style.display='none';
+    // Defer until full script is parsed
+    setTimeout(() => {
+      if(typeof updateUserBadge==='function') updateUserBadge();
+      if(typeof applyPermissions==='function') applyPermissions();
+      if(typeof attachTeamListener==='function') attachTeamListener();
+    }, 0);
+  }catch{}
+}
 
-  function checkAdminPwd(){
+  async function checkAdminPwd(){
     const val = document.getElementById('adminPwdInput').value;
     const err = document.getElementById('adminPwdError');
     err.style.display='none';
@@ -659,17 +665,41 @@ if(typeof HARDCODED_MEMBERS !== 'undefined') window._teamCache = [...HARDCODED_M
     }
 
     // Member check
-    const members = getMembers();
-    const member = members.find(m => m.password === val && m.status === 'active');
-    if(member){
-      window.SE_USER = {name:member.name, role:member.role, permissions:member.permissions||[], memberId:member.id};
-      sessionStorage.setItem('se_session', JSON.stringify(window.SE_USER));
-      doUnlock();
-      return;
-    }
+    // Member check — try cache first, then Firestore fallback
+const members = getMembers();
+const member = members.find(m => m.password === val && m.status === 'active');
+if(member){
+  window.SE_USER = {name:member.name, role:member.role, permissions:member.permissions||[], memberId:member.id};
+  sessionStorage.setItem('se_session', JSON.stringify(window.SE_USER));
+  doUnlock();
+  return;
+}
 
-    // Failed
-    err.style.display='block';
+// Not in cache — try Firestore directly (catches members added on other devices)
+try {
+  const snapshot = await getDb().collection('team').get();
+  const fsMembers = [];
+  snapshot.forEach(doc => fsMembers.push({ id: doc.id, ...doc.data() }));
+  const fsMember = fsMembers.find(m => m.password === val && m.status === 'active');
+  if(fsMember){
+    // Update cache with fresh Firestore data
+    const merged = [...HARDCODED_MEMBERS];
+    fsMembers.forEach(fm => {
+      const idx = merged.findIndex(hm => hm.id === fm.id);
+      if(idx >= 0) merged[idx] = fm; else merged.push(fm);
+    });
+    window._teamCache = merged;
+    window.SE_USER = {name:fsMember.name, role:fsMember.role, permissions:fsMember.permissions||[], memberId:fsMember.id};
+    sessionStorage.setItem('se_session', JSON.stringify(window.SE_USER));
+    doUnlock();
+    return;
+  }
+} catch(e) {
+  console.warn('[SparkEdge] Firestore login fallback failed:', e.message);
+}
+
+// Failed
+err.style.display='block';
     document.getElementById('adminPwdInput').classList.add('shake');
     setTimeout(()=>document.getElementById('adminPwdInput').classList.remove('shake'),500);
   }
@@ -2169,7 +2199,7 @@ function ticketCardHTML(t) {
   }[t.status]||'not-started';
   const sentCount = Object.values(t.docsSent||{}).filter(Boolean).length;
   return `
-  <div class="ticket-card" onclick="openEditor('${t.ticketId}')">
+  <div class="ticket-card" onclick="openEditorSafe('${t.ticketId}')">
     <div class="ticket-id">${t.ticketId}</div>
     <div class="ticket-info">
       <div class="ti-name">${t.clientName}</div>
@@ -2183,7 +2213,7 @@ function ticketCardHTML(t) {
     <div class="ticket-actions">
       <span style="font-size:11px;color:var(--text-dim);">📋 ${sentCount}/4 docs</span>
       ${t.whatsapp ? `<a href="https://wa.me/${t.whatsapp.replace(/[^0-9]/g,'')}" target="_blank" class="btn btn-ghost btn-sm" onclick="event.stopPropagation()" style="color:#25D366;border-color:rgba(37,211,102,.3);">WhatsApp</a>` : ''}
-      <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();openEditor('${t.ticketId}')" style="cursor:pointer;">✏️ Edit</button>
+      <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();openEditorSafe('${t.ticketId}')" style="cursor:pointer;">✏️ Edit</button>
     </div>
   </div>`;
 }
@@ -3163,9 +3193,10 @@ function saveSettings(){
 function changeAdminPwd(){
   const newPwd=document.getElementById('s_newPwd').value.trim();
   if(!newPwd){alert('Enter a new password.');return;}
-  sessionStorage.setItem('se_admin_pwd',newPwd);
+  if(newPwd.length < 6){alert('Password must be at least 6 characters.');return;}
   document.getElementById('s_newPwd').value='';
-  showToast('Password updated for this session!');
+  alert('⚠️ To permanently change the owner password:\n\n1. Open admin.html in a text editor\n2. Find: RAUNAK@1\n3. Replace it with: '+newPwd+'\n4. Save → git push\n\nThe password change is NOT permanent until you edit the file.');
+  showToast('See instructions to make this permanent.');
 }
 function adminLogout(){
   sessionStorage.removeItem('se_session');
@@ -3354,7 +3385,7 @@ function doImport(){
     closeImportModal();
     showToast('✅ Import done: ' + msg.join(' · '));
     renderDashboard();
-    renderTicketBadge();
+document.getElementById('ticketCountBadge').textContent = tickets.length;
   } catch(e){
     alert('Error parsing JSON: ' + e.message);
   }
