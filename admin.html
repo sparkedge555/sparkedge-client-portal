@@ -432,6 +432,29 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   .topbar{padding:12px 16px;}
   .topbar-right .btn span{display:none;}
 }
+
+/* share card */
+/* ── SHARE CLIENT MESSAGE CARD ── */
+.share-msg-card{background:rgba(37,211,102,.06);border:1px solid rgba(37,211,102,.2);border-radius:var(--radius);overflow:hidden;margin-top:12px;}
+.share-msg-hdr{padding:12px 14px;border-bottom:1px solid rgba(37,211,102,.15);display:flex;align-items:center;gap:10px;}
+.share-msg-body{padding:14px;display:flex;flex-direction:column;gap:11px;}
+.share-tpl-row{display:flex;flex-wrap:wrap;gap:5px;}
+.share-tpl-btn{font-size:11px;padding:5px 10px;border-radius:20px;border:1px solid var(--border-bright);background:var(--bg-raised);color:var(--text-muted);cursor:pointer;transition:all .15s;white-space:nowrap;line-height:1.3;}
+.share-tpl-btn:hover,.share-tpl-btn.active{border-color:#25D366;color:#25D366;background:rgba(37,211,102,.08);}
+.share-preview{background:var(--bg-raised);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;font-size:12px;color:var(--text-muted);line-height:1.7;white-space:pre-wrap;word-break:break-word;min-height:64px;max-height:160px;overflow-y:auto;}
+.share-preview::-webkit-scrollbar{width:3px;}.share-preview::-webkit-scrollbar-thumb{background:var(--border-bright);border-radius:3px;}
+.share-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.share-action-btn{padding:10px 6px;border-radius:var(--radius-sm);font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;border:none;transition:opacity .15s;width:100%;}
+.share-action-btn:hover{opacity:.85;}
+.share-action-btn.copy{background:rgba(37,211,102,.15);border:1px solid rgba(37,211,102,.35);color:#25D366;}
+.share-action-btn.wa{background:rgba(37,211,102,.25);border:1px solid rgba(37,211,102,.45);color:#128C7E;}
+.share-lbl{font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--text-dim);margin-bottom:5px;}
+.share-copied{display:none;font-size:11px;color:#22C55E;text-align:center;padding:3px 0;}
+@media(max-width:480px){
+  .share-actions{grid-template-columns:1fr;}
+  .share-action-btn{padding:12px;}
+  .share-msg-body{padding:12px;}
+}
 </style>
 </head>
 <body>
@@ -1006,6 +1029,50 @@ function toggleSidebar(){
           <button class="btn btn-secondary" style="width:100%;" onclick="saveCurrentTicket()">
             💾 Save to Admin Panel
           </button>
+          <!-- ══ SHARE CLIENT MESSAGE ══ -->
+<div class="share-msg-card" id="shareMsgCard">
+  <div class="share-msg-hdr">
+    <div style="width:28px;height:28px;background:linear-gradient(135deg,#25D366,#128C7E);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;">📤</div>
+    <div style="min-width:0;">
+      <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--text);line-height:1.2;">Share with Client</div>
+      <div style="font-size:10px;color:var(--text-muted);margin-top:1px;">Auto-message with portal link</div>
+    </div>
+  </div>
+
+  <div class="share-msg-body">
+
+    <div>
+      <div class="share-lbl">Quick Templates</div>
+      <div class="share-tpl-row">
+        <button class="share-tpl-btn" id="stpl_update"    onclick="setShareTpl('update')">📊 Update</button>
+        <button class="share-tpl-btn" id="stpl_milestone" onclick="setShareTpl('milestone')">🏆 Milestone</button>
+        <button class="share-tpl-btn" id="stpl_payment"   onclick="setShareTpl('payment')">💳 Payment due</button>
+        <button class="share-tpl-btn" id="stpl_launch"    onclick="setShareTpl('launch')">🚀 Launched!</button>
+        <button class="share-tpl-btn" id="stpl_docs"      onclick="setShareTpl('docs')">📋 Docs sent</button>
+      </div>
+    </div>
+
+    <div>
+      <div class="share-lbl">Add a custom note (optional)</div>
+      <textarea id="shareCustomMsg" rows="2"
+        style="width:100%;box-sizing:border-box;background:var(--bg-raised);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 10px;font-size:12px;color:var(--text);font-family:'DM Sans',sans-serif;outline:none;resize:vertical;line-height:1.5;transition:border-color .15s;"
+        placeholder="Type extra info or leave blank to use template..."
+        oninput="buildShareMsg()"></textarea>
+    </div>
+
+    <div>
+      <div class="share-lbl">👁 Preview</div>
+      <div class="share-preview" id="shareMsgPreview">Open a ticket to generate message...</div>
+    </div>
+
+    <div class="share-actions">
+      <button class="share-action-btn copy" onclick="copyShareMsg()">📋 Copy</button>
+      <button class="share-action-btn wa"   onclick="whatsappShareMsg()">💬 WhatsApp</button>
+    </div>
+    <div class="share-copied" id="shareCopiedToast">✅ Copied to clipboard!</div>
+
+  </div>
+</div>
         </div>
 
         <!-- Referral Quick Actions -->
@@ -2115,6 +2182,10 @@ function openEditor(ticketId) {
 
   // WA link
   updateWALink();
+  _shareActiveTpl = '';
+document.querySelectorAll('.share-tpl-btn').forEach(b => b.classList.remove('active'));
+document.getElementById('shareCustomMsg').value = '';
+buildShareMsg();
   document.getElementById('e_whatsapp').addEventListener('input', updateWALink);
   document.getElementById('wa_message').addEventListener('input', updateWALink);
 
@@ -3797,6 +3868,72 @@ window.deleteTicket = function(){
 
 /* ── Call applyPermissions on load if user already in session ── */
 if(window.SE_USER){ applyPermissions(); }
+
+/* ══════════════════════════════════════════════════════
+   SHARE CLIENT MESSAGE — RESPONSIVE BUILD
+══════════════════════════════════════════════════════ */
+const _shareTpls = {
+  update:    'Here\'s a quick update on your project — we\'ve made solid progress this week. Check your live dashboard for all the details and current status.',
+  milestone: 'Great news! 🎉 We\'ve just hit a key milestone on your project. Everything is on track. Your dashboard has the full breakdown.',
+  payment:   'Hi! Just a friendly reminder — the next payment milestone is now due. You can view the bill and pay directly from your dashboard via UPI, GPay, or PhonePe.',
+  launch:    'Your project is now LIVE! 🚀 Everything has been deployed and tested. Please check your dashboard for the final deliverables and next steps.',
+  docs:      'We\'ve just sent over some important documents (Invoice / Agreement / Welcome Packet). Please check your WhatsApp or email and confirm receipt.'
+};
+
+let _shareActiveTpl = '';
+
+function setShareTpl(key) {
+  _shareActiveTpl = key;
+  document.querySelectorAll('.share-tpl-btn').forEach(b => b.classList.remove('active'));
+  const btn = document.getElementById('stpl_' + key);
+  if (btn) btn.classList.add('active');
+  const ta = document.getElementById('shareCustomMsg');
+  if (ta) ta.value = '';
+  buildShareMsg();
+}
+
+function buildShareMsg() {
+  const t = tickets.find(x => x.ticketId === currentTicketId);
+  const preview = document.getElementById('shareMsgPreview');
+  if (!preview) return;
+  if (!t) {
+    preview.textContent = 'Open a ticket to generate message...';
+    return;
+  }
+
+  const name     = (t.clientName || 'there').split(' ')[0];
+  const tid      = t.ticketId;
+  const custom   = (document.getElementById('shareCustomMsg')?.value || '').trim();
+  const tplText  = _shareActiveTpl ? _shareTpls[_shareActiveTpl] : '';
+  const body     = custom || tplText || 'Here is your latest project update from SparkEdge.';
+  const url      = 'https://sparkedge-client-portal.web.app/dashboard.html?id=' + tid;
+
+  const msg = 'Hi ' + name + '! 👋\n\n' + body + '\n\n🎫 Ticket: *' + tid + '*\n🔗 Dashboard: ' + url + '\n\n— SparkEdge Team';
+  preview.textContent = msg;
+}
+
+function copyShareMsg() {
+  const text = document.getElementById('shareMsgPreview')?.textContent || '';
+  if (!text || text.startsWith('Open a ticket')) { showToast('Open a ticket first!'); return; }
+  const toast = document.getElementById('shareCopiedToast');
+  const doShow = () => { if (toast) { toast.style.display = 'block'; setTimeout(() => toast.style.display = 'none', 2400); } };
+  navigator.clipboard.writeText(text).then(doShow).catch(() => {
+    const el = document.createElement('textarea');
+    el.value = text; el.style.position = 'fixed'; el.style.opacity = '0';
+    document.body.appendChild(el); el.focus(); el.select();
+    try { document.execCommand('copy'); doShow(); } catch(e) { showToast('Copy failed — please copy manually.'); }
+    document.body.removeChild(el);
+  });
+}
+
+function whatsappShareMsg() {
+  const t = tickets.find(x => x.ticketId === currentTicketId);
+  const text = document.getElementById('shareMsgPreview')?.textContent || '';
+  if (!text || text.startsWith('Open a ticket')) { showToast('Open a ticket first!'); return; }
+  const num = (t?.whatsapp || '').replace(/[^0-9]/g, '');
+  const url = (num ? 'https://wa.me/' + num : 'https://wa.me/') + '?text=' + encodeURIComponent(text);
+  window.open(url, '_blank');
+}
 
 </script>
 <!-- ══════════ MODAL: IMPORT DATA ══════════ -->
