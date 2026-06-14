@@ -427,6 +427,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   .file-row{grid-template-columns:1fr 1fr;}
 }
 @media(max-width:480px){
+  #page-editor .editor-top-btns span {
+  display: none;
+}
   .stats-row{grid-template-columns:1fr;}
   .page-view{padding:16px;}
   .admin-login-card{padding:28px 20px;}
@@ -464,6 +467,26 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .icon-md svg{width:16px;height:16px;}
 .icon-lg svg{width:20px;height:20px;}
 .icon-xl svg{width:24px;height:24px;}
+
+/* live button */
+/* ── BUTTON ICON FIX ── */
+.btn i[data-lucide] {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  pointer-events: none;
+}
+.btn i[data-lucide] svg {
+  width: 13px;
+  height: 13px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  display: block;
+}
 </style>
 </head>
 <body>
@@ -909,7 +932,7 @@ function toggleSidebar(){
         <div class="page-title" id="editorTicketId">Editing SE-001</div>
         <div class="page-sub" id="editorClientName">Rohan Mehta</div>
       </div>
-     <div style="margin-left:auto;display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end;">
+     <div class="editor-top-btns" style="margin-left:auto;display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end;">
 
   <button class="btn btn-red btn-sm" onclick="deleteTicket()" style="height:34px;padding:0 12px;font-size:12px;gap:5px;flex-shrink:0;">
     <i data-lucide="trash-2" style="width:13px;height:13px;stroke:currentColor;fill:none;flex-shrink:0;"></i>
