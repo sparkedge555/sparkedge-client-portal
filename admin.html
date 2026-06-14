@@ -46,6 +46,7 @@
 <!-- App Name -->
 <meta name="application-name" content="SparkEdge">
 <meta name="apple-mobile-web-app-title" content="SparkEdge">
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 <!-- Google Fonts -->
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet"/>
 <style>
@@ -455,6 +456,14 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   .share-action-btn{padding:12px;}
   .share-msg-body{padding:12px;}
 }
+
+/* ── LUCIDE ICON HELPERS ── */
+.icon{display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;}
+.icon svg{stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+.icon-sm svg{width:14px;height:14px;}
+.icon-md svg{width:16px;height:16px;}
+.icon-lg svg{width:20px;height:20px;}
+.icon-xl svg{width:24px;height:24px;}
 </style>
 </head>
 <body>
@@ -462,7 +471,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 <!-- ══════════ ADMIN LOGIN SCREEN ══════════ -->
 <div id="adminLoginScreen">
   <div class="admin-login-card">
-    <div class="admin-login-icon">🔐</div>
+    <div class="admin-login-icon"><i data-lucide="lock-keyhole" style="width:28px;height:28px;stroke:#fff;fill:none;stroke-width:1.5;"></i></div>
     <div class="admin-login-title">Admin Access</div>
     <div class="admin-login-sub">Enter your password to access the SparkEdge admin panel.</div>
     <div class="admin-login-field">
@@ -769,46 +778,46 @@ function toggleSidebar(){
   <nav class="sidebar-nav">
     <div class="nav-section-label">Workspace</div>
     <button class="nav-item active" onclick="showPage('dashboard')" id="nav-dashboard">
-      <span class="nav-item-icon">⚡</span> Dashboard
+      <span class="nav-item-icon icon icon-md"><i data-lucide="zap"></i></span> Dashboard
     </button>
     <button class="nav-item" onclick="showPage('tickets')" id="nav-tickets">
-      <span class="nav-item-icon">🎫</span> Tickets
+     <span class="nav-item-icon icon icon-md"><i data-lucide="ticket"></i></span> Tickets
       <span class="nav-badge" id="ticketCountBadge">2</span>
     </button>
     <button class="nav-item" onclick="showPage('newticket')" id="nav-newticket">
-      <span class="nav-item-icon">➕</span> New Ticket
+      <span class="nav-item-icon icon icon-md"><i data-lucide="plus-circle"></i></span> New Ticket
     </button>
     <div class="nav-section-label">Sections</div>
     <button class="nav-item" onclick="showPage('clients')" id="nav-clients">
-      <span class="nav-item-icon">👥</span> Clients
+      <span class="nav-item-icon icon icon-md"><i data-lucide="users"></i></span> Clients
     </button>
     <button class="nav-item" onclick="showPage('finance')" id="nav-finance">
-      <span class="nav-item-icon">💰</span> Finance
+      <span class="nav-item-icon icon icon-md"><i data-lucide="indian-rupee"></i></span> Finance
     </button>
     <button class="nav-item" onclick="showPage('team')" id="nav-team">
-      <span class="nav-item-icon">🧑‍💻</span> Team
+      <span class="nav-item-icon icon icon-md"><i data-lucide="shield-check"></i></span> Team
     </button>
     <div class="nav-section-label">Knowledge</div>
     <button class="nav-item" onclick="showPage('workflow')" id="nav-workflow">
-      <span class="nav-item-icon">🗺️</span> Workflow
+      <span class="nav-item-icon icon icon-md"><i data-lucide="map"></i></span> Workflow
     </button>
     <button class="nav-item" onclick="showPage('guide')" id="nav-guide">
-      <span class="nav-item-icon">📖</span> System Guide
+      <span class="nav-item-icon icon icon-md"><i data-lucide="book-open"></i></span> System Guide
     </button>
     <div class="nav-section-label">Tools</div>
     <button class="nav-item" onclick="showPage('settings')" id="nav-settings">
-      <span class="nav-item-icon">⚙️</span> Settings
+      <span class="nav-item-icon icon icon-md"><i data-lucide="settings"></i></span> Settings
     </button>
     <button class="nav-item" onclick="window.open('docs.html','_blank')">
-      <span class="nav-item-icon">📄</span> Doc Generator ↗
+      <span class="nav-item-icon icon icon-md"><i data-lucide="file-text"></i></span> Doc Generator ↗
     </button>
     <button class="nav-item" onclick="window.open('index.html','_blank')">
-      <span class="nav-item-icon">🌐</span> Client Portal ↗
+      <span class="nav-item-icon icon icon-md"><i data-lucide="globe"></i></span> Client Portal ↗
     </button>
   </nav>
   <div class="sidebar-footer">
     <a href="mailto:sparkedge555@gmail.com">✉ sparkedge555@gmail.com</a>
-    <button id="memberLogoutBtn" onclick="adminLogout()" style="display:none;width:100%;margin-top:8px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);border-radius:8px;padding:8px 12px;font-size:12px;font-weight:600;color:#EF4444;cursor:pointer;text-align:left;">🚪 Log Out</button>
+    <button id="memberLogoutBtn" onclick="adminLogout()" style="display:none;width:100%;margin-top:8px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);border-radius:8px;padding:8px 12px;font-size:12px;font-weight:600;color:#EF4444;cursor:pointer;text-align:left;"><i data-lucide="log-out" style="width:14px;height:14px;"></i> Log Out</button>
   </div>
 </aside>
 
@@ -822,8 +831,8 @@ function toggleSidebar(){
       </div>
     </div>
     <div class="topbar-right">
-      <button class="btn btn-secondary btn-sm" onclick="exportData()" id="exportBtn" style="background:rgba(34,197,94,.1);border-color:rgba(34,197,94,.3);color:#22C55E;">⬇ Export</button>
-      <button class="btn btn-secondary btn-sm" onclick="openImportModal()" id="importBtn" style="background:rgba(59,130,246,.1);border-color:rgba(59,130,246,.3);color:#3B82F6;">⬆ Import</button>
+      <button class="btn btn-secondary btn-sm" onclick="exportData()" id="exportBtn" style="background:rgba(34,197,94,.1);border-color:rgba(34,197,94,.3);color:#22C55E;"><i data-lucide="download" style="width:14px;height:14px;"></i> Export</button>
+      <button class="btn btn-secondary btn-sm" onclick="openImportModal()" id="importBtn" style="background:rgba(59,130,246,.1);border-color:rgba(59,130,246,.3);color:#3B82F6;"><i data-lucide="upload" style="width:14px;height:14px;"></i> Import</button>
       <button class="btn btn-primary" onclick="showPage('newticket')" id="newTicketBtn">
         <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M6.5 1v11M1 6.5h11" stroke="white" stroke-width="1.8" stroke-linecap="round"/></svg>
         New Ticket
@@ -898,13 +907,13 @@ function toggleSidebar(){
         <div class="page-sub" id="editorClientName">Rohan Mehta</div>
       </div>
       <div style="margin-left:auto;display:flex;gap:8px;">
-        <button class="btn btn-red btn-sm" onclick="deleteTicket()">🗑 Delete</button>
-        <button class="btn btn-secondary" onclick="saveCurrentTicket()">💾 Save (syncs live)</button>
+        <button class="btn btn-red btn-sm" onclick="deleteTicket()"><i data-lucide="trash-2" style="width:13px;height:13px;"></i> Delete</button>
+        <button class="btn btn-secondary" onclick="saveCurrentTicket()"><i data-lucide="save" style="width:13px;height:13px;"></i> Save (syncs live)</button>
         <button class="btn btn-primary" style="width:100%;margin-bottom:8px;" onclick="generateAndDownload()">
-  ⬇ Download Offline Backup (.html)
+  <i data-lucide="download" style="width:13px;height:13px;"></i> Download Offline Backup (.html)
 </button>
         <button class="btn btn-green" onclick="saveToFirestore()">
-      ☁️ Save to Firestore (Live)
+      <i data-lucide="cloud-upload" style="width:13px;height:13px;"></i> Save to Firestore (Live)
       </button>
       </div>
     </div>
@@ -916,7 +925,7 @@ function toggleSidebar(){
         <!-- Identity -->
         <div class="card">
           <div class="card-header">
-            <div class="card-header-icon">🪪</div>
+            <div class="card-header-icon"><i data-lucide="id-card" style="width:15px;height:15px;stroke:var(--accent);"></i></div>
             <div><div class="card-header-title">Client Identity</div></div>
           </div>
           <div class="card-body">
@@ -933,7 +942,7 @@ function toggleSidebar(){
         <!-- Dates & Status -->
         <div class="card">
           <div class="card-header">
-            <div class="card-header-icon">📅</div>
+            <div class="card-header-icon"><i data-lucide="calendar" style="width:15px;height:15px;stroke:var(--accent);"></i></div>
             <div><div class="card-header-title">Dates & Status</div></div>
           </div>
           <div class="card-body">
@@ -959,7 +968,7 @@ function toggleSidebar(){
         <!-- Payment -->
         <div class="card">
           <div class="card-header">
-            <div class="card-header-icon">💰</div>
+            <div class="card-header-icon"><i data-lucide="wallet" style="width:15px;height:15px;stroke:var(--accent);"></i></div></div>
             <div><div class="card-header-title">Payment</div></div>
           </div>
           <div class="card-body">
@@ -1028,7 +1037,7 @@ function toggleSidebar(){
         <!-- Files -->
         <div class="card">
           <div class="card-header">
-            <div class="card-header-icon">📁</div>
+            <div class="card-header-icon"><i data-lucide="folder-open" style="width:15px;height:15px;stroke:var(--accent);"></i></div>
             <div><div class="card-header-title">Project Files</div></div>
           </div>
           <div class="card-body">
@@ -1040,7 +1049,7 @@ function toggleSidebar(){
         <!-- Deliverables -->
         <div class="card">
           <div class="card-header">
-            <div class="card-header-icon">✅</div>
+            <div class="card-header-icon"><i data-lucide="check-circle-2" style="width:15px;height:15px;stroke:var(--accent);"></i></div>
             <div><div class="card-header-title">Deliverables Checklist</div></div>
           </div>
           <div class="card-body">
@@ -1052,7 +1061,7 @@ function toggleSidebar(){
         <!-- Timeline -->
         <div class="card">
           <div class="card-header">
-            <div class="card-header-icon">🗓️</div>
+            <div class="card-header-icon"><i data-lucide="clock" style="width:15px;height:15px;stroke:var(--accent);"></i></div>
             <div><div class="card-header-title">Update Timeline</div><div class="card-header-sub">Most recent first</div></div>
           </div>
           <div class="card-body">
@@ -1064,7 +1073,7 @@ function toggleSidebar(){
         <!-- Manager Note -->
         <div class="card">
           <div class="card-header">
-            <div class="card-header-icon">💬</div>
+            <div class="card-header-icon"><i data-lucide="message-circle" style="width:15px;height:15px;stroke:var(--accent);"></i></div>
             <div><div class="card-header-title">Note from Manager</div><div class="card-header-sub">HTML allowed</div></div>
           </div>
           <div class="card-body">
@@ -1082,7 +1091,7 @@ function toggleSidebar(){
         <!-- WhatsApp -->
         <div class="card">
           <div class="card-header">
-            <div class="card-header-icon">💬</div>
+            <div class="card-header-icon"><i data-lucide="message-circle" style="width:15px;height:15px;stroke:#25D366;"></i></div>
             <div><div class="card-header-title">WhatsApp</div></div>
           </div>
           <div class="card-body">
@@ -1102,28 +1111,28 @@ function toggleSidebar(){
         <!-- Doc Tracker -->
         <div class="card">
           <div class="card-header">
-            <div class="card-header-icon">📋</div>
+            <div class="card-header-icon"><i data-lucide="clipboard-list" style="width:15px;height:15px;stroke:var(--accent);"></i></div>
             <div><div class="card-header-title">Documents Sent</div><div class="card-header-sub">Track what you've shared</div></div>
           </div>
           <div class="card-body">
             <div class="doc-tracker">
               <div class="doc-track-item">
-                <span class="doc-track-icon">🧾</span>
+                <span class="doc-track-icon icon icon-lg" style="color:var(--gold);"><i data-lucide="receipt"></i></span>
                 <div class="doc-track-info"><div class="doc-track-name">Invoice</div><div class="doc-track-sub">Payment invoice sent</div></div>
                 <label class="doc-track-toggle"><input type="checkbox" id="dt_invoice" onchange="saveDocTracker()"/><span class="toggle-slider"></span></label>
               </div>
               <div class="doc-track-item">
-                <span class="doc-track-icon">📋</span>
+                <span class="doc-track-icon icon icon-lg" style="color:#9B7FD4;"><i data-lucide="file-check"></i></span>
                 <div class="doc-track-info"><div class="doc-track-name">SOW / Agreement</div><div class="doc-track-sub">Service agreement sent</div></div>
                 <label class="doc-track-toggle"><input type="checkbox" id="dt_sow" onchange="saveDocTracker()"/><span class="toggle-slider"></span></label>
               </div>
               <div class="doc-track-item">
-                <span class="doc-track-icon">🎉</span>
+                <span class="doc-track-icon icon icon-lg" style="color:var(--green);"><i data-lucide="party-popper"></i></span>
                 <div class="doc-track-info"><div class="doc-track-name">Welcome Packet</div><div class="doc-track-sub">Onboarding doc sent</div></div>
                 <label class="doc-track-toggle"><input type="checkbox" id="dt_welcome" onchange="saveDocTracker()"/><span class="toggle-slider"></span></label>
               </div>
               <div class="doc-track-item">
-                <span class="doc-track-icon">📊</span>
+                <span class="doc-track-icon icon icon-lg" style="color:#3B82F6;"><i data-lucide="bar-chart-3"></i></span>
                 <div class="doc-track-info"><div class="doc-track-name">Proposal</div><div class="doc-track-sub">Project proposal sent</div></div>
                 <label class="doc-track-toggle"><input type="checkbox" id="dt_proposal" onchange="saveDocTracker()"/><span class="toggle-slider"></span></label>
               </div>
@@ -1199,7 +1208,7 @@ function toggleSidebar(){
         <!-- Referral Quick Actions -->
         <div class="card">
           <div class="card-header">
-            <div class="card-header-icon">🎁</div>
+            <div class="card-header-icon"><i data-lucide="gift" style="width:15px;height:15px;stroke:var(--accent);"></i></div>
             <div><div class="card-header-title">Referral & Earn</div><div class="card-header-sub">Quick actions for this client</div></div>
           </div>
           <div class="card-body" style="display:flex;flex-direction:column;gap:8px;">
@@ -1347,7 +1356,7 @@ function toggleSidebar(){
     <div class="stats-row" id="financeStatsRow" style="margin-bottom:24px;"></div>
     <div class="card">
       <div class="card-header">
-        <div class="card-header-icon">💳</div>
+        <div class="card-header-icon"><i data-lucide="credit-card" style="width:15px;height:15px;stroke:var(--accent);"></i></div>
         <div><div class="card-header-title">Payment Status by Client</div></div>
       </div>
       <div class="card-body" id="financeClientRows">
@@ -1389,7 +1398,7 @@ function toggleSidebar(){
     Any member you add, edit, or suspend here is updated <strong style="color:var(--text);">instantly on all devices</strong>.<br>
     Members can log in from any browser — no config files, no re-sharing of admin.html needed.<br><br>
     <strong style="color:var(--text);">What still needs manual sharing:</strong><br>
-    • <strong>Tickets</strong> — still use ⬇ Export / ⬆ Import to sync ticket data across devices.<br>
+    • <strong>Tickets</strong> — still use <i data-lucide="download" style="width:14px;height:14px;"></i> Export / <i data-lucide="upload" style="width:14px;height:14px;"></i> Import to sync ticket data across devices.<br>
     • <strong>HARDCODED_MEMBERS</strong> in the file still acts as an offline fallback if Firestore is unreachable.
   </div>
   <div style="margin-top:12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
@@ -1634,7 +1643,7 @@ function toggleSidebar(){
       <div class="wf-title">📤 Export — for Tickets & Finance data</div>
       <div class="wf-desc">
         <strong>What gets exported:</strong> All tickets, vouchers, and settings. Team members are excluded — they live in Firestore now.<br><br>
-        <strong>Step 1:</strong> Click <strong>⬇ Export</strong> in the top-right header.<br>
+        <strong>Step 1:</strong> Click <strong><i data-lucide="download" style="width:14px;height:14px;"></i> Export</strong> in the top-right header.<br>
         <strong>Step 2:</strong> A <code>sparkedge-admin-YYYY-MM-DD.json</code> file downloads.<br>
         <strong>Step 3:</strong> Save to Google Drive or email as a backup.<br><br>
         <strong>When to export:</strong> After adding/updating tickets · Before switching devices · Weekly backup habit.
@@ -1648,7 +1657,7 @@ function toggleSidebar(){
     <div>
       <div class="wf-title">📥 Import — for restoring Tickets on a new device</div>
       <div class="wf-desc">
-        <strong>Step 1:</strong> Open admin.html → log in → click <strong>⬆ Import</strong>.<br>
+        <strong>Step 1:</strong> Open admin.html → log in → click <strong><i data-lucide="upload" style="width:14px;height:14px;"></i> Import</strong>.<br>
         <strong>Step 2:</strong> Open your exported <code>.json</code> in Notepad → copy all text.<br>
         <strong>Step 3:</strong> Paste into Import modal → click <strong>Import & Merge</strong>.<br>
         <strong>Step 4:</strong> Tickets restored. Team members reload automatically from Firestore.<br><br>
@@ -1699,7 +1708,7 @@ function toggleSidebar(){
               <span style="background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.25);border-radius:5px;padding:2px 8px;color:#3B82F6;font-weight:600;white-space:nowrap;">🗑 Delete Tickets</span><span>Can permanently delete tickets. Assign only to trusted senior members.</span>
               <span style="background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.25);border-radius:5px;padding:2px 8px;color:#3B82F6;font-weight:600;white-space:nowrap;">💰 View Finance</span><span>Can access the Finance page. Assign to accounts/finance members only.</span>
               <span style="background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.25);border-radius:5px;padding:2px 8px;color:#3B82F6;font-weight:600;white-space:nowrap;">👥 View Clients</span><span>Can access the Clients overview page.</span>
-              <span style="background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.25);border-radius:5px;padding:2px 8px;color:#3B82F6;font-weight:600;white-space:nowrap;">⬇ Export/Import</span><span>Can export and import data. Assign to members you trust with backups.</span>
+              <span style="background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.25);border-radius:5px;padding:2px 8px;color:#3B82F6;font-weight:600;white-space:nowrap;"><i data-lucide="download" style="width:14px;height:14px;"></i> Export/Import</span><span>Can export and import data. Assign to members you trust with backups.</span>
             </div>
             <strong>Recommended presets by role:</strong><br>
             • Designer / Developer → View Tickets + Edit Tickets<br>
@@ -1907,7 +1916,7 @@ function toggleSidebar(){
 <div class="modal-overlay" id="deleteModal">
   <div class="modal" style="max-width:440px;">
     <div class="modal-header">
-      <div class="modal-title">Delete Ticket?</div>
+      <div class="modal-title" style="display:flex;align-items:center;gap:8px;"><i data-lucide="trash-2" style="width:18px;height:18px;stroke:#EF4444;"></i> Delete Ticket?</div>
       <button class="modal-close" onclick="closeModal('deleteModal')">✕</button>
     </div>
     <div class="modal-body">
@@ -1924,7 +1933,7 @@ function toggleSidebar(){
 <div class="modal-overlay" id="paymentModal">
   <div class="modal" style="max-width:460px;">
     <div class="modal-header">
-      <div class="modal-title">💳 Pay Online</div>
+      <div class="modal-title" style="display:flex;align-items:center;gap:8px;"><i data-lucide="credit-card" style="width:18px;height:18px;stroke:var(--accent);"></i> Pay Online</div>
       <button class="modal-close" onclick="closeModal('paymentModal')">✕</button>
     </div>
     <div class="modal-body">
@@ -1963,7 +1972,7 @@ function toggleSidebar(){
 <div class="modal-overlay" id="createVoucherModal">
   <div class="modal" style="max-width:480px;">
     <div class="modal-header">
-      <div class="modal-title">🎁 Create Referral Voucher</div>
+      <div class="modal-title" style="display:flex;align-items:center;gap:8px;"><i data-lucide="gift" style="width:18px;height:18px;stroke:var(--accent);"></i> Create Referral Voucher</div>
       <button class="modal-close" onclick="closeModal('createVoucherModal')">✕</button>
     </div>
     <div class="modal-body">
@@ -2011,7 +2020,7 @@ function toggleSidebar(){
 <div class="modal-overlay" id="redeemVoucherModal">
   <div class="modal" style="max-width:440px;">
     <div class="modal-header">
-      <div class="modal-title">🎟 Redeem Referral Voucher</div>
+      <div class="modal-title" style="display:flex;align-items:center;gap:8px;"><i data-lucide="ticket-check" style="width:18px;height:18px;stroke:var(--accent);"></i> Redeem Referral Voucher</div>
       <button class="modal-close" onclick="closeModal('redeemVoucherModal')">✕</button>
     </div>
     <div class="modal-body">
@@ -2034,7 +2043,7 @@ function toggleSidebar(){
 </div>
 
 <!-- ══════════ TOAST ══════════ -->
-<div class="toast" id="toast">✅ Saved!</div>
+<div class="toast" id="toast"><i data-lucide="check-circle" style="width:14px;height:14px;"></i> Saved!div>
 
 <!-- ══════════════════════════════════════════
      JAVASCRIPT
@@ -2209,6 +2218,7 @@ function renderDashboard() {
     return;
   }
   list.innerHTML = tickets.map(t => ticketCardHTML(t)).join('');
+  setTimeout(() => lucide.createIcons(), 50);
 }
 
 function renderTicketList() {
@@ -2218,6 +2228,7 @@ function renderTicketList() {
     return;
   }
   list.innerHTML = tickets.map(t => ticketCardHTML(t)).join('');
+  setTimeout(() => lucide.createIcons(), 50);
 }
 
 function ticketCardHTML(t) {
@@ -2943,6 +2954,7 @@ function renderReferrals() {
     return;
   }
   list.innerHTML = vouchers.map((v,i) => voucherCardHTML(v,i)).join('');
+  setTimeout(() => lucide.createIcons(), 50);
 }
 
 function voucherCardHTML(v, i) {
@@ -3138,6 +3150,7 @@ function renderClientsPage() {
         </div>
       </div>`;
     }).join('') + `</div></div>`;
+    setTimeout(() => lucide.createIcons(), 50);
 }
 
 /* ══════════════════════
@@ -3173,6 +3186,7 @@ function renderFinancePage() {
       </div>
     </div>`;
   }).join('');
+  setTimeout(() => lucide.createIcons(), 50);
 }
 
 /* ══════════════════════
@@ -3585,7 +3599,7 @@ if(countEl) countEl.textContent = members.length + ' member(s)';
       'delete_tickets':'🗑 Delete Tickets',
       'view_finance':'💰 View Finance',
       'view_clients':'👥 View Clients',
-      'export':'⬇ Export/Import'
+      'export':'<i data-lucide="download" style="width:14px;height:14px;"></i> Export/Import'
     };
     const permTags = (m.permissions||[]).map(p => `<span style="background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.25);border-radius:5px;padding:2px 8px;font-size:10px;font-weight:600;color:#3B82F6;margin:2px;">${permLabels[p]||p}</span>`).join('');
     return `<div class="team-card" style="margin-bottom:10px;">
@@ -3607,6 +3621,7 @@ if(countEl) countEl.textContent = members.length + ' member(s)';
       </div>`:''}
     </div>`;
   }).join('');
+  setTimeout(() => lucide.createIcons(), 50);
 }
 
 function openAddMemberModal(){
@@ -3798,7 +3813,7 @@ function downloadWelcomeNote(idx){
     'delete_tickets': '🗑 Delete Tickets — Can permanently delete tickets',
     'view_finance':   '💰 View Finance — Can access the Finance page',
     'view_clients':   '👥 View Clients — Can access the Clients overview',
-    'export':         '⬇ Export / Import — Can export and import data'
+    'export':         '<i data-lucide="download" style="width:14px;height:14px;"></i> Export / Import — Can export and import data'
   };
 
   const permList = (m.permissions||[]).map(p =>
@@ -4091,7 +4106,7 @@ function whatsappShareMsg() {
 <div class="modal-overlay" id="importOverlay">
   <div class="modal" style="max-width:500px;">
     <div class="modal-header">
-      <div class="modal-title">⬆ Import Data</div>
+     <div class="modal-title" style="display:flex;align-items:center;gap:8px;"><i data-lucide="upload" style="width:18px;height:18px;stroke:#3B82F6;"></i> Import Data</div>
       <button class="modal-close" onclick="closeImportModal()">✕</button>
     </div>
     <div class="modal-body">
@@ -4113,7 +4128,7 @@ function whatsappShareMsg() {
 <div class="modal-overlay" id="memberModal">
   <div class="modal" style="max-width:560px;">
     <div class="modal-header">
-      <div class="modal-title" id="memberModalTitle">Invite Team Member</div>
+      <div class="modal-title" style="display:flex;align-items:center;gap:8px;" id="memberModalTitle"><i data-lucide="user-plus" style="width:18px;height:18px;stroke:var(--accent);"></i> Invite Team Member</div>
       <button class="modal-close" onclick="closeMemberModal()">✕</button>
     </div>
     <div class="modal-body">
@@ -4186,7 +4201,7 @@ function whatsappShareMsg() {
         </label>
         <label style="display:flex;align-items:flex-start;gap:8px;background:var(--bg-raised);border:1px solid var(--border);border-radius:8px;padding:10px 12px;cursor:pointer;">
           <input type="checkbox" id="perm_export" style="accent-color:var(--accent);margin-top:2px;flex-shrink:0;" onchange="document.getElementById('mm_preset').value='custom'"/>
-          <div><div style="font-size:12px;font-weight:600;">⬇ Export / Import</div><div style="font-size:10px;color:var(--text-muted);">Can export and import data</div></div>
+          <div><div style="font-size:12px;font-weight:600;"><i data-lucide="download" style="width:14px;height:14px;"></i> Export / Import</div><div style="font-size:10px;color:var(--text-muted);">Can export and import data</div></div>
         </label>
       </div>
     </div>
@@ -4197,5 +4212,6 @@ function whatsappShareMsg() {
   </div>
 </div>
 
+<script>lucide.createIcons();</script>
 </body>
 </html>
