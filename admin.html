@@ -476,7 +476,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
     <div class="admin-login-sub">Enter your password to access the SparkEdge admin panel.</div>
     <div class="admin-login-field">
       <input type="password" id="adminPwdInput" placeholder="Enter password" onkeydown="if(event.key==='Enter')checkAdminPwd()"/>
-      <button class="admin-toggle-eye" onclick="togglePwdView()" id="eyeBtn">👁</button>
+      <button class="admin-toggle-eye" onclick="togglePwdView()" id="eyeBtn"><i data-lucide="eye" style="width:16px;height:16px;stroke:currentColor;fill:none;"></i></button>
     </div>
     <div class="admin-login-error" id="adminPwdError">⚠ Incorrect password. Please try again.</div>
     <button class="admin-login-btn" onclick="checkAdminPwd()">
@@ -728,11 +728,14 @@ err.style.display='block';
   }, 300);
 }
 
-  function togglePwdView(){
+ function togglePwdView(){
     const inp = document.getElementById('adminPwdInput');
     const btn = document.getElementById('eyeBtn');
     inp.type = inp.type==='password' ? 'text' : 'password';
-    btn.textContent = inp.type==='password' ? '👁' : '🙈';
+    btn.innerHTML = inp.type==='password'
+      ? '<i data-lucide="eye" style="width:16px;height:16px;stroke:currentColor;fill:none;"></i>'
+      : '<i data-lucide="eye-off" style="width:16px;height:16px;stroke:currentColor;fill:none;"></i>';
+    lucide.createIcons({el: btn});
   }
   window.checkAdminPwd = checkAdminPwd;
   window.togglePwdView = togglePwdView;
@@ -743,7 +746,7 @@ err.style.display='block';
 <div class="mobile-topbar">
   <button class="hamburger-btn" onclick="toggleSidebar()">☰</button>
   <div style="display:flex;align-items:center;gap:8px;">
-    <div class="sb-icon" style="width:28px;height:28px;border-radius:7px;">⚡</div>
+   <div class="sb-icon" style="width:28px;height:28px;border-radius:7px;"><svg width="14" height="14" viewBox="0 0 28 28" fill="none"><path d="M16 3L6 16H14L12 25L22 12H14L16 3Z" fill="white"/></svg></div>
     <span style="font-family:'Syne',sans-serif;font-size:15px;font-weight:800;">SparkEdge</span>
   </div>
 </div>
@@ -968,7 +971,7 @@ function toggleSidebar(){
         <!-- Payment -->
         <div class="card">
           <div class="card-header">
-            <div class="card-header-icon"><i data-lucide="wallet" style="width:15px;height:15px;stroke:var(--accent);"></i></div></div>
+            <div class="card-header-icon"><i data-lucide="wallet" style="width:15px;height:15px;stroke:var(--accent);"></i></div>
             <div><div class="card-header-title">Payment</div></div>
           </div>
           <div class="card-body">
@@ -1747,7 +1750,7 @@ function toggleSidebar(){
     <div style="font-size:13px;color:var(--text-muted);margin-bottom:24px;">Complete explanation of how the SparkEdge Client Portal system works — from admin to client view.</div>
 
     <div class="guide-section">
-      <div class="guide-section-hdr"><div style="font-size:18px;">🏗️</div><div><div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;">The Architecture</div></div></div>
+      <div class="guide-section-hdr"><div class="card-header-icon" style="background:rgba(255,107,53,.1);"><i data-lucide="layout" style="width:15px;height:15px;stroke:var(--accent);"></i></div><div><div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;">The Architecture</div></div></div>
       <div class="guide-section-body">
         The SparkEdge portal is a <strong>static HTML system hosted on GitHub Pages</strong> — no database, no server, no monthly fees. It consists of 3 core files and a client folder:<br><br>
         • <code>index.html</code> — The login page where clients enter their ticket ID (e.g. SE-001) to access their dashboard.<br>
@@ -1758,7 +1761,7 @@ function toggleSidebar(){
     </div>
 
     <div class="guide-section">
-      <div class="guide-section-hdr"><div style="font-size:18px;">🎫</div><div><div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;">The Ticket System</div></div></div>
+      <div class="guide-section-hdr"><div class="card-header-icon" style="background:rgba(255,107,53,.1);"><i data-lucide="ticket" style="width:15px;height:15px;stroke:var(--accent);"></i></div><div><div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;">The Ticket System</div></div></div>
       <div class="guide-section-body">
         Each client has a <strong>unique Ticket ID</strong> (e.g. SE-001, SE-002). When a client enters this ID on the login page, they're redirected to their personal dashboard at <code>clients/SE-001.html</code>.<br><br>
         The ticket stores: Client identity, project status & progress, payment stages, deliverables checklist, timeline updates, project files, and a note from the manager.<br><br>
@@ -1767,7 +1770,7 @@ function toggleSidebar(){
     </div>
 
     <div class="guide-section">
-      <div class="guide-section-hdr"><div style="font-size:18px;">💾</div><div><div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;">Data Storage</div></div></div>
+      <div class="guide-section-hdr"><div class="card-header-icon" style="background:rgba(255,107,53,.1);"><i data-lucide="database" style="width:15px;height:15px;stroke:var(--accent);"></i></div><div><div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;">Data Storage</div></div></div>
       <div class="guide-section-body">
         Admin data (tickets, vouchers, team members, settings) is stored in your <strong>browser's localStorage</strong> on your device. This means:<br><br>
         • ✅ Works offline, no server needed.<br>
@@ -1779,7 +1782,7 @@ function toggleSidebar(){
     </div>
 
     <div class="guide-section">
-      <div class="guide-section-hdr"><div style="font-size:18px;">💰</div><div><div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;">Payment & Discount System</div></div></div>
+      <div class="guide-section-hdr"><div class="card-header-icon" style="background:rgba(255,107,53,.1);"><i data-lucide="wallet" style="width:15px;height:15px;stroke:var(--accent);"></i></div><div><div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;">Payment & Discount System</div></div></div>
       <div class="guide-section-body">
         <strong>Payment Stages:</strong> Add multiple stages (Advance, Milestone, Final) with amounts and statuses (paid / pending / upcoming). These show on the client's dashboard with visual indicators.<br><br>
         <strong>Situational Discount:</strong> Applied manually by you when warranted (festival offer, repeat client, etc.). Set flat ₹ or percentage. The discounted total is shown in the client file.<br><br>
@@ -1788,7 +1791,7 @@ function toggleSidebar(){
     </div>
 
     <div class="guide-section">
-      <div class="guide-section-hdr"><div style="font-size:18px;">📄</div><div><div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;">Document Generator</div></div></div>
+      <div class="guide-section-hdr"><div class="card-header-icon" style="background:rgba(255,107,53,.1);"><i data-lucide="file-text" style="width:15px;height:15px;stroke:var(--accent);"></i></div><div><div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;">Document Generator</div></div></div>
       <div class="guide-section-body">
         The Doc Generator creates 4 types of professional documents:<br><br>
         <strong>1. Invoice</strong> — Formal payment document. Fill client info, services rendered, amounts, payment status, due date. Download → Open in browser → Print as PDF.<br><br>
@@ -1799,7 +1802,7 @@ function toggleSidebar(){
     </div>
 
     <div class="guide-section">
-      <div class="guide-section-hdr"><div style="font-size:18px;">🎁</div><div><div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;">Referral System</div></div></div>
+      <div class="guide-section-hdr"><div class="card-header-icon" style="background:rgba(255,107,53,.1);"><i data-lucide="gift" style="width:15px;height:15px;stroke:var(--accent);"></i></div><div><div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;">Referral System</div></div></div>
       <div class="guide-section-body">
         <strong>How it works end-to-end:</strong><br><br>
         1. You create a <strong>Referral Voucher</strong> in the Referrals page, assign it to a client (the referrer), set a discount for the new client, and specify the referrer's reward.<br>
@@ -1811,7 +1814,7 @@ function toggleSidebar(){
     </div>
 
     <div class="guide-section">
-      <div class="guide-section-hdr"><div style="font-size:18px;">🔗</div><div><div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;">How to Edit the Doc Generator Button Link</div></div></div>
+      <div class="guide-section-hdr"><div class="card-header-icon" style="background:rgba(255,107,53,.1);"><i data-lucide="link" style="width:15px;height:15px;stroke:var(--accent);"></i></div><div><div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;">How to Edit the Doc Generator Button Link</div></div></div>
       <div class="guide-section-body">
         The <strong>Doc Generator ↗</strong> button in the sidebar currently opens <code>docs.html</code>. If your file is hosted on GitHub Pages or at a different URL, you may need to update this link.<br><br>
         <strong>To change the link:</strong><br>
@@ -1827,7 +1830,7 @@ function toggleSidebar(){
     </div>
 
     <div class="guide-section">
-      <div class="guide-section-hdr"><div style="font-size:18px;">🚀</div><div><div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;">Deploying to GitHub Pages</div></div></div>
+      <div class="guide-section-hdr"><div class="card-header-icon" style="background:rgba(255,107,53,.1);"><i data-lucide="rocket" style="width:15px;height:15px;stroke:var(--accent);"></i></div><div><div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;">Deploying to GitHub Pages</div></div></div>
       <div class="guide-section-body">
         1. Make sure your repository has all files: <code>index.html</code>, <code>admin.html</code>, <code>docs.html</code>, <code>assets/</code> folder, and <code>clients/</code> folder.<br>
         2. Go to GitHub → Repository Settings → Pages → Source: Deploy from branch → Branch: main → Folder: / (root).<br>
@@ -1857,7 +1860,7 @@ function toggleSidebar(){
 
     <div id="settingsContent" style="max-width:680px;">
       <div class="card" style="margin-bottom:16px;">
-        <div class="card-header"><div class="card-header-icon">🏢</div><div><div class="card-header-title">Agency Details</div></div></div>
+        <div class="card-header"><div class="card-header-icon"><i data-lucide="building-2" style="width:15px;height:15px;stroke:var(--accent);"></i></div><div><div class="card-header-title">Agency Details</div></div></div>
         <div class="card-body">
           <div class="settings-row"><div><div class="settings-label">Agency Name</div><div class="settings-sub">Shown on documents and portal</div></div><input class="settings-input" id="s_agencyName" value="SparkEdge"/></div>
           <div class="settings-row"><div><div class="settings-label">Owner Name</div><div class="settings-sub">Your name on invoices & proposals</div></div><input class="settings-input" id="s_ownerName" value="Raunak Karn"/></div>
@@ -1866,7 +1869,7 @@ function toggleSidebar(){
         </div>
       </div>
       <div class="card" style="margin-bottom:16px;">
-        <div class="card-header"><div class="card-header-icon">💳</div><div><div class="card-header-title">Payment Details</div></div></div>
+        <div class="card-header"><div class="card-header-icon"><i data-lucide="credit-card" style="width:15px;height:15px;stroke:var(--accent);"></i></div><div><div class="card-header-title">Payment Details</div></div></div>
         <div class="card-body">
           <div class="settings-row"><div><div class="settings-label">UPI ID</div><div class="settings-sub">Shown on invoices & payment modal</div></div><input class="settings-input" id="s_upiId" value="raunakkarn555-2@okhdfcbank"/></div>
           <div class="settings-row"><div><div class="settings-label">Account Holder</div><div class="settings-sub">Bank account name</div></div><input class="settings-input" id="s_bankHolder" value="Raunak Kumar"/></div>
@@ -1876,7 +1879,7 @@ function toggleSidebar(){
         </div>
       </div>
       <div class="card" style="margin-bottom:16px;">
-        <div class="card-header"><div class="card-header-icon">🔐</div><div><div class="card-header-title">Security</div></div></div>
+        <div class="card-header"><div class="card-header-icon"><i data-lucide="lock" style="width:15px;height:15px;stroke:var(--accent);"></i></div><div><div class="card-header-title">Security</div></div></div>
         <div class="card-body">
           <div class="settings-row"><div><div class="settings-label">Admin Password</div><div class="settings-sub">Current session password</div></div>
           <div style="display:flex;gap:8px;">
@@ -1896,7 +1899,7 @@ function toggleSidebar(){
 
       <!-- Settings Password Change (owner only) -->
       <div class="card" style="margin-top:16px;" id="settingsPwdCard">
-        <div class="card-header"><div class="card-header-icon">🔑</div><div><div class="card-header-title">Settings Password</div><div class="card-header-sub">Separate password to access Settings page</div></div></div>
+        <div class="card-header"><div class="card-header-icon"><i data-lucide="key-round" style="width:15px;height:15px;stroke:var(--accent);"></i></div><div><div class="card-header-title">Settings Password</div><div class="card-header-sub">Separate password to access Settings page</div></div></div>
         <div class="card-body">
           <div class="settings-row">
             <div><div class="settings-label">Change Settings Password</div><div class="settings-sub">Only owner can change this</div></div>
@@ -2043,7 +2046,7 @@ function toggleSidebar(){
 </div>
 
 <!-- ══════════ TOAST ══════════ -->
-<div class="toast" id="toast"><i data-lucide="check-circle" style="width:14px;height:14px;"></i> Saved!div>
+<div class="toast" id="toast"></div>
 
 <!-- ══════════════════════════════════════════
      JAVASCRIPT
@@ -2180,13 +2183,18 @@ function showPage(page) {
   }
 
   if(page==='dashboard') renderDashboard();
+  if(page==='guide') setTimeout(() => lucide.createIcons(), 50);
   if(page==='tickets') renderTicketList();
   if(page==='referrals') renderReferrals();
   if(page==='clients') renderClientsPage();
   if(page==='finance') renderFinancePage();
   if(page==='team') renderTeamPage();
   if(page==='settings') loadSettings();
-  if(page==='workflow'){ const tg=document.getElementById('workflowTeamGuide'); if(tg) tg.style.display=isOwner()?'block':'none'; }
+  if(page==='workflow'){
+    const tg=document.getElementById('workflowTeamGuide');
+    if(tg) tg.style.display=isOwner()?'block':'none';
+    setTimeout(() => lucide.createIcons(), 50);
+  }
 
   // Auto-close sidebar on mobile after navigation
   if(window.innerWidth <= 900) {
@@ -2861,7 +2869,8 @@ function esc(str) {
 }
 function showToast(msg) {
   const t = document.getElementById('toast');
-  t.textContent = '✅ ' + msg;
+  t.innerHTML = '<i data-lucide="check-circle" style="width:14px;height:14px;"></i> ' + msg;
+  lucide.createIcons({el: t});
   t.classList.add('show');
   setTimeout(()=>t.classList.remove('show'), 3500);
 }
@@ -3555,12 +3564,12 @@ window.showPage = function(page){
   _origShowPage(page);
   if(page === 'settings'){
     if(!isOwner()){
-      // Always show lock for non-owners
       showSettingsLock();
     } else {
       hideSettingsLock();
       loadSettings();
     }
+    setTimeout(() => lucide.createIcons(), 50);
   }
   if(page === 'team'){
     renderTeamPage();
@@ -3592,14 +3601,14 @@ function renderTeamPage(){
 if(countEl) countEl.textContent = members.length + ' member(s)';
 
   list.innerHTML = members.map((m,i) => {
-    const permLabels = {
+   const permLabels = {
       'view_tickets':'👁 View Tickets',
       'edit_tickets':'✏️ Edit Tickets',
       'create_tickets':'➕ Create Tickets',
       'delete_tickets':'🗑 Delete Tickets',
       'view_finance':'💰 View Finance',
       'view_clients':'👥 View Clients',
-      'export':'<i data-lucide="download" style="width:14px;height:14px;"></i> Export/Import'
+      'export':'⬇ Export/Import'
     };
     const permTags = (m.permissions||[]).map(p => `<span style="background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.25);border-radius:5px;padding:2px 8px;font-size:10px;font-weight:600;color:#3B82F6;margin:2px;">${permLabels[p]||p}</span>`).join('');
     return `<div class="team-card" style="margin-bottom:10px;">
@@ -3813,7 +3822,7 @@ function downloadWelcomeNote(idx){
     'delete_tickets': '🗑 Delete Tickets — Can permanently delete tickets',
     'view_finance':   '💰 View Finance — Can access the Finance page',
     'view_clients':   '👥 View Clients — Can access the Clients overview',
-    'export':         '<i data-lucide="download" style="width:14px;height:14px;"></i> Export / Import — Can export and import data'
+    'export':         '⬇ Export / Import — Can export and import data'
   };
 
   const permList = (m.permissions||[]).map(p =>
@@ -4201,7 +4210,7 @@ function whatsappShareMsg() {
         </label>
         <label style="display:flex;align-items:flex-start;gap:8px;background:var(--bg-raised);border:1px solid var(--border);border-radius:8px;padding:10px 12px;cursor:pointer;">
           <input type="checkbox" id="perm_export" style="accent-color:var(--accent);margin-top:2px;flex-shrink:0;" onchange="document.getElementById('mm_preset').value='custom'"/>
-          <div><div style="font-size:12px;font-weight:600;"><i data-lucide="download" style="width:14px;height:14px;"></i> Export / Import</div><div style="font-size:10px;color:var(--text-muted);">Can export and import data</div></div>
+          <div><div style="font-size:12px;font-weight:600;">⬇ Export / Import</div>
         </label>
       </div>
     </div>
@@ -4212,6 +4221,10 @@ function whatsappShareMsg() {
   </div>
 </div>
 
-<script>lucide.createIcons();</script>
+<script>
+  lucide.createIcons();
+  // Re-run dashboard render now that icons are ready
+  if(window.SE_USER) renderDashboard();
+</script>
 </body>
 </html>
