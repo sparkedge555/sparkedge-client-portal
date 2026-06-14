@@ -909,16 +909,29 @@ function toggleSidebar(){
         <div class="page-title" id="editorTicketId">Editing SE-001</div>
         <div class="page-sub" id="editorClientName">Rohan Mehta</div>
       </div>
-      <div style="margin-left:auto;display:flex;gap:8px;">
-        <button class="btn btn-red btn-sm" onclick="deleteTicket()"><i data-lucide="trash-2" style="width:13px;height:13px;"></i> Delete</button>
-        <button class="btn btn-secondary" onclick="saveCurrentTicket()"><i data-lucide="save" style="width:13px;height:13px;"></i> Save (syncs live)</button>
-        <button class="btn btn-primary" style="width:100%;margin-bottom:8px;" onclick="generateAndDownload()">
-  <i data-lucide="download" style="width:13px;height:13px;"></i> Download Offline Backup (.html)
-</button>
-        <button class="btn btn-green" onclick="saveToFirestore()">
-      <i data-lucide="cloud-upload" style="width:13px;height:13px;"></i> Save to Firestore (Live)
-      </button>
-      </div>
+     <div style="margin-left:auto;display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end;">
+
+  <button class="btn btn-red btn-sm" onclick="deleteTicket()" style="height:34px;padding:0 12px;font-size:12px;gap:5px;flex-shrink:0;">
+    <i data-lucide="trash-2" style="width:13px;height:13px;stroke:currentColor;fill:none;flex-shrink:0;"></i>
+    <span>Delete</span>
+  </button>
+
+  <button class="btn btn-secondary btn-sm" onclick="saveCurrentTicket()" style="height:34px;padding:0 12px;font-size:12px;gap:5px;flex-shrink:0;">
+    <i data-lucide="save" style="width:13px;height:13px;stroke:currentColor;fill:none;flex-shrink:0;"></i>
+    <span>Save</span>
+  </button>
+
+  <button class="btn btn-green btn-sm" onclick="saveToFirestore()" style="height:34px;padding:0 12px;font-size:12px;gap:5px;flex-shrink:0;">
+    <i data-lucide="cloud-upload" style="width:13px;height:13px;stroke:currentColor;fill:none;flex-shrink:0;"></i>
+    <span>Save Live</span>
+  </button>
+
+  <button class="btn btn-secondary btn-sm" onclick="generateAndDownload()" style="height:34px;padding:0 12px;font-size:12px;gap:5px;flex-shrink:0;border-color:rgba(59,130,246,.3);color:#3B82F6;background:rgba(59,130,246,.08);">
+    <i data-lucide="download" style="width:13px;height:13px;stroke:currentColor;fill:none;flex-shrink:0;"></i>
+    <span>Backup</span>
+  </button>
+
+</div>
     </div>
 
     <div class="editor-grid">
