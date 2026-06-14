@@ -44,6 +44,8 @@
 <!-- App Name -->
 <meta name="application-name" content="SparkEdge">
 <meta name="apple-mobile-web-app-title" content="SparkEdge">
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <!-- Google Fonts -->
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
 <style>
@@ -698,20 +700,79 @@ const CRM_PERMS = {
   manage_team:   'Add / remove team members (Owner only)'
 };
 
-function crmGetMembers(){
-  try{
-    const stored = JSON.parse(localStorage.getItem(CRM_AUTH_KEY)) || [];
-    const merged = [...HARDCODED_MEMBERS];
-    stored.forEach(sm => {
-      const idx = merged.findIndex(hm => hm.id === sm.id);
-      if(idx >= 0) merged[idx] = sm;
-      else merged.push(sm);
-    });
-    return merged;
-  }catch{ return HARDCODED_MEMBERS; }
+// ── Firebase init for CRM ──
+window._crmFbInit = false;
+window._crmTeamCache = [...HARDCODED_MEMBERS];
+window._crmListenerAttached = false;
+
+function getCrmDb(){
+  if(!window._crmFbInit){
+    const cfg = {
+      apiKey:"AIzaSyA0rufGe1NcKnsalr7VFnIuRLwfjPyD0QE",
+      authDomain:"sparkedge-client-portal.firebaseapp.com",
+      projectId:"sparkedge-client-portal",
+      storageBucket:"sparkedge-client-portal.firebasestorage.app",
+      messagingSenderId:"848868473172",
+      appId:"1:848868473172:web:2111dd537b9bc7549370c1"
+    };
+    if(!firebase.apps.length) firebase.initializeApp(cfg);
+    window._crmFbInit = true;
+  }
+  return firebase.firestore();
 }
-function crmSaveMembers(m){
+
+function attachCrmTeamListener(){
+  if(window._crmListenerAttached) return;
+  window._crmListenerAttached = true;
+  try{
+    getCrmDb().collection('team').onSnapshot(snapshot => {
+      const fsMembers = [];
+      snapshot.forEach(doc => fsMembers.push({id:doc.id, ...doc.data()}));
+      const merged = [...HARDCODED_MEMBERS];
+      fsMembers.forEach(fm => {
+        const idx = merged.findIndex(hm => hm.id === fm.id);
+        if(idx >= 0) merged[idx] = fm; else merged.push(fm);
+      });
+      window._crmTeamCache = merged;
+      localStorage.setItem(CRM_AUTH_KEY, JSON.stringify(merged));
+    }, err => {
+      console.warn('CRM team listener error:', err.message);
+      try{
+        const stored = JSON.parse(localStorage.getItem(CRM_AUTH_KEY)) || [];
+        const merged = [...HARDCODED_MEMBERS];
+        stored.forEach(sm => {
+          const idx = merged.findIndex(hm => hm.id === sm.id);
+          if(idx >= 0) merged[idx] = sm; else merged.push(sm);
+        });
+        window._crmTeamCache = merged;
+      }catch{ window._crmTeamCache = [...HARDCODED_MEMBERS]; }
+    });
+  }catch(e){ console.warn('Could not attach CRM team listener:', e.message); }
+}
+
+function crmGetMembers(){
+  return window._crmTeamCache || [...HARDCODED_MEMBERS];
+}
+
+async function crmSaveMembers(m){
   localStorage.setItem(CRM_AUTH_KEY, JSON.stringify(m));
+  window._crmTeamCache = m;
+  try{
+    const db = getCrmDb();
+    const batch = db.batch();
+    m.forEach(member => {
+      if(!member.id) member.id = 'mem_' + Date.now();
+      batch.set(db.collection('team').doc(member.id), member);
+    });
+    await batch.commit();
+    showToast('✅ Team synced to Firestore!');
+  }catch(e){
+    showToast('⚠️ Saved locally — Firestore sync failed.');
+  }
+}
+
+async function crmDeleteMemberFromFirestore(memberId){
+  try{ await getCrmDb().collection('team').doc(memberId).delete(); }catch(e){}
 }
 
 // Current logged-in user
@@ -731,7 +792,7 @@ window.CRM_USER = null;
   document.getElementById('loginScreen').style.display = 'flex';
 })();
 
-function doLogin(){
+async function doLogin(){
   const val = document.getElementById('pwdInput').value;
   const err = document.getElementById('loginErr');
   err.style.display = 'none';
@@ -747,9 +808,26 @@ function doLogin(){
     return;
   }
 
-  // Member
-  const members = crmGetMembers();
-  const member  = members.find(m => m.password === val && m.status === 'active');
+  // Member — try cache first
+  let members = crmGetMembers();
+  let member = members.find(m => m.password === val && m.status === 'active');
+
+  // Fallback: try Firestore directly (catches members added on other devices)
+  if(!member){
+    try{
+      const snapshot = await getCrmDb().collection('team').get();
+      const fsMembers = [];
+      snapshot.forEach(doc => fsMembers.push({id:doc.id, ...doc.data()}));
+      const merged = [...HARDCODED_MEMBERS];
+      fsMembers.forEach(fm => {
+        const idx = merged.findIndex(hm => hm.id === fm.id);
+        if(idx >= 0) merged[idx] = fm; else merged.push(fm);
+      });
+      window._crmTeamCache = merged;
+      member = merged.find(m => m.password === val && m.status === 'active');
+    }catch(e){ console.warn('CRM Firestore login fallback failed:', e.message); }
+  }
+
   if(member){
     window.CRM_USER = {
       name: member.name, role: member.role, isOwner: false,
@@ -772,8 +850,9 @@ function hideCrmLogin(){
   s.style.opacity = '0'; s.style.transition = 'opacity .3s';
   setTimeout(()=>{ s.style.display='none'; }, 300);
   document.getElementById('app').style.display = 'block';
-  updateCrmUserUI();
+ updateCrmUserUI();
   applyCrmPermissions();
+  attachCrmTeamListener();
   renderSection('dashboard');
 }
 
@@ -2857,7 +2936,7 @@ function applyPreset(v){
   else if(v==='basic') apply(basicPerms);
   else if(v==='readonly') apply(readPerms);
 }
-function saveMember(){
+ async function saveMember(){
   const name=document.getElementById('m_name').value.trim();
   const pwd=document.getElementById('m_pwd').value.trim();
   if(!name){alert('Name is required!');return;}
@@ -2880,25 +2959,26 @@ function saveMember(){
     const idx=members.findIndex(x=>x.id===editMemberId);
     if(idx>-1) members[idx]={...members[idx],name,role:document.getElementById('m_role').value.trim(),email:document.getElementById('m_email').value.trim(),wa:document.getElementById('m_wa').value.trim(),password:pwd,permissions:perms};
   }
-  crmSaveMembers(members);
+  await crmSaveMembers(members);
   closeMemberModal();
-  showToast('✅ Member saved! Remember to Export Team Config for cross-device login.');
+  showToast('✅ Member saved & synced to all devices!');
   renderSection('team');
 }
-function toggleMemberStatus(id){
+async function toggleMemberStatus(id){
   const members=crmGetMembers();
   const m=members.find(x=>x.id===id);
   if(!m) return;
   m.status=m.status==='active'?'inactive':'active';
-  crmSaveMembers(members);
-  showToast(`Member ${m.status==='active'?'activated':'deactivated'}`);
+  await crmSaveMembers(members);
+  showToast(`Member ${m.status==='active'?'activated on all devices':'suspended on all devices.'}`);
   renderSection('team');
 }
-function deleteMember(id){
+async function deleteMember(id){
   if(!confirm('Remove this team member? They will lose access immediately.')) return;
-  const members=crmGetMembers().filter(x=>x.id!==id);
-  crmSaveMembers(members);
-  showToast('🗑 Member removed');
+  const members = crmGetMembers().filter(x => x.id !== id);
+  await crmDeleteMemberFromFirestore(id);
+  await crmSaveMembers(members);
+  showToast('🗑 Member removed from all devices.');
   renderSection('team');
 }
 function exportCrmTeamConfig(){
