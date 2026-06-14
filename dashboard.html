@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SparkEdge — Client Dashboard</title>
+  <link rel="icon" type="image/x-icon" href="./favicons/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="./favicons/favicon-16x16.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="./favicons/favicon-32x32.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="./favicons/apple-touch-icon-180x180.png">
+  <link rel="manifest" href="./favicons/manifest.webmanifest">
+  <meta name="theme-color" content="#000000">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="application-name" content="SparkEdge">
+  <meta name="apple-mobile-web-app-title" content="SparkEdge">
+  <link rel="stylesheet" href="style.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet"/>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+  <style>
+    /* ── PAYMENT MODAL ── */
+    .pay-modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:9999;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px);}
+    .pay-modal-overlay.open{display:flex;}
+    .pay-modal{background:#0E0E1A;border:1px solid #2A2A40;border-radius:18px;width:100%;max-width:480px;max-height:88vh;overflow-y:auto;overflow-x:hidden;animation:pmIn .22s ease;box-shadow:0 24px 80px rgba(0,0,0,.7);}
+    .pay-modal::-webkit-scrollbar{width:4px;}
+    .pay-modal::-webkit-scrollbar-thumb{background:#2A2A40;border-radius:4px;}
+    @keyframes pmIn{from{transform:scale(.94) translateY(12px);opacity:0;}to{transform:scale(1) translateY(0);opacity:1;}}
+    .pay-modal-hdr{padding:18px 22px;border-bottom:1px solid rgba(255,107,53,.2);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10;background:#0E0E1A;}
+    .pay-modal-title{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:#F0F0FA;}
+    .pay-modal-close{background:rgba(255,255,255,.06);border:1px solid #2A2A40;color:#7A7A9A;font-size:18px;cursor:pointer;padding:4px 9px;border-radius:8px;line-height:1;transition:all .15s;}
+    .pay-modal-close:hover{background:#141422;color:#F0F0FA;}
+    .pay-modal-body{display:flex;flex-direction:column;}
+    .pay-modal-footer{padding:14px 22px;border-top:1px solid #1E1E30;display:flex;justify-content:flex-end;position:sticky;bottom:0;background:#080810;}
+
+    /* ── LOADING / ERROR SCREENS ── */
+    #loadingScreen{position:fixed;inset:0;background:#080810;z-index:999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;}
+    .loading-spinner{width:40px;height:40px;border:3px solid #1E1E30;border-top-color:#FF6B35;border-radius:50%;animation:spin .8s linear infinite;}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .loading-text{font-family:'Syne',sans-serif;font-size:14px;color:#7A7A9A;}
+    #errorScreen{position:fixed;inset:0;background:#080810;z-index:998;display:none;align-items:center;justify-content:center;flex-direction:column;gap:16px;text-align:center;padding:20px;}
+    .error-icon{font-size:48px;}
+    .error-title{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:#F0F0FA;}
+    .error-sub{font-size:14px;color:#7A7A9A;max-width:340px;line-height:1.7;}
+    .error-back-btn{background:linear-gradient(135deg,#FF6B35,#FF3CAC);border:none;border-radius:10px;padding:12px 28px;font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:#fff;cursor:pointer;margin-top:8px;}
+  </style>
+</head>
+<body class="dashboard-page">
+
+  <!-- Loading Screen -->
+  <div id="loadingScreen">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+      <div style="width:32px;height:32px;background:linear-gradient(135deg,#FF6B35,#FF3CAC);border-radius:9px;display:flex;align-items:center;justify-content:center;">
+        <svg width="16" height="16" viewBox="0 0 28 28" fill="none"><path d="M16 3L6 16H14L12 25L22 12H14L16 3Z" fill="white"/></svg>
+      </div>
+      <span style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:#F0F0FA;">SparkEdge</span>
+    </div>
+    <div class="loading-spinner"></div>
+    <div class="loading-text">Loading your project dashboard...</div>
+  </div>
+
+  <!-- Error Screen -->
+  <div id="errorScreen">
+    <div class="error-icon">🔍</div>
+    <div class="error-title">Ticket Not Found</div>
+    <div class="error-sub" id="errorScreenMsg">We couldn't find this ticket. Please check your Ticket ID or contact your project manager.</div>
+    <button class="error-back-btn" onclick="window.location.href='index.html'">← Back to Portal</button>
+    <div style="margin-top:12px;font-size:12px;color:#3A3A5A;">Need help? <a href="mailto:sparkedge555@gmail.com" style="color:#FF6B35;">sparkedge555@gmail.com</a></div>
+  </div>
+
+  <!-- Dashboard — rendered by JS -->
+  <div id="app" style="display:none;"></div>
+
+  <!-- Payment Modal -->
+  <div class="pay-modal-overlay" id="payModal">
+    <div class="pay-modal">
+      <div class="pay-modal-hdr" style="background:linear-gradient(135deg,rgba(255,107,53,.12),rgba(255,60,172,.08));">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="width:36px;height:36px;background:linear-gradient(135deg,#FF6B35,#FF3CAC);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;">💳</div>
+          <div>
+            <div class="pay-modal-title">Payment Details</div>
+            <div style="font-size:11px;color:#7A7A9A;margin-top:1px;">SparkEdge — Secure Payment</div>
+          </div>
+        </div>
+        <button class="pay-modal-close" onclick="document.getElementById('payModal').classList.remove('open')">✕</button>
+      </div>
+      <div class="pay-modal-body" style="gap:0;padding:0;">
+        <!-- Bill rows injected by JS -->
+        <div style="padding:20px 22px;border-bottom:1px solid #1E1E30;">
+          <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#7A7A9A;margin-bottom:4px;">🧾 Bill Summary</div>
+          <div id="payBillRows"></div>
+          <div id="payBillTotal"></div>
+        </div>
+        <!-- UPI -->
+        <div style="padding:20px 22px;border-bottom:1px solid #1E1E30;">
+          <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#7A7A9A;margin-bottom:12px;">📲 Pay via UPI</div>
+          <button onclick="doUpiPay()" id="upiPayBtn" style="background:linear-gradient(135deg,#FF6B35,#FF3CAC);border:none;border-radius:12px;padding:15px 28px;font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:#fff;cursor:pointer;width:100%;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 4px 24px rgba(255,107,53,.35);">
+            <span style="font-size:20px;">📲</span><span>Pay via UPI App</span>
+          </button>
+          <div id="upiIdRow" style="margin-top:10px;background:#141422;border:1px solid #1E1E30;border-radius:8px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;">
+            <div>
+              <div style="font-size:10px;color:#3A3A5A;font-weight:600;margin-bottom:3px;">UPI ID</div>
+              <span id="upiIdDisplay" style="font-family:monospace;font-size:13px;color:#FF6B35;font-weight:700;">loading...</span>
+            </div>
+            <button onclick="copyUpiId()" style="background:rgba(255,107,53,.1);border:1px solid rgba(255,107,53,.2);border-radius:6px;color:#FF6B35;cursor:pointer;font-size:11px;padding:5px 10px;font-weight:600;">📋 Copy</button>
+          </div>
+          <div style="display:flex;gap:6px;margin-top:10px;justify-content:center;flex-wrap:wrap;">
+            <span style="font-size:10px;color:#3A3A5A;background:#0E0E1A;border:1px solid #1E1E30;border-radius:20px;padding:3px 10px;">GPay</span>
+            <span style="font-size:10px;color:#3A3A5A;background:#0E0E1A;border:1px solid #1E1E30;border-radius:20px;padding:3px 10px;">PhonePe</span>
+            <span style="font-size:10px;color:#3A3A5A;background:#0E0E1A;border:1px solid #1E1E30;border-radius:20px;padding:3px 10px;">Paytm</span>
+            <span style="font-size:10px;color:#3A3A5A;background:#0E0E1A;border:1px solid #1E1E30;border-radius:20px;padding:3px 10px;">BHIM</span>
+          </div>
+        </div>
+        <!-- Bank -->
+        <div style="padding:20px 22px;border-bottom:1px solid #1E1E30;">
+          <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#7A7A9A;margin-bottom:12px;">🏦 Bank Transfer (NEFT / IMPS / RTGS)</div>
+          <div id="bankDetailsBlock" style="background:#141422;border:1px solid #1E1E30;border-radius:10px;padding:14px 16px;">
+            <div style="display:grid;grid-template-columns:auto 1fr;gap:8px 16px;font-size:12px;align-items:center;">
+              <span style="color:#3A3A5A;font-weight:600;">Account Holder</span><span id="bk_holder" style="color:#F0F0FA;font-weight:700;">—</span>
+              <span style="color:#3A3A5A;font-weight:600;">Bank</span><span id="bk_name" style="color:#F0F0FA;">—</span>
+              <span style="color:#3A3A5A;font-weight:600;">Account No.</span><span id="bk_acc" style="color:#FF6B35;font-family:monospace;font-weight:700;font-size:13px;">—</span>
+              <span style="color:#3A3A5A;font-weight:600;">IFSC Code</span><span id="bk_ifsc" style="color:#FF6B35;font-family:monospace;font-weight:700;font-size:13px;">—</span>
+            </div>
+          </div>
+          <button onclick="copyBank()" style="margin-top:10px;width:100%;background:rgba(255,255,255,.03);border:1px dashed #2A2A40;border-radius:8px;padding:9px;font-size:12px;color:#7A7A9A;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">📋 Copy All Bank Details</button>
+        </div>
+        <!-- After pay note -->
+        <div style="padding:14px 22px;">
+          <div style="font-size:11px;color:#7A7A9A;line-height:1.7;text-align:center;">
+            After paying, share the <strong style="color:#22C55E;">screenshot</strong> on WhatsApp or email <strong style="color:#9A9ABA;" id="payContactEmail">sparkedge555@gmail.com</strong>
+          </div>
+        </div>
+      </div>
+      <div class="pay-modal-footer">
+        <button onclick="document.getElementById('payModal').classList.remove('open')" style="background:#141422;border:1px solid #1E1E30;border-radius:8px;padding:9px 20px;font-size:13px;color:#7A7A9A;cursor:pointer;">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- portal.js for rendering the dashboard UI -->
+  <script src="portal.js"></script>
+
+  <script>
+    /* ══════════════════════════════════════════════════════
+       FIREBASE CONFIG
+    ══════════════════════════════════════════════════════ */
+    const firebaseConfig = {
+      apiKey: "AIzaSyA0rufGe1NcKnsalr7VFnIuRLwfjPyD0QE",
+      authDomain: "sparkedge-client-portal.firebaseapp.com",
+      projectId: "sparkedge-client-portal",
+      storageBucket: "sparkedge-client-portal.firebasestorage.app",
+      messagingSenderId: "848868473172",
+      appId: "1:848868473172:web:2111dd537b9bc7549370c1"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    /* ══════════════════════════════════════════════════════
+       SETTINGS (UPI / bank) — loaded from Firestore
+    ══════════════════════════════════════════════════════ */
+    // Defaults — overwritten by Firestore settings if they exist
+    let paySettings = {
+      upiId:      'raunakkarn555-2@okhdfcbank',
+      bankHolder: 'Raunak Kumar',
+      bankName:   'Canara Bank, Samastipur',
+      bankAcc:    '110281513266',
+      ifsc:       'CNRB0017535',
+      email:      'sparkedge555@gmail.com'
+    };
+
+    async function loadPaySettings() {
+      try {
+        const doc = await db.collection('settings').doc('agency').get();
+        if (doc.exists) {
+          const s = doc.data();
+          if (s.upiId)      paySettings.upiId      = s.upiId;
+          if (s.bankHolder) paySettings.bankHolder  = s.bankHolder;
+          if (s.bankName)   paySettings.bankName    = s.bankName;
+          if (s.bankAcc)    paySettings.bankAcc     = s.bankAcc;
+          if (s.ifsc)       paySettings.ifsc        = s.ifsc;
+          if (s.email)      paySettings.email       = s.email;
+        }
+      } catch(e) { /* use defaults */ }
+      // Inject into modal
+      const upiEl = document.getElementById('upiIdDisplay');
+      const bkH   = document.getElementById('bk_holder');
+      const bkN   = document.getElementById('bk_name');
+      const bkA   = document.getElementById('bk_acc');
+      const bkI   = document.getElementById('bk_ifsc');
+      const em    = document.getElementById('payContactEmail');
+      if (upiEl) upiEl.textContent = paySettings.upiId;
+      if (bkH)   bkH.textContent   = paySettings.bankHolder;
+      if (bkN)   bkN.textContent   = paySettings.bankName;
+      if (bkA)   bkA.textContent   = paySettings.bankAcc;
+      if (bkI)   bkI.textContent   = paySettings.ifsc;
+      if (em)    em.textContent     = paySettings.email;
+    }
+
+    /* ══════════════════════════════════════════════════════
+       GET TICKET ID FROM URL: dashboard.html?id=SE-001
+    ══════════════════════════════════════════════════════ */
+    function getTicketIdFromUrl() {
+      const params = new URLSearchParams(window.location.search);
+      return (params.get('id') || '').toUpperCase().trim();
+    }
+
+    /* ══════════════════════════════════════════════════════
+       MAIN — fetch from Firestore and render
+    ══════════════════════════════════════════════════════ */
+    (async function init() {
+      const ticketId = getTicketIdFromUrl();
+
+      if (!ticketId) {
+        showError('No Ticket ID provided. Please go back and enter your Ticket ID.');
+        return;
+      }
+
+      // Load payment settings in parallel
+      loadPaySettings();
+
+      try {
+        const doc = await db.collection('clients').doc(ticketId).get();
+
+        if (!doc.exists) {
+          showError(`Ticket "${ticketId}" was not found. Please check with your project manager.`);
+          return;
+        }
+
+        const clientData = doc.data();
+
+        // Update page title
+        document.title = `${ticketId} — SparkEdge Client Portal`;
+
+        // Hide loading, show dashboard
+        document.getElementById('loadingScreen').style.display = 'none';
+        document.getElementById('app').style.display = 'block';
+
+        // Make clientData available globally (used by openPayModal in portal.js)
+        window._clientData = clientData;
+
+        // Render using existing portal.js renderDashboard function
+        if (typeof renderDashboard === 'function') {
+          renderDashboard(clientData);
+        } else {
+          // Fallback: wait for portal.js to load
+          window.addEventListener('load', () => {
+            if (typeof renderDashboard === 'function') renderDashboard(clientData);
+          });
+        }
+
+        // Inject referral reward banners (for the referrer side)
+        injectReferralRewardBanner(clientData);
+
+      } catch(e) {
+        showError('Connection error: ' + e.message + '. Please try again.');
+      }
+    })();
+
+    function showError(msg) {
+      document.getElementById('loadingScreen').style.display = 'none';
+      document.getElementById('errorScreen').style.display = 'flex';
+      document.getElementById('errorScreenMsg').textContent = msg;
+    }
+
+    /* ══════════════════════════════════════════════════════
+       REFERRAL REWARD BANNER
+       Shows gold banner if client has referral rewards
+    ══════════════════════════════════════════════════════ */
+    function injectReferralRewardBanner(d) {
+      if (!d.referralRewards || !d.referralRewards.length) return;
+      setTimeout(() => {
+        const stagesList = document.querySelector('.stages-list');
+        if (!stagesList) return;
+        const banner = document.createElement('div');
+        banner.innerHTML = `
+          <div style="background:rgba(255,179,71,.06);border:1px solid rgba(255,179,71,.2);border-radius:10px;padding:14px 16px;margin-bottom:16px;">
+            <div style="font-size:12px;font-weight:700;color:#FFB347;margin-bottom:10px;">🎁 Your Referral Rewards</div>
+            ${d.referralRewards.map(r => `
+              <div style="font-size:12px;color:#7A7A9A;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04);">
+                Code <strong style="color:#F0F0FA;">${r.code}</strong> used by ${r.usedBy} on ${r.date} — Reward: <strong style="color:#FFB347;">${r.reward || '—'}</strong>
+              </div>`).join('')}
+          </div>`;
+        stagesList.parentNode.insertBefore(banner, stagesList);
+      }, 400);
+    }
+
+    /* ══════════════════════════════════════════════════════
+       OPEN PAY MODAL — called from portal.js
+    ══════════════════════════════════════════════════════ */
+    window.openPayModal = function(stageName, stageAmt) {
+      const d = window._clientData;
+      if (!d) return;
+
+      // Bill rows
+      const pending = (d.payment?.stages || []).filter(s => s.status === 'pending' || s.status === 'upcoming');
+      const billRows = document.getElementById('payBillRows');
+      const billTotal = document.getElementById('payBillTotal');
+
+      if (stageName) {
+        // Specific stage payment
+        window._pendingPayAmt = stageAmt || 0;
+        billRows.innerHTML = `
+          <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #141422;">
+            <span style="font-size:13px;color:#7A7A9A;">${stageName}</span>
+            <span style="font-size:14px;font-weight:700;color:#F0F0FA;">₹${Number(stageAmt).toLocaleString('en-IN')}</span>
+          </div>`;
+        billTotal.innerHTML = `<div style="display:flex;justify-content:space-between;padding:10px 0 0;"><span style="font-size:13px;font-weight:700;color:#7A7A9A;">Total Due Now</span><span style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:#FF6B35;">₹${Number(stageAmt).toLocaleString('en-IN')}</span></div>`;
+      } else {
+        // All pending
+        const totalDue = pending.reduce((s,st)=>s+st.amount,0);
+        window._pendingPayAmt = totalDue;
+        billRows.innerHTML = pending.map(st => `
+          <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #141422;">
+            <span style="font-size:13px;color:#7A7A9A;">${st.name}</span>
+            <span style="font-size:14px;font-weight:700;color:#F0F0FA;">₹${Number(st.amount).toLocaleString('en-IN')}</span>
+          </div>`).join('') || '<div style="font-size:13px;color:#7A7A9A;padding:8px 0;">No pending payments.</div>';
+        billTotal.innerHTML = totalDue ? `<div style="display:flex;justify-content:space-between;padding:10px 0 0;"><span style="font-size:13px;font-weight:700;color:#7A7A9A;">Total Due</span><span style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:#FF6B35;">₹${totalDue.toLocaleString('en-IN')}</span></div>` : '';
+      }
+
+      document.getElementById('payModal').classList.add('open');
+    };
+
+    /* ══════════════════════════════════════════════════════
+       UPI / BANK PAYMENT HELPERS
+    ══════════════════════════════════════════════════════ */
+    function doUpiPay() {
+      const upiId = paySettings.upiId;
+      const amt   = window._pendingPayAmt || 0;
+      let link = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(paySettings.bankHolder)}&tn=SparkEdge%20Payment&cu=INR`;
+      if (amt > 0) link += `&am=${amt}`;
+      window.location.href = link;
+      setTimeout(() => {
+        if (document.hasFocus()) {
+          alert(`Open GPay / PhonePe / Paytm manually and pay to:\n\n${upiId}\n\nAmount: ₹${Number(amt).toLocaleString('en-IN')}`);
+        }
+      }, 1500);
+    }
+
+    function copyUpiId() {
+      const id = paySettings.upiId;
+      navigator.clipboard.writeText(id)
+        .then(() => alert('UPI ID copied!'))
+        .catch(() => {
+          const e = document.createElement('textarea');
+          e.value = id; document.body.appendChild(e); e.select(); document.execCommand('copy'); document.body.removeChild(e);
+          alert('Copied!');
+        });
+    }
+
+    function copyBank() {
+      const d = `Account Holder: ${paySettings.bankHolder}\nBank: ${paySettings.bankName}\nAccount Number: ${paySettings.bankAcc}\nIFSC: ${paySettings.ifsc}`;
+      navigator.clipboard.writeText(d)
+        .then(() => alert('Bank details copied!'))
+        .catch(() => {
+          const e = document.createElement('textarea');
+          e.value = d; document.body.appendChild(e); e.select(); document.execCommand('copy'); document.body.removeChild(e);
+          alert('Copied!');
+        });
+    }
+  </script>
+</body>
+</html>
