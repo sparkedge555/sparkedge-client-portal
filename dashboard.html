@@ -223,7 +223,13 @@
       loadPaySettings();
 
       try {
-        const doc = await db.collection('clients').doc(ticketId).get();
+        db.collection('clients').doc(ticketId).onSnapshot(doc => {
+  if (!doc.exists) { showError(...); return; }
+  const clientData = doc.data();
+  window._clientData = clientData;
+  renderDashboard(clientData);
+  injectReferralRewardBanner(clientData);
+});
 
         if (!doc.exists) {
           showError(`Ticket "${ticketId}" was not found. Please check with your project manager.`);
@@ -233,7 +239,7 @@
         const clientData = doc.data();
 
         // Update page title
-        document.title = `${ticketId} — SparkEdge Client Portal`;
+        document.title = `${clientData.clientName} — ${ticketId} — SparkEdge Client Portal`;
 
         // Hide loading, show dashboard
         document.getElementById('loadingScreen').style.display = 'none';
@@ -361,6 +367,17 @@
           alert('Copied!');
         });
     }
+    // 
+
+    const waBtn = document.getElementById('waFloat');
+if (waBtn && clientData.managerWA) {
+  waBtn.href = `https://wa.me/${clientData.managerWA}`;
+}
   </script>
+  <a id="waFloat" href="#" target="_blank"
+   style="position:fixed;bottom:24px;right:24px;width:52px;height:52px;background:#25D366;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(37,211,102,.4);z-index:500;font-size:24px;text-decoration:none;">
+  💬
+</a>
+
 </body>
 </html>
