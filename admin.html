@@ -487,6 +487,14 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   stroke-linejoin: round;
   display: block;
 }
+
+/*  */
+
+.doc-note-box{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-size:11px;color:var(--text-muted);line-height:1.7;}
+.doc-note-box .dn-count{color:var(--accent);font-weight:700;}
+.doc-note-box .dn-history{margin-top:4px;max-height:70px;overflow-y:auto;}
+.doc-note-box .dn-resend-btn{margin-top:6px;font-size:10px;background:rgba(255,107,53,.08);border:1px solid rgba(255,107,53,.2);color:var(--accent);border-radius:6px;padding:4px 9px;cursor:pointer;}
+
 </style>
 </head>
 <body>
@@ -1158,27 +1166,42 @@ function toggleSidebar(){
           </div>
           <div class="card-body">
             <div class="doc-tracker">
-              <div class="doc-track-item">
-                <span class="doc-track-icon icon icon-lg" style="color:var(--gold);"><i data-lucide="receipt"></i></span>
-                <div class="doc-track-info"><div class="doc-track-name">Invoice</div><div class="doc-track-sub">Payment invoice sent</div></div>
-                <label class="doc-track-toggle"><input type="checkbox" id="dt_invoice" onchange="saveDocTracker()"/><span class="toggle-slider"></span></label>
-              </div>
-              <div class="doc-track-item">
-                <span class="doc-track-icon icon icon-lg" style="color:#9B7FD4;"><i data-lucide="file-check"></i></span>
-                <div class="doc-track-info"><div class="doc-track-name">SOW / Agreement</div><div class="doc-track-sub">Service agreement sent</div></div>
-                <label class="doc-track-toggle"><input type="checkbox" id="dt_sow" onchange="saveDocTracker()"/><span class="toggle-slider"></span></label>
-              </div>
-              <div class="doc-track-item">
-                <span class="doc-track-icon icon icon-lg" style="color:var(--green);"><i data-lucide="party-popper"></i></span>
-                <div class="doc-track-info"><div class="doc-track-name">Welcome Packet</div><div class="doc-track-sub">Onboarding doc sent</div></div>
-                <label class="doc-track-toggle"><input type="checkbox" id="dt_welcome" onchange="saveDocTracker()"/><span class="toggle-slider"></span></label>
-              </div>
-              <div class="doc-track-item">
-                <span class="doc-track-icon icon icon-lg" style="color:#3B82F6;"><i data-lucide="bar-chart-3"></i></span>
-                <div class="doc-track-info"><div class="doc-track-name">Proposal</div><div class="doc-track-sub">Project proposal sent</div></div>
-                <label class="doc-track-toggle"><input type="checkbox" id="dt_proposal" onchange="saveDocTracker()"/><span class="toggle-slider"></span></label>
-              </div>
-            </div>
+  <div class="doc-track-item" style="flex-direction:column;align-items:stretch;gap:10px;">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <span class="doc-track-icon icon icon-lg" style="color:var(--gold);"><i data-lucide="receipt"></i></span>
+      <div class="doc-track-info" style="flex:1;"><div class="doc-track-name">Invoice</div><div class="doc-track-sub">Payment invoice sent</div></div>
+      <label class="doc-track-toggle"><input type="checkbox" id="dt_invoice" onchange="toggleDocSent('invoice')"/><span class="toggle-slider"></span></label>
+    </div>
+    <div class="doc-note-box" id="docnote_invoice"></div>
+  </div>
+
+  <div class="doc-track-item" style="flex-direction:column;align-items:stretch;gap:10px;">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <span class="doc-track-icon icon icon-lg" style="color:#9B7FD4;"><i data-lucide="file-check"></i></span>
+      <div class="doc-track-info" style="flex:1;"><div class="doc-track-name">SOW / Agreement</div><div class="doc-track-sub">Service agreement sent</div></div>
+      <label class="doc-track-toggle"><input type="checkbox" id="dt_sow" onchange="toggleDocSent('sow')"/><span class="toggle-slider"></span></label>
+    </div>
+    <div class="doc-note-box" id="docnote_sow"></div>
+  </div>
+
+  <div class="doc-track-item" style="flex-direction:column;align-items:stretch;gap:10px;">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <span class="doc-track-icon icon icon-lg" style="color:var(--green);"><i data-lucide="party-popper"></i></span>
+      <div class="doc-track-info" style="flex:1;"><div class="doc-track-name">Welcome Packet</div><div class="doc-track-sub">Onboarding doc sent</div></div>
+      <label class="doc-track-toggle"><input type="checkbox" id="dt_welcome" onchange="toggleDocSent('welcome')"/><span class="toggle-slider"></span></label>
+    </div>
+    <div class="doc-note-box" id="docnote_welcome"></div>
+  </div>
+
+  <div class="doc-track-item" style="flex-direction:column;align-items:stretch;gap:10px;">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <span class="doc-track-icon icon icon-lg" style="color:#3B82F6;"><i data-lucide="bar-chart-3"></i></span>
+      <div class="doc-track-info" style="flex:1;"><div class="doc-track-name">Proposal</div><div class="doc-track-sub">Project proposal sent</div></div>
+      <label class="doc-track-toggle"><input type="checkbox" id="dt_proposal" onchange="toggleDocSent('proposal')"/><span class="toggle-slider"></span></label>
+    </div>
+    <div class="doc-note-box" id="docnote_proposal"></div>
+  </div>
+</div>
             <div style="margin-top:12px;">
               <a class="btn btn-secondary btn-sm" style="display:block;text-align:center;text-decoration:none;" href="docs.html" target="_blank">Open Doc Generator →</a>
             </div>
@@ -1392,10 +1415,35 @@ function toggleSidebar(){
   </div>
 
   <!-- ════ PAGE: FINANCE ════ -->
-  <div class="page-view" id="page-finance" style="padding:28px;">
-    <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;margin-bottom:6px;">Finance</div>
-    <div style="font-size:13px;color:var(--text-muted);margin-bottom:24px;">Revenue, payment status, and financial summary across all tickets.</div>
-    <div class="stats-row" id="financeStatsRow" style="margin-bottom:24px;"></div>
+<div class="page-view" id="page-finance" style="padding:28px;">
+  <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;margin-bottom:6px;">Finance</div>
+  <div style="font-size:13px;color:var(--text-muted);margin-bottom:16px;">Revenue, payment status, and financial summary across all tickets.</div>
+
+  <div class="card" style="margin-bottom:20px;">
+    <div class="card-body" style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;">
+      <div class="field" style="min-width:180px;">
+        <label>Date Range (based on project start date)</label>
+        <select id="financeRangeSelect" onchange="onFinanceRangeChange()">
+          <option value="all">All Time</option>
+          <option value="last1">Last 1 Month</option>
+          <option value="last2">Last 2 Months</option>
+          <option value="last6">Last 6 Months</option>
+          <option value="last12">Last 12 Months</option>
+          <option value="custom">Custom Range</option>
+        </select>
+      </div>
+      <div class="field" id="financeCustomFromWrap" style="display:none;min-width:160px;">
+        <label>From</label>
+        <input type="date" id="financeCustomFrom" onchange="renderFinancePage('custom')"/>
+      </div>
+      <div class="field" id="financeCustomToWrap" style="display:none;min-width:160px;">
+        <label>To</label>
+        <input type="date" id="financeCustomTo" onchange="renderFinancePage('custom')"/>
+      </div>
+    </div>
+  </div>
+
+  <div class="stats-row" id="financeStatsRow" style="margin-bottom:24px;"></div>
     <div class="card">
       <div class="card-header">
         <div class="card-header-icon"><i data-lucide="credit-card" style="width:15px;height:15px;stroke:var(--accent);"></i></div>
@@ -2244,6 +2292,16 @@ function showPage(page) {
   }
 }
 
+function onFinanceRangeChange() {
+  const val = document.getElementById('financeRangeSelect').value;
+  const fromWrap = document.getElementById('financeCustomFromWrap');
+  const toWrap = document.getElementById('financeCustomToWrap');
+  const showCustom = val === 'custom';
+  if(fromWrap) fromWrap.style.display = showCustom ? 'flex' : 'none';
+  if(toWrap) toWrap.style.display = showCustom ? 'flex' : 'none';
+  renderFinancePage(val);
+}
+
 /* ══════════════════════
    DASHBOARD
 ══════════════════════ */
@@ -2361,11 +2419,22 @@ function openEditor(ticketId) {
   // Timeline
   renderTimeline(t.timeline||[]);
   // Doc tracker
-  const ds = t.docsSent||{};
-  document.getElementById('dt_invoice').checked = !!ds.invoice;
-  document.getElementById('dt_sow').checked = !!ds.sow;
-  document.getElementById('dt_welcome').checked = !!ds.welcome;
-  document.getElementById('dt_proposal').checked = !!ds.proposal;
+// Doc tracker — handle both old boolean format and new object format
+const ds = t.docsSent||{};
+['invoice','sow','welcome','proposal'].forEach(k => {
+  const raw = ds[k];
+  const isObj = raw && typeof raw === 'object';
+  const checked = isObj ? !!raw.sent : !!raw; // backward-compatible with old true/false data
+  document.getElementById('dt_'+k).checked = checked;
+  if(!isObj && raw) {
+    // migrate old boolean-true entries into the new object format with one history entry
+    ds[k] = { sent:true, history:['(earlier — exact date unknown)'] };
+  } else if(!isObj) {
+    ds[k] = { sent:false, history:[] };
+  }
+});
+t.docsSent = ds;
+renderDocNotes(ds);
 
   // Discount fields
   loadDiscountFields(t);
@@ -2576,18 +2645,18 @@ function collectFormData() {
       welcome: document.getElementById('dt_welcome').checked,
       proposal: document.getElementById('dt_proposal').checked,
     },
-    documents: (() => {
-      const docs = [];
-      if (document.getElementById('dt_invoice').checked)
-        docs.push({ name: 'Invoice', type: 'invoice', desc: 'Payment invoice from SparkEdge', url: 'mailto:sparkedge555@gmail.com?subject=Invoice Request – ' + (document.getElementById('e_ticketId').value || '') });
-      if (document.getElementById('dt_sow').checked)
-        docs.push({ name: 'SOW / Agreement', type: 'contract', desc: 'Service agreement & scope of work', url: 'mailto:sparkedge555@gmail.com?subject=SOW Request – ' + (document.getElementById('e_ticketId').value || '') });
-      if (document.getElementById('dt_welcome').checked)
-        docs.push({ name: 'Welcome Packet', type: 'welcome', desc: 'Your onboarding document from SparkEdge', url: 'mailto:sparkedge555@gmail.com?subject=Welcome Packet – ' + (document.getElementById('e_ticketId').value || '') });
-      if (document.getElementById('dt_proposal').checked)
-        docs.push({ name: 'Client Proposal', type: 'doc', desc: 'Project proposal shared before kickoff', url: 'mailto:sparkedge555@gmail.com?subject=Proposal – ' + (document.getElementById('e_ticketId').value || '') });
-      return docs;
-    })(),
+   documents: (() => {
+  const docs = [];
+  if (document.getElementById('dt_invoice').checked)
+    docs.push({ name: 'Invoice', type: 'invoice', desc: 'Payment invoice from SparkEdge' });
+  if (document.getElementById('dt_sow').checked)
+    docs.push({ name: 'SOW / Agreement', type: 'contract', desc: 'Service agreement & scope of work' });
+  if (document.getElementById('dt_welcome').checked)
+    docs.push({ name: 'Welcome Packet', type: 'welcome', desc: 'Your onboarding document from SparkEdge' });
+  if (document.getElementById('dt_proposal').checked)
+    docs.push({ name: 'Client Proposal', type: 'doc', desc: 'Project proposal shared before kickoff' });
+  return docs;
+})(),
     referralDiscount: (() => {
       const idx = tickets.findIndex(t=>t.ticketId===currentTicketId);
       return idx>=0 ? (tickets[idx].referralDiscount||null) : null;
@@ -2602,18 +2671,66 @@ function collectFormData() {
 /* ══════════════════════
    SAVE DOC TRACKER
 ══════════════════════ */
-function saveDocTracker() {
+/* ── New doc tracker: tracks history of every "sent" toggle ── */
+function toggleDocSent(docKey) {
   if(!currentTicketId) return;
   const idx = tickets.findIndex(t=>t.ticketId===currentTicketId);
   if(idx<0) return;
-  tickets[idx].docsSent = {
-    invoice: document.getElementById('dt_invoice').checked,
-    sow: document.getElementById('dt_sow').checked,
-    welcome: document.getElementById('dt_welcome').checked,
-    proposal: document.getElementById('dt_proposal').checked,
-  };
+
+  if(!tickets[idx].docsSent) tickets[idx].docsSent = {};
+  if(!tickets[idx].docsSent[docKey] || typeof tickets[idx].docsSent[docKey] !== 'object') {
+    tickets[idx].docsSent[docKey] = { sent:false, history:[] };
+  }
+
+  const isChecked = document.getElementById('dt_'+docKey).checked;
+  tickets[idx].docsSent[docKey].sent = isChecked;
+
+  // Log a new history entry only when turning ON (i.e. marking as freshly sent)
+  if(isChecked) {
+    const now = new Date().toLocaleString('en-IN', {day:'numeric', month:'short', year:'numeric', hour:'numeric', minute:'2-digit'});
+    tickets[idx].docsSent[docKey].history.push(now);
+  }
+
   saveTickets(tickets);
+  renderDocNotes(tickets[idx].docsSent);
   showToast('Doc tracker saved!');
+}
+
+/* Manually log an extra resend without toggling off/on */
+function logDocResend(docKey) {
+  if(!currentTicketId) return;
+  const idx = tickets.findIndex(t=>t.ticketId===currentTicketId);
+  if(idx<0) return;
+  if(!tickets[idx].docsSent) tickets[idx].docsSent = {};
+  if(!tickets[idx].docsSent[docKey] || typeof tickets[idx].docsSent[docKey] !== 'object') {
+    tickets[idx].docsSent[docKey] = { sent:false, history:[] };
+  }
+  const now = new Date().toLocaleString('en-IN', {day:'numeric', month:'short', year:'numeric', hour:'numeric', minute:'2-digit'});
+  tickets[idx].docsSent[docKey].history.push(now);
+  tickets[idx].docsSent[docKey].sent = true;
+  document.getElementById('dt_'+docKey).checked = true;
+  saveTickets(tickets);
+  renderDocNotes(tickets[idx].docsSent);
+  showToast('Resend logged!');
+}
+
+/* Render the note box under each toggle with count + history + resend button */
+function renderDocNotes(docsSent) {
+  const keys = ['invoice','sow','welcome','proposal'];
+  keys.forEach(k => {
+    const box = document.getElementById('docnote_'+k);
+    if(!box) return;
+    const entry = (docsSent && docsSent[k] && typeof docsSent[k]==='object') ? docsSent[k] : { sent:false, history:[] };
+    const count = entry.history.length;
+    if(count === 0) {
+      box.innerHTML = `<span style="color:var(--text-dim);">Not sent yet.</span> <button class="dn-resend-btn" onclick="logDocResend('${k}')">+ Log a send</button>`;
+    } else {
+      const historyHTML = entry.history.slice().reverse().map(h => `<div>• ${h}</div>`).join('');
+      box.innerHTML = `Sent <span class="dn-count">${count} time${count>1?'s':''}</span> so far.
+        <div class="dn-history">${historyHTML}</div>
+        <button class="dn-resend-btn" onclick="logDocResend('${k}')">+ Log a resend</button>`;
+    }
+  });
 }
 
 /* ══════════════════════
@@ -3241,33 +3358,93 @@ function renderClientsPage() {
 /* ══════════════════════
    FINANCE PAGE
 ══════════════════════ */
-function renderFinancePage() {
-  const totalRev = tickets.reduce((s,t)=>s+(t.payment?.total||0),0);
-  const collected = tickets.reduce((s,t)=>s+(t.payment?.stages||[]).filter(st=>st.status==='paid').reduce((a,st)=>a+st.amount,0),0);
-  const pending = tickets.reduce((s,t)=>s+(t.payment?.stages||[]).filter(st=>st.status==='pending').reduce((a,st)=>a+st.amount,0),0);
-  const upcoming = tickets.reduce((s,t)=>s+(t.payment?.stages||[]).filter(st=>st.status==='upcoming').reduce((a,st)=>a+st.amount,0),0);
+/* ── Computes the real final total for a ticket after all discounts ── */
+function getFinalTotal(t) {
+  const original = t.payment?.total || 0;
+  let sitDisc = 0;
+  if (t.discount && t.discount.type && t.discount.type !== 'none' && t.discount.value) {
+    sitDisc = t.discount.type === 'flat'
+      ? t.discount.value
+      : Math.round(original * t.discount.value / 100);
+  }
+  const refDisc = t.referralDiscount ? (t.referralDiscount.discount || 0) : 0;
+  return Math.max(0, original - sitDisc - refDisc);
+}
+
+// 
+/* ── Returns tickets filtered by the chosen date range (based on startDate) ── */
+function getFinanceFilteredTickets(rangeKey, customFrom, customTo) {
+  if(rangeKey === 'all') return tickets;
+
+  const now = new Date();
+  let fromDate = null, toDate = now;
+
+  if(rangeKey === 'custom') {
+    fromDate = customFrom ? new Date(customFrom) : null;
+    toDate = customTo ? new Date(customTo) : now;
+  } else {
+    const monthsBack = { 'last1':1, 'last2':2, 'last6':6, 'last12':12 }[rangeKey] || 0;
+    fromDate = new Date(now);
+    fromDate.setMonth(fromDate.getMonth() - monthsBack);
+  }
+
+  return tickets.filter(t => {
+    const d = parseTicketDate(t.startDate);
+    if(!d) return true; // if date can't be parsed, don't exclude it
+    if(fromDate && d < fromDate) return false;
+    if(toDate && d > toDate) return false;
+    return true;
+  });
+}
+
+/* ── Tries to parse the free-text startDate field (e.g. "Jan 15, 2025") ── */
+function parseTicketDate(str) {
+  if(!str) return null;
+  const d = new Date(str);
+  return isNaN(d.getTime()) ? null : d;
+}
+
+function renderFinancePage(rangeKey) {
+  rangeKey = rangeKey || (document.getElementById('financeRangeSelect')?.value) || 'all';
+  const customFrom = document.getElementById('financeCustomFrom')?.value || '';
+  const customTo = document.getElementById('financeCustomTo')?.value || '';
+
+  const filteredTickets = getFinanceFilteredTickets(rangeKey, customFrom, customTo);
+
+  const totalRev = filteredTickets.reduce((s,t)=>s+getFinalTotal(t),0);
+  const collected = filteredTickets.reduce((s,t)=>s+(t.payment?.stages||[]).filter(st=>st.status==='paid').reduce((a,st)=>a+st.amount,0),0);
+  const pending = filteredTickets.reduce((s,t)=>s+(t.payment?.stages||[]).filter(st=>st.status==='pending').reduce((a,st)=>a+st.amount,0),0);
+  const upcoming = filteredTickets.reduce((s,t)=>s+(t.payment?.stages||[]).filter(st=>st.status==='upcoming').reduce((a,st)=>a+st.amount,0),0);
+  const totalDiscountGiven = filteredTickets.reduce((s,t)=>s+((t.payment?.total||0) - getFinalTotal(t)),0);
 
   document.getElementById('financeStatsRow').innerHTML = `
-    <div class="stat-card"><div class="stat-card-label">Total Revenue</div><div class="stat-card-val" style="color:var(--gold);font-size:22px;">₹${totalRev.toLocaleString('en-IN')}</div><div class="stat-card-sub">All projects combined</div></div>
+    <div class="stat-card"><div class="stat-card-label">Total Revenue (after discount)</div><div class="stat-card-val" style="color:var(--gold);font-size:22px;">₹${totalRev.toLocaleString('en-IN')}</div><div class="stat-card-sub">${filteredTickets.length} project(s) in range</div></div>
     <div class="stat-card"><div class="stat-card-label">Collected</div><div class="stat-card-val" style="color:var(--green);font-size:22px;">₹${collected.toLocaleString('en-IN')}</div><div class="stat-card-sub">Payments received</div></div>
     <div class="stat-card"><div class="stat-card-label">Pending</div><div class="stat-card-val" style="color:var(--accent);font-size:22px;">₹${pending.toLocaleString('en-IN')}</div><div class="stat-card-sub">Due from clients</div></div>
-    <div class="stat-card"><div class="stat-card-label">Upcoming</div><div class="stat-card-val" style="color:var(--blue);font-size:22px;">₹${upcoming.toLocaleString('en-IN')}</div><div class="stat-card-sub">Future milestones</div></div>`;
+    <div class="stat-card"><div class="stat-card-label">Upcoming</div><div class="stat-card-val" style="color:var(--blue);font-size:22px;">₹${upcoming.toLocaleString('en-IN')}</div><div class="stat-card-sub">Future milestones</div></div>
+    <div class="stat-card"><div class="stat-card-label">Total Discounts Given</div><div class="stat-card-val" style="color:#EF4444;font-size:22px;">₹${totalDiscountGiven.toLocaleString('en-IN')}</div><div class="stat-card-sub">Situational + referral combined</div></div>`;
 
   const rows = document.getElementById('financeClientRows');
-  if(!tickets.length){rows.innerHTML='<div class="empty-state"><div class="es-icon">📊</div><div class="es-text">No data yet.</div></div>';return;}
-  rows.innerHTML = tickets.map(t=>{
+  if(!filteredTickets.length){rows.innerHTML='<div class="empty-state"><div class="es-icon">📊</div><div class="es-text">No data in this range.</div></div>';return;}
+  rows.innerHTML = filteredTickets.map(t=>{
     const paid = (t.payment?.stages||[]).filter(s=>s.status==='paid').reduce((a,s)=>a+s.amount,0);
-    const total = t.payment?.total||0;
-    const pct = total ? Math.round(paid/total*100) : 0;
+    const original = t.payment?.total||0;
+    const finalTotal = getFinalTotal(t);
+    const discGiven = original - finalTotal;
+    const pct = finalTotal ? Math.round(paid/finalTotal*100) : 0;
     return `<div class="client-row" style="padding:14px 0;">
       <div>
         <div style="font-size:13px;font-weight:700;">${t.clientName} <span style="color:var(--text-muted);font-weight:400;">— ${t.ticketId}</span></div>
         <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">${t.projectName}</div>
         <div class="finance-bar" style="width:180px;margin-top:6px;"><div class="finance-bar-fill" style="width:${pct}%"></div></div>
+        ${discGiven > 0 ? `<div style="font-size:10px;color:#EF4444;margin-top:4px;">🏷️ Discount applied: -₹${discGiven.toLocaleString('en-IN')}</div>` : ''}
       </div>
       <div style="text-align:right;">
         <div style="font-size:14px;font-weight:700;color:var(--green);">₹${paid.toLocaleString('en-IN')}</div>
-        <div style="font-size:11px;color:var(--text-muted);">of ₹${total.toLocaleString('en-IN')} · ${pct}%</div>
+        <div style="font-size:11px;color:var(--text-muted);">
+          of ₹${finalTotal.toLocaleString('en-IN')} · ${pct}%
+          ${discGiven > 0 ? `<span style="text-decoration:line-through;color:var(--text-dim);margin-left:4px;">₹${original.toLocaleString('en-IN')}</span>` : ''}
+        </div>
       </div>
     </div>`;
   }).join('');

@@ -80,18 +80,20 @@ function renderDashboard(client) {
     : `<p class="empty-state">No project files yet — will appear here once ready.</p>`;
 
   /* ─── Documents HTML ───────────────────────────────────── */
-  const docsHTML = (client.documents && client.documents.length)
-    ? client.documents.map(f => `
-      <a href="${f.url}" target="_blank" rel="noopener noreferrer" class="file-item doc-file">
+const docsHTML = (client.documents && client.documents.length)
+  ? client.documents.map(f => {
+      const inner = `
         <span class="file-icon">${fileIcon(f.type)}</span>
         <div class="file-info">
           <span class="file-name">${f.name}</span>
           ${f.desc ? `<span class="file-desc">${f.desc}</span>` : ''}
         </div>
-        <span class="file-type">${f.type.toUpperCase()}</span>
-        <span class="file-arrow">↗</span>
-      </a>`).join('')
-    : `<p class="empty-state">No documents shared yet.</p>`;
+        <span class="file-type">${f.type.toUpperCase()}</span>`;
+      return f.url
+        ? `<a href="${f.url}" target="_blank" rel="noopener noreferrer" class="file-item doc-file">${inner}<span class="file-arrow">↗</span></a>`
+        : `<div class="file-item doc-file" style="cursor:default;">${inner}</div>`;
+    }).join('')
+  : `<p class="empty-state">No documents shared yet.</p>`;
 
   /* ─── Freebies HTML ────────────────────────────────────── */
   const freebiesHTML = (client.freebies && client.freebies.length)
