@@ -4117,7 +4117,7 @@ function buildShareMsg() {
   const custom   = (document.getElementById('shareCustomMsg')?.value || '').trim();
   const tplText  = _shareActiveTpl ? _shareTpls[_shareActiveTpl] : '';
   const body     = custom || tplText || 'Here is your latest project update from SparkEdge.';
-  const url = 'https://sparkedge555.github.io//sparkedge-client-portal/dashboard.html?id=' + tid;
+  const url = 'https://sparkedge555.github.io/sparkedge-client-portal/dashboard.html?id=' + tid;
 
   const msg = 'Hi ' + name + '! 👋\n\n' + body + '\n\n🎫 Ticket: *' + tid + '*\n🔗 Dashboard: ' + url + '\n\n— SparkEdge Team';
   preview.textContent = msg;
