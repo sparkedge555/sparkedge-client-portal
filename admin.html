@@ -136,7 +136,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 @keyframes fadeIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
 
 /* ── STATS ROW ── */
-.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px;}
+.stats-row{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:24px;}
+@media(max-width:900px){.stats-row{grid-template-columns:repeat(2,1fr);}}
 .stat-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px;}
 .stat-card-label{font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-dim);margin-bottom:8px;}
 .stat-card-val{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:#fff;line-height:1;}
@@ -892,10 +893,15 @@ function toggleSidebar(){
         <div class="stat-card-val" id="stat-completed" style="color:var(--green);">0</div>
         <div class="stat-card-sub">Delivered</div>
       </div>
-      <div class="stat-card">
+     <div class="stat-card">
         <div class="stat-card-label">Revenue</div>
         <div class="stat-card-val" id="stat-revenue" style="color:var(--gold);font-size:20px;">₹0</div>
-        <div class="stat-card-sub">Total project value</div>
+        <div class="stat-card-sub">Total after discounts</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-label">Collected</div>
+        <div class="stat-card-val" id="stat-collected" style="color:var(--green);font-size:20px;">₹0</div>
+        <div class="stat-card-sub">Payments received</div>
       </div>
     </div>
 
@@ -1405,10 +1411,14 @@ function toggleSidebar(){
     </div>
   </div>
 
-  <!-- ════ PAGE: CLIENTS ════ -->
+ 
+ <!-- ════ PAGE: CLIENTS ════ -->
   <div class="page-view" id="page-clients" style="padding:28px;">
     <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;margin-bottom:6px;">Clients</div>
-    <div style="font-size:13px;color:var(--text-muted);margin-bottom:24px;">All clients onboarded via SparkEdge — quick overview and actions.</div>
+    <div style="font-size:13px;color:var(--text-muted);margin-bottom:16px;">All clients onboarded via SparkEdge — quick overview and actions.</div>
+    <div style="margin-bottom:14px;">
+      <input id="clientsSearchInput" type="text" placeholder="🔍 Search by client name, ticket ID, or project..." oninput="renderClientsPage(this.value)" style="width:100%;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 14px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text);outline:none;transition:border-color .15s;" onfocus="this.style.borderColor='rgba(255,107,53,.5)'" onblur="this.style.borderColor='var(--border)'"/>
+    </div>
     <div id="clientsPageList">
       <div class="empty-state"><div class="es-icon">👥</div><div class="es-text">No clients yet.</div></div>
     </div>
@@ -1443,11 +1453,14 @@ function toggleSidebar(){
     </div>
   </div>
 
-  <div class="stats-row" id="financeStatsRow" style="margin-bottom:24px;"></div>
+<div class="stats-row" id="financeStatsRow" style="margin-bottom:24px;grid-template-columns:repeat(3,1fr);"></div>
     <div class="card">
-      <div class="card-header">
-        <div class="card-header-icon"><i data-lucide="credit-card" style="width:15px;height:15px;stroke:var(--accent);"></i></div>
-        <div><div class="card-header-title">Payment Status by Client</div></div>
+      <div class="card-header" style="flex-direction:column;align-items:stretch;gap:10px;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div class="card-header-icon"><i data-lucide="credit-card" style="width:15px;height:15px;stroke:var(--accent);"></i></div>
+          <div><div class="card-header-title">Payment Status by Client</div></div>
+        </div>
+        <input id="financeSearchInput" type="text" placeholder="🔍 Search by client name, ticket ID, or project..." oninput="renderFinancePage()" style="width:100%;background:var(--bg-raised);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 12px;font-family:'DM Sans',sans-serif;font-size:12px;color:var(--text);outline:none;"/>
       </div>
       <div class="card-body" id="financeClientRows">
         <div class="empty-state"><div class="es-icon">📊</div><div class="es-text">No data yet.</div></div>
@@ -2309,13 +2322,16 @@ function renderDashboard() {
   const total = tickets.length;
   const inprog = tickets.filter(t=>t.status==='In Progress').length;
   const done = tickets.filter(t=>t.status==='Completed').length;
-  const rev = tickets.reduce((s,t)=>s+(parseInt(t.payment?.total)||0),0);
+  const rev = tickets.reduce((s,t)=>s+getFinalTotal(t),0);
+  const collectedTotal = tickets.reduce((s,t)=>s+(t.payment?.stages||[]).filter(st=>st.status==='paid').reduce((a,st)=>a+st.amount,0),0);
 
   document.getElementById('stat-total').textContent = total;
   document.getElementById('stat-inprogress').textContent = inprog;
   document.getElementById('stat-completed').textContent = done;
   document.getElementById('stat-revenue').textContent = '₹'+rev.toLocaleString('en-IN');
   document.getElementById('ticketCountBadge').textContent = total;
+  document.getElementById('ticketCountBadge').textContent = total;
+  document.getElementById('stat-collected').textContent = '₹'+collectedTotal.toLocaleString('en-IN');
 
   const list = document.getElementById('dashTicketList');
   if(!tickets.length) {
@@ -3329,13 +3345,26 @@ function confirmRedeem() {
 /* ══════════════════════
    CLIENTS PAGE
 ══════════════════════ */
-function renderClientsPage() {
+function renderClientsPage(searchQuery) {
   const list = document.getElementById('clientsPageList');
   if(!tickets.length){list.innerHTML='<div class="empty-state"><div class="es-icon">👥</div><div class="es-text">No clients yet.</div></div>';return;}
+
+  const query = (searchQuery !== undefined ? searchQuery : (document.getElementById('clientsSearchInput')?.value || '')).toLowerCase().trim();
+  const filtered = query
+    ? tickets.filter(t => t.clientName.toLowerCase().includes(query) || t.ticketId.toLowerCase().includes(query) || (t.projectName||'').toLowerCase().includes(query))
+    : tickets;
+
+  if(!filtered.length){
+    list.innerHTML = '<div class="empty-state"><div class="es-icon">🔍</div><div class="es-text">No clients match your search.</div></div>';
+    return;
+  }
+
   list.innerHTML = `<div class="card"><div class="card-body" style="padding:0;">` +
-    tickets.map(t=>{
+    filtered.map(t=>{
       const paidAmt = (t.payment?.stages||[]).filter(s=>s.status==='paid').reduce((a,s)=>a+s.amount,0);
-      const totalAmt = t.payment?.total||0;
+      const originalAmt = t.payment?.total||0;
+      const finalAmt = getFinalTotal(t);
+      const hasDiscount = finalAmt < originalAmt;
       const sClass = {'Not Started':'not-started','In Progress':'in-progress','Completed':'completed'}[t.status]||'not-started';
       return `<div class="client-row" style="padding:14px 20px;">
         <div style="display:flex;align-items:center;gap:14px;">
@@ -3346,7 +3375,10 @@ function renderClientsPage() {
           </div>
         </div>
         <div style="display:flex;align-items:center;gap:16px;">
-          <div style="text-align:right;font-size:12px;color:var(--text-muted);">₹${paidAmt.toLocaleString('en-IN')} / ₹${totalAmt.toLocaleString('en-IN')}</div>
+          <div style="text-align:right;font-size:12px;color:var(--text-muted);">
+            ₹${paidAmt.toLocaleString('en-IN')} / ₹${finalAmt.toLocaleString('en-IN')}
+            ${hasDiscount ? `<div style="font-size:10px;color:var(--text-dim);text-decoration:line-through;">₹${originalAmt.toLocaleString('en-IN')}</div>` : ''}
+          </div>
           <span class="status-pill ${sClass}"><span class="status-dot"></span>${t.status}</span>
           <button class="btn btn-secondary btn-sm" onclick="openEditor('${t.ticketId}')">Edit →</button>
         </div>
@@ -3408,17 +3440,27 @@ function renderFinancePage(rangeKey) {
   rangeKey = rangeKey || (document.getElementById('financeRangeSelect')?.value) || 'all';
   const customFrom = document.getElementById('financeCustomFrom')?.value || '';
   const customTo = document.getElementById('financeCustomTo')?.value || '';
+  const searchQuery = (document.getElementById('financeSearchInput')?.value || '').toLowerCase().trim();
 
-  const filteredTickets = getFinanceFilteredTickets(rangeKey, customFrom, customTo);
+  let filteredTickets = getFinanceFilteredTickets(rangeKey, customFrom, customTo);
+  if(searchQuery) {
+    filteredTickets = filteredTickets.filter(t =>
+      t.clientName.toLowerCase().includes(searchQuery) ||
+      t.ticketId.toLowerCase().includes(searchQuery) ||
+      (t.projectName||'').toLowerCase().includes(searchQuery)
+    );
+  }
 
-  const totalRev = filteredTickets.reduce((s,t)=>s+getFinalTotal(t),0);
+ const totalRev = filteredTickets.reduce((s,t)=>s+getFinalTotal(t),0);
+  const originalTotalRev = filteredTickets.reduce((s,t)=>s+(t.payment?.total||0),0);
   const collected = filteredTickets.reduce((s,t)=>s+(t.payment?.stages||[]).filter(st=>st.status==='paid').reduce((a,st)=>a+st.amount,0),0);
   const pending = filteredTickets.reduce((s,t)=>s+(t.payment?.stages||[]).filter(st=>st.status==='pending').reduce((a,st)=>a+st.amount,0),0);
   const upcoming = filteredTickets.reduce((s,t)=>s+(t.payment?.stages||[]).filter(st=>st.status==='upcoming').reduce((a,st)=>a+st.amount,0),0);
   const totalDiscountGiven = filteredTickets.reduce((s,t)=>s+((t.payment?.total||0) - getFinalTotal(t)),0);
 
   document.getElementById('financeStatsRow').innerHTML = `
-    <div class="stat-card"><div class="stat-card-label">Total Revenue (after discount)</div><div class="stat-card-val" style="color:var(--gold);font-size:22px;">₹${totalRev.toLocaleString('en-IN')}</div><div class="stat-card-sub">${filteredTickets.length} project(s) in range</div></div>
+    <div class="stat-card"><div class="stat-card-label">Revenue (after discount)</div><div class="stat-card-val" style="color:var(--gold);font-size:22px;">₹${totalRev.toLocaleString('en-IN')}</div><div class="stat-card-sub">${filteredTickets.length} project(s) in range</div></div>
+    <div class="stat-card"><div class="stat-card-label">Original Total (no discount)</div><div class="stat-card-val" style="color:var(--text-muted);font-size:22px;">₹${originalTotalRev.toLocaleString('en-IN')}</div><div class="stat-card-sub">Before any discounts applied</div></div>
     <div class="stat-card"><div class="stat-card-label">Collected</div><div class="stat-card-val" style="color:var(--green);font-size:22px;">₹${collected.toLocaleString('en-IN')}</div><div class="stat-card-sub">Payments received</div></div>
     <div class="stat-card"><div class="stat-card-label">Pending</div><div class="stat-card-val" style="color:var(--accent);font-size:22px;">₹${pending.toLocaleString('en-IN')}</div><div class="stat-card-sub">Due from clients</div></div>
     <div class="stat-card"><div class="stat-card-label">Upcoming</div><div class="stat-card-val" style="color:var(--blue);font-size:22px;">₹${upcoming.toLocaleString('en-IN')}</div><div class="stat-card-sub">Future milestones</div></div>
