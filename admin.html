@@ -913,11 +913,14 @@ function toggleSidebar(){
     </div>
   </div>
 
-  <!-- ════ PAGE: TICKETS ════ -->
+ <!-- ════ PAGE: TICKETS ════ -->
   <div class="page-view" id="page-tickets" style="padding:28px;">
     <div class="tickets-header">
       <h2>All Client Tickets</h2>
       <button class="btn btn-primary" onclick="showPage('newticket')">+ New Ticket</button>
+    </div>
+    <div style="margin-bottom:14px;">
+      <input id="ticketSearchInput" type="text" placeholder="🔍 Search by client name or ticket ID..." oninput="filterTickets()" style="width:100%;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 14px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text);outline:none;transition:border-color .15s;" onfocus="this.style.borderColor='rgba(255,107,53,.5)'" onblur="this.style.borderColor='var(--border)'"/>
     </div>
     <div class="ticket-list" id="allTicketList">
       <div class="empty-state"><div class="es-icon">📭</div><div class="es-text">No tickets yet.</div></div>
@@ -2266,12 +2269,35 @@ function renderDashboard() {
 }
 
 function renderTicketList() {
+  const searchInput = document.getElementById('ticketSearchInput');
+  if (searchInput) searchInput.value = '';
   const list = document.getElementById('allTicketList');
   if(!tickets.length) {
     list.innerHTML = '<div class="empty-state"><div class="es-icon">📭</div><div class="es-text">No tickets yet.</div></div>';
     return;
   }
   list.innerHTML = tickets.map(t => ticketCardHTML(t)).join('');
+  setTimeout(() => lucide.createIcons(), 50);
+}
+
+function filterTickets() {
+  const query = (document.getElementById('ticketSearchInput')?.value || '').toLowerCase().trim();
+  const list = document.getElementById('allTicketList');
+  if (!query) {
+    list.innerHTML = tickets.map(t => ticketCardHTML(t)).join('');
+    setTimeout(() => lucide.createIcons(), 50);
+    return;
+  }
+  const filtered = tickets.filter(t =>
+    t.clientName.toLowerCase().includes(query) ||
+    t.ticketId.toLowerCase().includes(query) ||
+    (t.projectName || '').toLowerCase().includes(query)
+  );
+  if (!filtered.length) {
+    list.innerHTML = '<div class="empty-state"><div class="es-icon">🔍</div><div class="es-text">No tickets match your search.</div></div>';
+    return;
+  }
+  list.innerHTML = filtered.map(t => ticketCardHTML(t)).join('');
   setTimeout(() => lucide.createIcons(), 50);
 }
 
@@ -2550,6 +2576,18 @@ function collectFormData() {
       welcome: document.getElementById('dt_welcome').checked,
       proposal: document.getElementById('dt_proposal').checked,
     },
+    documents: (() => {
+      const docs = [];
+      if (document.getElementById('dt_invoice').checked)
+        docs.push({ name: 'Invoice', type: 'invoice', desc: 'Payment invoice from SparkEdge', url: 'mailto:sparkedge555@gmail.com?subject=Invoice Request – ' + (document.getElementById('e_ticketId').value || '') });
+      if (document.getElementById('dt_sow').checked)
+        docs.push({ name: 'SOW / Agreement', type: 'contract', desc: 'Service agreement & scope of work', url: 'mailto:sparkedge555@gmail.com?subject=SOW Request – ' + (document.getElementById('e_ticketId').value || '') });
+      if (document.getElementById('dt_welcome').checked)
+        docs.push({ name: 'Welcome Packet', type: 'welcome', desc: 'Your onboarding document from SparkEdge', url: 'mailto:sparkedge555@gmail.com?subject=Welcome Packet – ' + (document.getElementById('e_ticketId').value || '') });
+      if (document.getElementById('dt_proposal').checked)
+        docs.push({ name: 'Client Proposal', type: 'doc', desc: 'Project proposal shared before kickoff', url: 'mailto:sparkedge555@gmail.com?subject=Proposal – ' + (document.getElementById('e_ticketId').value || '') });
+      return docs;
+    })(),
     referralDiscount: (() => {
       const idx = tickets.findIndex(t=>t.ticketId===currentTicketId);
       return idx>=0 ? (tickets[idx].referralDiscount||null) : null;
@@ -2682,7 +2720,7 @@ function buildClientHTML(t) {
   </div>`;
   })() : '';
 
-  const clientDataJS = JSON.stringify({
+const clientDataJS = JSON.stringify({
     ticketId: t.ticketId,
     clientName: t.clientName,
     projectName: t.projectName,
@@ -2696,7 +2734,9 @@ function buildClientHTML(t) {
     files: t.files,
     deliverables: t.deliverables,
     timeline: t.timeline,
-    managerNote: t.managerNote || null
+    managerNote: t.managerNote || null,
+    docsSent: t.docsSent || null,
+    documents: t.documents || []
   }, null, 2);
 
   return `<!DOCTYPE html>
