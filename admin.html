@@ -898,10 +898,10 @@ function toggleSidebar(){
         <div class="stat-card-val" id="stat-revenue" style="color:var(--gold);font-size:20px;">₹0</div>
         <div class="stat-card-sub">Total after discounts</div>
       </div>
-      <div class="stat-card">
-        <div class="stat-card-label">Collected</div>
-        <div class="stat-card-val" id="stat-collected" style="color:var(--green);font-size:20px;">₹0</div>
-        <div class="stat-card-sub">Payments received</div>
+    <div class="stat-card">
+        <div class="stat-card-label">Original Total (no discount)</div>
+        <div class="stat-card-val" id="stat-originaltotal" style="color:var(--text-muted);font-size:20px;">₹0</div>
+        <div class="stat-card-sub">Before any discounts applied</div>
       </div>
     </div>
 
@@ -2322,8 +2322,8 @@ function renderDashboard() {
   const total = tickets.length;
   const inprog = tickets.filter(t=>t.status==='In Progress').length;
   const done = tickets.filter(t=>t.status==='Completed').length;
-  const rev = tickets.reduce((s,t)=>s+getFinalTotal(t),0);
-  const collectedTotal = tickets.reduce((s,t)=>s+(t.payment?.stages||[]).filter(st=>st.status==='paid').reduce((a,st)=>a+st.amount,0),0);
+const rev = tickets.reduce((s,t)=>s+getFinalTotal(t),0);
+  const originalTotal = tickets.reduce((s,t)=>s+(t.payment?.total||0),0);
 
   document.getElementById('stat-total').textContent = total;
   document.getElementById('stat-inprogress').textContent = inprog;
@@ -2331,8 +2331,7 @@ function renderDashboard() {
   document.getElementById('stat-revenue').textContent = '₹'+rev.toLocaleString('en-IN');
   document.getElementById('ticketCountBadge').textContent = total;
   document.getElementById('ticketCountBadge').textContent = total;
-  document.getElementById('stat-collected').textContent = '₹'+collectedTotal.toLocaleString('en-IN');
-
+  document.getElementById('stat-originaltotal').textContent = '₹'+originalTotal.toLocaleString('en-IN');
   const list = document.getElementById('dashTicketList');
   if(!tickets.length) {
     list.innerHTML = '<div class="empty-state"><div class="es-icon">📭</div><div class="es-text">No tickets yet. Create your first one!</div></div>';
@@ -3451,9 +3450,8 @@ function renderFinancePage(rangeKey) {
     );
   }
 
- const totalRev = filteredTickets.reduce((s,t)=>s+getFinalTotal(t),0);
+const totalRev = filteredTickets.reduce((s,t)=>s+getFinalTotal(t),0);
   const originalTotalRev = filteredTickets.reduce((s,t)=>s+(t.payment?.total||0),0);
-  const collected = filteredTickets.reduce((s,t)=>s+(t.payment?.stages||[]).filter(st=>st.status==='paid').reduce((a,st)=>a+st.amount,0),0);
   const pending = filteredTickets.reduce((s,t)=>s+(t.payment?.stages||[]).filter(st=>st.status==='pending').reduce((a,st)=>a+st.amount,0),0);
   const upcoming = filteredTickets.reduce((s,t)=>s+(t.payment?.stages||[]).filter(st=>st.status==='upcoming').reduce((a,st)=>a+st.amount,0),0);
   const totalDiscountGiven = filteredTickets.reduce((s,t)=>s+((t.payment?.total||0) - getFinalTotal(t)),0);
@@ -3461,11 +3459,9 @@ function renderFinancePage(rangeKey) {
   document.getElementById('financeStatsRow').innerHTML = `
     <div class="stat-card"><div class="stat-card-label">Revenue (after discount)</div><div class="stat-card-val" style="color:var(--gold);font-size:22px;">₹${totalRev.toLocaleString('en-IN')}</div><div class="stat-card-sub">${filteredTickets.length} project(s) in range</div></div>
     <div class="stat-card"><div class="stat-card-label">Original Total (no discount)</div><div class="stat-card-val" style="color:var(--text-muted);font-size:22px;">₹${originalTotalRev.toLocaleString('en-IN')}</div><div class="stat-card-sub">Before any discounts applied</div></div>
-    <div class="stat-card"><div class="stat-card-label">Collected</div><div class="stat-card-val" style="color:var(--green);font-size:22px;">₹${collected.toLocaleString('en-IN')}</div><div class="stat-card-sub">Payments received</div></div>
     <div class="stat-card"><div class="stat-card-label">Pending</div><div class="stat-card-val" style="color:var(--accent);font-size:22px;">₹${pending.toLocaleString('en-IN')}</div><div class="stat-card-sub">Due from clients</div></div>
     <div class="stat-card"><div class="stat-card-label">Upcoming</div><div class="stat-card-val" style="color:var(--blue);font-size:22px;">₹${upcoming.toLocaleString('en-IN')}</div><div class="stat-card-sub">Future milestones</div></div>
     <div class="stat-card"><div class="stat-card-label">Total Discounts Given</div><div class="stat-card-val" style="color:#EF4444;font-size:22px;">₹${totalDiscountGiven.toLocaleString('en-IN')}</div><div class="stat-card-sub">Situational + referral combined</div></div>`;
-
   const rows = document.getElementById('financeClientRows');
   if(!filteredTickets.length){rows.innerHTML='<div class="empty-state"><div class="es-icon">📊</div><div class="es-text">No data in this range.</div></div>';return;}
   rows.innerHTML = filteredTickets.map(t=>{
