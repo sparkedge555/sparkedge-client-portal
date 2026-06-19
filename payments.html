@@ -201,7 +201,7 @@ tbody td .td-main{font-weight:600;color:var(--text);font-size:13px}
       <button class="login-eye" onclick="toggleEye()" id="eyeBtn">👁</button>
     </div>
     <button class="login-btn" onclick="doLogin()">Unlock Payments Portal →</button>
-    <div class="login-credit">Owned by <strong>Raunak Karn</strong></div>
+<div class="login-credit">Owned by <strong>Raunak Karn</strong><br><span style="font-size:8px;opacity:.6;">Built &amp; maintained by Raunak Karn</span></div>
   </div>
 </div>
 
@@ -247,9 +247,24 @@ tbody td .td-main{font-weight:600;color:var(--text);font-size:13px}
   <div style="flex:1"></div>
   <div class="sb-divider"></div>
   <button class="sb-link" id="sbLogoutBtn" style="color:var(--danger);display:none" onclick="doLogout()">🚪 Logout</button>
+<div style="text-align:center;font-size:8.5px;color:rgba(122,122,154,.3);padding:10px 10px 4px;letter-spacing:.3px;font-weight:500;">
+  Owned by <strong style="color:rgba(255,107,53,.4);font-weight:600;">Raunak Karn</strong>
+</div>
 </aside>
 
-<div class="main-area"><div class="container" id="mainContent"></div></div>
+<div class="main-area">
+  <div class="container" id="mainContent"></div>
+  <div style="padding:18px 28px;border-top:1px solid var(--border);text-align:center;margin-top:8px;">
+    <div style="display:flex;justify-content:center;gap:16px;margin-bottom:8px;flex-wrap:wrap;">
+      <a href="mailto:sparkedge555@gmail.com" style="color:var(--text-muted);text-decoration:none;font-size:12px;">sparkedge555@gmail.com</a>
+      <a href="tel:+919142450715" style="color:var(--text-muted);text-decoration:none;font-size:12px;">+91 91424 50715</a>
+    </div>
+    <div style="font-size:11px;color:var(--text-dim);">© 2026 SparkEdge · Payments & Commission Portal</div>
+    <div style="font-size:9px;color:rgba(122,122,154,.3);margin-top:6px;letter-spacing:.3px;font-weight:500;">
+      Built &amp; maintained by <strong style="color:rgba(255,107,53,.4);font-weight:600;">Raunak Karn</strong>
+    </div>
+  </div>
+</div>
 </div>
 
 <!-- ═══ MODAL: ADD PAYMENT ENTRY ═══ -->
@@ -688,7 +703,7 @@ function renderLedger(){
   <div class="page-eyebrow">📒 Payment Ledger</div>
   <div class="page-title">All Payment Records</div>
   <div class="page-sub">${canViewAll?'Every commission, salary & bonus entry — team and partners':'Your own payment history'}</div>
-  
+
   <div class="toolbar">
     <div class="search-wrap"><span class="search-icon">🔍</span><input placeholder="Search ticket, client, name..." oninput="_lf=this.value;refreshLedgerTable()"/></div>
     <select class="fsel" onchange="_lstatus=this.value;refreshLedgerTable()">
