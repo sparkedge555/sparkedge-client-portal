@@ -670,7 +670,7 @@ footer .footer-credit strong{
     <a href="mailto:sparkedge555@gmail.com">sparkedge555@gmail.com</a>
     <a href="tel:+919142450715">+91 91424 50715</a>
     <a href="https://wa.me/919142450715" target="_blank">WhatsApp</a>
-<a onclick="downloadData()" style="cursor:pointer;color:var(--success);display:inline-flex;align-items:center;gap:5px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Download My Data</a>
+<a onclick="downloadData()" style="cursor:pointer;color:var(--success);display:inline-flex;align-items:center;gap:5px" title="Emergency backup only — not required for normal use"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Emergency Backup</a>
 <a onclick="navTo('quickreplies')" style="cursor:pointer;color:var(--accent);display:inline-flex;align-items:center;gap:5px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> Quick Replies</a>
 <a onclick="navTo('workflow')" style="cursor:pointer;color:var(--info);display:inline-flex;align-items:center;gap:5px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6l6-3 6 3 6-3v15l-6 3-6-3-6 3V6z"/><path d="M9 3v15M15 6v15"/></svg> Workflow Guide</a>
   </div>
@@ -843,32 +843,15 @@ function attachCrmTeamListener(){
         if(idx >= 0) merged[idx] = fm; else merged.push(fm);
       });
       window._crmTeamCache = merged;
-      localStorage.setItem(CRM_AUTH_KEY, JSON.stringify(merged));
        if(typeof currentSection !== 'undefined' && currentSection === 'team') renderSection('team');
     }, err => {
       console.warn('CRM team listener error:', err.message);
-      try{
-        const stored = JSON.parse(localStorage.getItem(CRM_AUTH_KEY)) || [];
-        const merged = [...HARDCODED_MEMBERS];
-        stored.forEach(sm => {
-          const idx = merged.findIndex(hm => hm.id === sm.id);
-          if(idx >= 0) merged[idx] = sm; else merged.push(sm);
-        });
-        window._crmTeamCache = merged;
-      }catch{ window._crmTeamCache = [...HARDCODED_MEMBERS]; }
     });
   }catch(e){ console.warn('Could not attach CRM team listener:', e.message); }
 }
 
 
 window._crmLeadsListenerAttached = false;
-
-async function migrateLocalLeadsToFirestore(){
-  if(localStorage.getItem('se_leads_migrated')==='1') return;
-  const local = JSON.parse(localStorage.getItem('se_leads')||'[]');
-  for(const l of local){ await pushLeadToFirestore(l); }
-  localStorage.setItem('se_leads_migrated','1');
-}
 
 function attachLeadsListener(){
   if(window._crmLeadsListenerAttached) return;
@@ -877,15 +860,11 @@ function attachLeadsListener(){
     getCrmDb().collection('leads').onSnapshot(snapshot => {
       const fsLeads = [];
       snapshot.forEach(doc => fsLeads.push({ id: doc.id, ...doc.data() }));
-      fsLeads.forEach(fl=>{
-        const idx = leads.findIndex(l=>l.id===fl.id);
-        if(idx>=0) leads[idx] = fl; else leads.push(fl);
-      });
-      localStorage.setItem('se_leads', JSON.stringify(leads));
+      leads = fsLeads; // Firestore is the single source of truth — full replace, not merge
       if(typeof currentSection !== 'undefined') renderSection(currentSection);
     }, err => {
       console.warn('Leads listener error:', err.message);
-      showToast('⚠️ Live sync lost — showing last saved data.');
+      showToast('⚠️ Live sync lost — check your internet connection.');
     });
   }catch(e){
     console.warn('Could not attach leads listener:', e.message);
@@ -893,12 +872,10 @@ function attachLeadsListener(){
 }
 
 async function pushLeadToFirestore(lead){
-  try{ await getCrmDb().collection('leads').doc(lead.id).set(lead); }
-  catch(e){ showToast('⚠️ Cloud sync failed — saved locally only.'); }
+  await getCrmDb().collection('leads').doc(lead.id).set(lead);
 }
 async function deleteLeadFromFirestore(id){
-  try{ await getCrmDb().collection('leads').doc(id).delete(); }
-  catch(e){ console.warn('Delete sync failed:', e.message); }
+  await getCrmDb().collection('leads').doc(id).delete();
 }
 
 function crmGetMembers(){
@@ -906,20 +883,15 @@ function crmGetMembers(){
 }
 
 async function crmSaveMembers(m){
-  localStorage.setItem(CRM_AUTH_KEY, JSON.stringify(m));
+  const db = getCrmDb();
+  const batch = db.batch();
+  m.forEach(member => {
+    if(!member.id) member.id = 'mem_' + Date.now();
+    batch.set(db.collection('team').doc(member.id), member);
+  });
+  await batch.commit();
   window._crmTeamCache = m;
-  try{
-    const db = getCrmDb();
-    const batch = db.batch();
-    m.forEach(member => {
-      if(!member.id) member.id = 'mem_' + Date.now();
-      batch.set(db.collection('team').doc(member.id), member);
-    });
-    await batch.commit();
-    showToast('✅ Team synced to Firestore!');
-  }catch(e){
-    showToast('⚠️ Saved locally — Firestore sync failed.');
-  }
+  showToast('✅ Team synced to Firestore!');
 }
 
 async function crmDeleteMemberFromFirestore(memberId){
@@ -1004,7 +976,6 @@ async function hideCrmLogin(){
  updateCrmUserUI();
   applyCrmPermissions();
   attachCrmTeamListener();
-  await migrateLocalLeadsToFirestore();
   attachLeadsListener();
   renderSection('dashboard');
 }
@@ -1067,15 +1038,14 @@ function crmLogout(){
 
 <script>
 // ── DATA ──
-let leads = JSON.parse(localStorage.getItem('se_leads')||localStorage.getItem('se_clients')||'[]');
+let leads = [];   // Firestore is the only source of truth — populated by attachLeadsListener()
 let editId = null;
 let currentSection = 'dashboard';
 let sortCol = 'addedAt', sortDir = -1;
 let closedSubTab = 'won';
 
 function save(){
-  localStorage.setItem('se_leads', JSON.stringify(leads));
-  autoDownloadHint();
+  // No localStorage write — the Firestore listener keeps `leads` in sync automatically.
 }
 function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2); }
 function initials(n){ return (n||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2)||'?'; }
@@ -1083,14 +1053,7 @@ function today(){ return new Date().toISOString().slice(0,10); }
 function fmtDate(d){ if(!d) return '—'; try{ return new Date(d).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}); }catch{return d;} }
 function fmtMoney(v){ return v?'₹'+Number(v).toLocaleString('en-IN'):'—'; }
 
-let _lastDownloadReminder = 0;
-function autoDownloadHint(){
-  const now = Date.now();
-  if(now - _lastDownloadReminder > 300000){ // 5 min
-    _lastDownloadReminder = now;
-    showToast('💡 Data updated! Remember to Export & share with your team.', 4000);
-  }
-}
+// (removed — no longer needed since Firestore syncs automatically)
 
 // ── TOAST ──
 function showToast(msg, dur=2500){
@@ -1262,17 +1225,20 @@ function renderPipeline(){
   </div>`;
 }
 
-function quickStatus(id, dir){
+async function quickStatus(id, dir){
   const stageOrder=['pending','contacted','follow','closed-won','closed-lost'];
   const c=leads.find(x=>x.id===id);
   if(!c) return;
   const idx=stageOrder.indexOf(c.status);
-  if(dir==='next'&&idx<stageOrder.length-1){ c.status=stageOrder[idx+1]; }
-  else if(dir==='prev'&&idx>0){ c.status=stageOrder[idx-1]; }
-  save();
-  pushLeadToFirestore(c);
-  showToast(`✅ Moved to: ${statusLabel(c.status)}`);
-  renderSection(currentSection);
+  const updated={...c};
+  if(dir==='next'&&idx<stageOrder.length-1){ updated.status=stageOrder[idx+1]; }
+  else if(dir==='prev'&&idx>0){ updated.status=stageOrder[idx-1]; }
+  try{
+    await pushLeadToFirestore(updated);
+    showToast(`✅ Moved to: ${statusLabel(updated.status)}`);
+  }catch(e){
+    showToast('❌ Move FAILED: '+e.message);
+  }
 }
 
 // ── LIST VIEW ──
@@ -1394,27 +1360,28 @@ function cardHTML(c){
   </div>`;
 }
 
-function quickWon(id){
+async function quickWon(id){
   const c=leads.find(x=>x.id===id);
   if(!c) return;
-  c.status='closed-won';
-  c.closedAt=Date.now();
-  save();
-  pushLeadToFirestore(c);
-  showToast('🎉 Lead marked as WON! Moving to Clients.');
-  renderSection(currentSection);
+  const updated={...c, status:'closed-won', closedAt:Date.now()};
+  try{
+    await pushLeadToFirestore(updated);
+    showToast('🎉 Lead marked as WON! Moving to Clients.');
+  }catch(e){
+    showToast('❌ FAILED: '+e.message);
+  }
 }
-function quickLost(id){
+async function quickLost(id){
   const reason=prompt('Why was this lead lost? (optional)','');
   const c=leads.find(x=>x.id===id);
   if(!c) return;
-  c.status='closed-lost';
-  c.lostReason=reason||'';
-  c.closedAt=Date.now();
-  save();
-  pushLeadToFirestore(c);
-  showToast('❌ Lead marked as Lost.');
-  renderSection(currentSection);
+  const updated={...c, status:'closed-lost', lostReason:reason||'', closedAt:Date.now()};
+  try{
+    await pushLeadToFirestore(updated);
+    showToast('❌ Lead marked as Lost.');
+  }catch(e){
+    showToast('❌ FAILED: '+e.message);
+  }
 }
 
 // ── CLOSED SECTIONS ──
@@ -1766,7 +1733,7 @@ function editClient(id){
   document.getElementById('modalOverlay').classList.add('open');
 }
 
-function saveLead(){
+async function saveLead(){
   const name=document.getElementById('f_name').value.trim();
   const phone=document.getElementById('f_phone').value.trim();
   if(!name){ alert('Name is required!'); return; }
@@ -1797,22 +1764,30 @@ function saveLead(){
     addedAt:editId?(leads.find(x=>x.id===editId)||{}).addedAt||Date.now():Date.now(),
     closedAt:status.startsWith('closed')?(editId?(leads.find(x=>x.id===editId)||{}).closedAt||Date.now():Date.now()):null
   };
-  if(editId){ const i=leads.findIndex(x=>x.id===editId); if(i>-1) leads[i]=data; }
-  else leads.push(data);
-  save();
-  pushLeadToFirestore(data);   // ← add this line
+
   closeModal();
-  showToast('✅ Lead saved! Syncing to cloud...');
-  renderSection(currentSection);
+
+  try{
+    await pushLeadToFirestore(data);
+    showToast('✅ Lead saved & synced to cloud!');
+    // No manual array update — the Firestore listener brings the confirmed
+    // data back and re-renders automatically.
+  }catch(e){
+    showToast('❌ Save FAILED — not synced: '+e.message);
+    alert('Save failed! Your lead was NOT saved.\n\nError: '+e.message+'\n\nCheck your internet connection or Firestore rules.');
+  }
 }
 
-function deleteLead(id){
+async function deleteLead(id){
   if(!confirm('Delete this lead permanently?')) return;
-  leads=leads.filter(x=>x.id!==id);
-  save();
-  deleteLeadFromFirestore(id);
-  showToast('🗑 Lead deleted');
-  renderSection(currentSection);
+  try{
+    await deleteLeadFromFirestore(id);
+    showToast('🗑 Lead deleted everywhere.');
+    // Listener auto-updates the UI on all devices.
+  }catch(e){
+    showToast('❌ Delete FAILED: '+e.message);
+    alert('Delete failed!\n\nError: '+e.message);
+  }
 }
 
 // ── EXPORT / IMPORT ──
@@ -1844,24 +1819,26 @@ function downloadData(){
 function openImport(){ document.getElementById('importOverlay').classList.add('open'); }
 function closeImport(){ document.getElementById('importOverlay').classList.remove('open'); document.getElementById('importText').value=''; }
 
-function importData(){
+async function importData(){
   const raw=document.getElementById('importText').value.trim();
   if(!raw){ alert('Paste JSON data first!'); return; }
   try{
     const imported=JSON.parse(raw);
     if(!Array.isArray(imported)){ alert('Invalid format! Must be a JSON array.'); return; }
-    let added=0,updated=0;
+
+    const db=getCrmDb();
+    const batch=db.batch();
     imported.forEach(item=>{
-      const idx=leads.findIndex(x=>x.id===item.id);
-      if(idx>-1){ leads[idx]={...leads[idx],...item}; updated++; }
-      else{ leads.push(item); added++; }
+      if(!item.id) item.id=uid();
+      batch.set(db.collection('leads').doc(item.id), item, {merge:true});
     });
-    save();
+    await batch.commit();
+
     closeImport();
-    showToast(`✅ Import done: ${added} new, ${updated} updated. Total: ${leads.length} leads.`,4000);
-    renderSection(currentSection);
+    showToast(`✅ Imported ${imported.length} lead(s) to cloud.`,4000);
+    // Listener auto-updates the UI on all devices.
   }catch(e){
-    alert('Error parsing JSON: '+e.message);
+    alert('Import error: '+e.message);
   }
 }
 
@@ -2963,20 +2940,19 @@ function renderTeamPage(){
       <div class="section-label">Add members · Set permissions · Export for cross-device login</div>
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
-      <button class="btn-save" style="font-size:12px;padding:8px 14px" onclick="exportCrmTeamConfig()">📤 Export Team Config</button>
+      <button class="btn-save" style="font-size:12px;padding:8px 14px;background:var(--bg-raised);border:1px solid var(--border);color:var(--text-muted)" onclick="exportCrmTeamConfig()" title="Emergency offline fallback only">📤 Export Team Config (emergency only)</button>
       <button class="btn-add" onclick="openAddMember()">+ Add Member</button>
     </div>
   </div>
 
-  <!-- Cross-device info -->
-  <div class="cross-device-info">
-    <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:#F59E0B;margin-bottom:8px">⚠️ Cross-Device Login — How to Fix Password Not Working</div>
+<!-- Cross-device info -->
+  <div class="cross-device-info" style="background:rgba(46,204,113,.06);border-color:rgba(46,204,113,.22)">
+    <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:#2ECC71;margin-bottom:8px">✅ Team Members Sync Automatically via Firestore</div>
     <div style="font-size:12px;color:var(--text-muted);line-height:1.85">
-      <strong style="color:var(--text)">Problem:</strong> Member passwords are stored in YOUR browser's localStorage. When a team member opens this file on a different device, their localStorage is empty — so the password fails.<br><br>
-      <strong style="color:var(--text)">Fix (takes 3 minutes):</strong><br>
-      <strong style="color:#F59E0B">1.</strong> Click <strong>"📤 Export Team Config"</strong> above → copies a script snippet with all member credentials embedded.<br>
-      <strong style="color:#F59E0B">2.</strong> Open <code style="background:var(--bg-raised);border:1px solid var(--border);border-radius:4px;padding:1px 6px">lead-management-crm.html</code> in Notepad / VS Code → find the line <code style="background:var(--bg-raised);border:1px solid var(--border);border-radius:4px;padding:1px 6px">// ▼▼▼ START MEMBER CONFIG ▼▼▼</code> → replace the <code>HARDCODED_MEMBERS = [...]</code> array with the copied config → Save → Re-share the file.<br><br>
-      Member passwords will now work on <strong style="color:var(--success)">ANY device, anywhere ✅</strong>
+      Members you add, edit, or suspend here update live on every device within seconds — no file editing, no manual sharing.<br><br>
+      <strong style="color:var(--text)">A new member can log in immediately on any device</strong> using the password you set, the moment you click Save.<br><br>
+      <code style="background:var(--bg-raised);border:1px solid var(--border);border-radius:4px;padding:1px 6px">HARDCODED_MEMBERS</code> in this file is only an offline fallback in case Firestore is briefly unreachable — you do not need to edit it manually for day-to-day team management.<br><br>
+      The <strong>"📤 Export Team Config"</strong> button below is kept only as an emergency backup tool, not part of your normal workflow.
     </div>
   </div>
 
@@ -3166,9 +3142,9 @@ function renderWorkflow(){
       <h4>🔐 One-Time Setup: Cross-Device Team Login</h4>
       ${[['👤','Go to Settings & Team (sidebar) → Add your team member'],['📤','Click "Export Team Config" → copies a code snippet'],['📝','Open lead-management-crm.html in Notepad / VS Code'],['🔍','Find: "// ▼▼▼ START MEMBER CONFIG ▼▼▼"'],['✂️','Replace the HARDCODED_MEMBERS = [...] block with the copied snippet'],['💾','Save file → Send updated HTML to your team member via WhatsApp'],['✅','Team member opens file on their device → their password works on any device!']].map(([i,t])=>`<div class="cloud-step"><div class="cloud-icon">${i}</div><div class="cloud-text">${t}</div></div>`).join('')}
     </div>
-    <div class="cloud-box" style="background:rgba(52,152,219,.06);border-color:rgba(52,152,219,.2)">
-      <h4 style="color:var(--info)">🔄 Daily Team Sync Routine</h4>
-      ${[['🌅','Morning: Import your team member\'s latest JSON export → data refreshes'],['💼','During the day: You manage your leads. Team member manages theirs.'],['🌆','Evening: Export your data → Share JSON to team via WhatsApp'],['🔄','Team member exports theirs → Sends to you → You import → Both in sync'],['✅','Rule: Last import wins. Divide lead ownership to avoid conflicts.']].map(([i,t])=>`<div class="cloud-step"><div class="cloud-icon">${i}</div><div class="cloud-text">${t}</div></div>`).join('')}
+   <div class="cloud-box" style="background:rgba(52,152,219,.06);border-color:rgba(52,152,219,.2)">
+      <h4 style="color:var(--info)">☁️ How Sync Actually Works Now</h4>
+      ${[['⚡','Leads sync live via Firestore — no exporting or importing needed anymore'],['👀','Any lead you add, edit, or move shows up on every team member\'s device within seconds'],['📱','Open the CRM on your phone and laptop at the same time — both stay in sync automatically'],['⬇','The Backup button is for manual safety copies only — not required for normal use'],['⚠️','Avoid two people editing the exact same lead at the exact same moment — last save wins']].map(([i,t])=>`<div class="cloud-step"><div class="cloud-icon">${i}</div><div class="cloud-text">${t}</div></div>`).join('')}
     </div>
     <div class="cloud-box" style="background:rgba(123,94,167,.06);border-color:rgba(123,94,167,.2)">
       <h4 style="color:#7B5EA7">🛡 Team Permissions — What You Control</h4>
@@ -3176,25 +3152,25 @@ function renderWorkflow(){
     </div>`;
 
   const memberRightCol = `
-    <div class="cloud-box" style="background:rgba(52,152,219,.06);border-color:rgba(52,152,219,.2)">
-      <h4 style="color:var(--info)">🔄 Your Daily Sync Routine</h4>
-      ${[['🌅','Morning: Import the latest JSON file shared by your team lead'],['💼','During the day: Add leads, update statuses, set follow-up dates'],['🌆','Evening: Click Export → Send the JSON file to your team lead via WhatsApp'],['✅','Team lead imports your file — data merges automatically, no duplicates'],['⚠️','Avoid editing the same lead as a teammate at the same time']].map(([i,t])=>`<div class="cloud-step"><div class="cloud-icon">${i}</div><div class="cloud-text">${t}</div></div>`).join('')}
+   <div class="cloud-box" style="background:rgba(52,152,219,.06);border-color:rgba(52,152,219,.2)">
+      <h4 style="color:var(--info)">☁️ How Sync Actually Works Now</h4>
+      ${[['⚡','Leads sync live via Firestore — there is nothing to export or import manually'],['💼','Just add leads, update statuses, and set follow-up dates as normal'],['👀','Your team lead sees your changes within seconds, automatically'],['✅','No file sharing, no daily JSON routine — it just works in the background'],['⚠️','Avoid editing the exact same lead as a teammate at the exact same moment']].map(([i,t])=>`<div class="cloud-step"><div class="cloud-icon">${i}</div><div class="cloud-text">${t}</div></div>`).join('')}
     </div>
     <div class="cloud-box" style="background:rgba(255,179,71,.06);border-color:rgba(255,179,71,.2)">
       <h4 style="color:var(--gold)">💬 Quick Replies — How to Use</h4>
       ${[['📋','Open Quick Replies from the sidebar — 10 stages, Hindi + English both'],['🎯','Match the stage to your situation (e.g. first DM → Stage 1)'],['✏️','Click Edit → replace [Name] and [amount] with real values'],['📋','Click Copy → paste directly in WhatsApp'],['💬','Or click Send → opens WhatsApp Web with message pre-filled'],['⭐','Every script is tested and professionally written — use with confidence!']].map(([i,t])=>`<div class="cloud-step"><div class="cloud-icon">${i}</div><div class="cloud-text">${t}</div></div>`).join('')}
     </div>`;
 
-  const ownerSafety = `
+const ownerSafety = `
   <div class="warn-box">
     <h4>⚠️ Data Safety & Security</h4>
-    ${[['💾','Data lives in browser localStorage — export after every session without fail'],['🚫','Never use Chrome Incognito — localStorage is disabled in private mode'],['📱','Each device has separate localStorage. Export/Import is the sync method.'],['📤','After every workday: Export JSON → save to Google Drive + WhatsApp Saved Messages'],['🔒','This CRM runs fully offline — no external server accesses your data'],['👥','Team members cannot see owner credentials, passwords, or team management settings']].map(([i,t])=>`<div class="cloud-step"><div class="cloud-icon">${i}</div><div class="cloud-text">${t}</div></div>`).join('')}
+    ${[['☁️','All leads and team data live in Firestore — surviving browser clears, device changes, even reinstalls'],['⬇','Use the Backup button occasionally as an extra safety copy — not your primary save method'],['🔒','This CRM connects to a private Firestore project — treat this HTML file as confidential, same as a password'],['👥','Team members cannot see owner credentials, passwords, or team management settings'],['🌐','An internet connection is required — leads will not save while fully offline']].map(([i,t])=>`<div class="cloud-step"><div class="cloud-icon">${i}</div><div class="cloud-text">${t}</div></div>`).join('')}
   </div>`;
 
   const memberSafety = `
   <div class="warn-box">
     <h4>⚠️ Data Safety — Reminders</h4>
-    ${[['💾','Always export before closing the browser — localStorage can be cleared'],['🚫','Do not use Chrome Incognito or private browsing — data will not save'],['📤','After every session: Export JSON → send to your team lead'],['🔒','Your access is limited to what has been permitted by the team admin']].map(([i,t])=>`<div class="cloud-step"><div class="cloud-icon">${i}</div><div class="cloud-text">${t}</div></div>`).join('')}
+    ${[['☁️','Your leads sync automatically to the cloud — no manual export needed for normal use'],['🌐','You need an internet connection — changes won\'t save while fully offline'],['🔒','Your access is limited to what has been permitted by the team admin']].map(([i,t])=>`<div class="cloud-step"><div class="cloud-icon">${i}</div><div class="cloud-text">${t}</div></div>`).join('')}
   </div>`;
 
   return `
