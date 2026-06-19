@@ -857,17 +857,20 @@ function attachLeadsListener(){
   if(window._crmLeadsListenerAttached) return;
   window._crmLeadsListenerAttached = true;
   try{
-    getCrmDb().collection('leads').onSnapshot(snapshot => {
+    const db = getCrmDb();
+    db.collection('leads').onSnapshot(snapshot => {
       const fsLeads = [];
       snapshot.forEach(doc => fsLeads.push({ id: doc.id, ...doc.data() }));
-      leads = fsLeads; // Firestore is the single source of truth — full replace, not merge
-      if(typeof currentSection !== 'undefined') renderSection(currentSection);
+      console.log('[SparkEdge] Leads received from Firestore:', fsLeads.length, fsLeads);
+      leads = fsLeads;
+      renderSection(currentSection || 'dashboard');
     }, err => {
-      console.warn('Leads listener error:', err.message);
-      showToast('⚠️ Live sync lost — check your internet connection.');
+      console.error('[SparkEdge] Leads listener ERROR:', err.code, err.message);
+      showToast('⚠️ Sync error: ' + err.message);
     });
   }catch(e){
-    console.warn('Could not attach leads listener:', e.message);
+    console.error('[SparkEdge] Could not attach leads listener:', e.message);
+    showToast('⚠️ Could not connect to cloud: ' + e.message);
   }
 }
 
@@ -973,11 +976,11 @@ async function hideCrmLogin(){
   s.style.opacity = '0'; s.style.transition = 'opacity .3s';
   setTimeout(()=>{ s.style.display='none'; }, 300);
   document.getElementById('app').style.display = 'block';
- updateCrmUserUI();
+  updateCrmUserUI();
   applyCrmPermissions();
+  attachLeadsListener();      // attach FIRST
   attachCrmTeamListener();
-  attachLeadsListener();
-  renderSection('dashboard');
+  renderSection('dashboard');  // initial render with whatever leads[] currently has
 }
 
 function updateCrmUserUI(){
