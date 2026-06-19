@@ -1786,51 +1786,64 @@ function toggleSidebar(){
       </div>
     </div>
 
-    <!-- ══════════════════════════════════════════════════════
-         EXPORT / IMPORT GUIDE
+   <!-- ══════════════════════════════════════════════════════
+         FIRESTORE SYNC GUIDE
     ══════════════════════════════════════════════════════ -->
     <div style="margin-top:32px;">
-  <div style="font-family:'Syne',sans-serif;font-size:17px;font-weight:800;margin-bottom:6px;color:var(--text);">💾 Export / Import Guide</div>
-  <div style="font-size:12px;color:var(--text-muted);margin-bottom:16px;">Tickets and finance data still use Export/Import. Team members now sync automatically via Firestore.</div>
+  <div style="font-family:'Syne',sans-serif;font-size:17px;font-weight:800;margin-bottom:6px;color:var(--text);">☁️ Live Cloud Sync — How Data Moves Across Devices</div>
+  <div style="font-size:12px;color:var(--text-muted);margin-bottom:16px;">Tickets, team members, vouchers, and settings all sync live via Firestore now. Export/Import still exists as a manual backup tool — not as the main sync method.</div>
 
   <div style="background:rgba(34,197,94,.07);border:1px solid rgba(34,197,94,.25);border-radius:var(--radius);padding:16px 20px;margin-bottom:16px;">
-    <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:#22C55E;margin-bottom:8px;">✅ Team Members — Auto-Sync via Firestore (No Export Needed)</div>
+    <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:#22C55E;margin-bottom:8px;">✅ Everything Syncs Automatically via Firestore</div>
     <div style="font-size:12px;color:var(--text-muted);line-height:1.8;">
-      Team members are now stored in <strong style="color:var(--text);">Firebase Firestore</strong>. When you add, edit, suspend, or remove a member:<br>
-      • The change appears on <strong style="color:var(--text);">every device instantly</strong> — no file sharing needed.<br>
-      • The member can log in from <strong style="color:var(--text);">any browser, any device</strong> within seconds.<br>
-      • No need to download Config files or re-share admin.html for team changes.<br>
-      • Passwords are still checked from the in-memory cache — login is instant even on slow connections.
+      • <strong style="color:var(--text);">Team members</strong> — live via <code>onSnapshot</code> listener on the <code>team</code> collection. Add/suspend/edit on one device, it shows on all devices within seconds.<br>
+      • <strong style="color:var(--text);">Tickets</strong> — saved to the <code>clients</code> collection whenever you click <strong>💾 Save</strong> or <strong>☁ Save Live</strong> in the editor. On login, <code>syncTicketsFromFirestore()</code> pulls the latest tickets down automatically.<br>
+      • <strong style="color:var(--text);">Vouchers</strong> — saved to the <code>vouchers</code> collection. On login, <code>syncVouchersFromFirestore()</code> pulls the latest list.<br>
+      • <strong style="color:var(--text);">Settings</strong> (agency info, UPI, bank details) — saved to the <code>settings</code> collection and read live by the client portal.<br><br>
+      <strong style="color:var(--text);">Important nuance:</strong> tickets are NOT on a live listener like team members are — they sync on login/page-load, not instantly mid-session. If you edit the same ticket on two devices at the same time, the later save wins. Best practice: only edit a given ticket from one device at a time.
     </div>
   </div>
 
   <div class="workflow-step">
-    <div class="wf-num" style="background:linear-gradient(135deg,#22C55E,#16A34A);font-size:14px;">⬇</div>
+    <div class="wf-num" style="background:linear-gradient(135deg,#22C55E,#16A34A);font-size:14px;">💾</div>
     <div>
-      <div class="wf-title">📤 Export — for Tickets & Finance data</div>
+      <div class="wf-title">💾 Save vs ☁ Save Live — What's the Difference?</div>
       <div class="wf-desc">
-        <strong>What gets exported:</strong> All tickets, vouchers, and settings. Team members are excluded — they live in Firestore now.<br><br>
+        Inside the ticket editor you'll see two save buttons:<br><br>
+        <strong style="color:var(--text);">💾 Save</strong> (<code>saveCurrentTicket()</code>) — saves to localStorage immediately AND attempts a Firestore sync in the background (merge mode). Use this after every change.<br><br>
+        <strong style="color:var(--text);">☁ Save Live</strong> (<code>saveToFirestore()</code>) — pushes a full overwrite of this ticket straight to Firestore's <code>clients</code> collection, which is what powers the client's live portal (<code>clients/SE-00X.html</code> reading from Firestore, or the standalone generated file). Use this when you want the client-facing portal to reflect changes <strong>right now</strong>, without waiting for a fresh page generate + GitHub push.
+      </div>
+      <div class="wf-timing">💡 Rule of thumb: Save after every edit. Save Live when the client needs to see the update immediately.</div>
+    </div>
+  </div>
+
+  <div class="workflow-step">
+    <div class="wf-num" style="background:linear-gradient(135deg,#3B82F6,#1D4ED8);font-size:14px;">📤</div>
+    <div>
+      <div class="wf-title">📤 Export — Manual Backup Only (Not Required for Sync)</div>
+      <div class="wf-desc">
+        <strong>What gets exported:</strong> All tickets, vouchers, settings, and team members (team is included in export now, even though it also lives in Firestore).<br><br>
         <strong>Step 1:</strong> Click <strong><i data-lucide="download" style="width:14px;height:14px;"></i> Export</strong> in the top-right header.<br>
         <strong>Step 2:</strong> A <code>sparkedge-admin-YYYY-MM-DD.json</code> file downloads.<br>
         <strong>Step 3:</strong> Save to Google Drive or email as a backup.<br><br>
-        <strong>When to export:</strong> After adding/updating tickets · Before switching devices · Weekly backup habit.
+        <strong>When to use it:</strong> as an offline backup in case Firestore is ever unreachable, or before doing a risky bulk change. You do NOT need this for day-to-day cross-device sync — that happens automatically.
       </div>
-      <div class="wf-timing">💡 Export = your ticket backup. Team members don't need it anymore.</div>
+      <div class="wf-timing">💡 Think of Export as "insurance," not as your main sync method.</div>
     </div>
   </div>
 
   <div class="workflow-step">
-    <div class="wf-num" style="background:linear-gradient(135deg,#3B82F6,#1D4ED8);font-size:14px;">⬆</div>
+    <div class="wf-num" style="background:linear-gradient(135deg,#F59E0B,#D97706);font-size:14px;">⬆</div>
     <div>
-      <div class="wf-title">📥 Import — for restoring Tickets on a new device</div>
+      <div class="wf-title">📥 Import — Restoring From a Backup File</div>
       <div class="wf-desc">
         <strong>Step 1:</strong> Open admin.html → log in → click <strong><i data-lucide="upload" style="width:14px;height:14px;"></i> Import</strong>.<br>
         <strong>Step 2:</strong> Open your exported <code>.json</code> in Notepad → copy all text.<br>
         <strong>Step 3:</strong> Paste into Import modal → click <strong>Import & Merge</strong>.<br>
-        <strong>Step 4:</strong> Tickets restored. Team members reload automatically from Firestore.<br><br>
+        <strong>Step 4:</strong> Tickets and vouchers are merged into localStorage. Team members and live ticket data still come from Firestore on next login.<br><br>
         <strong>Safe:</strong> Import only adds or updates — never deletes your existing data.
       </div>
-      <div class="wf-timing">💡 Team members sync on their own — only tickets need import.</div>
+      <div class="wf-timing">💡 Use this only to recover from a lost/corrupted local backup — not as routine syncing.</div>
     </div>
   </div>
 </div>
@@ -1842,7 +1855,7 @@ function toggleSidebar(){
       <div style="font-family:'Syne',sans-serif;font-size:17px;font-weight:800;margin-bottom:6px;color:var(--text);">👥 Team Management Guide</div>
       <div style="font-size:12px;color:var(--text-muted);margin-bottom:16px;">How to add team members, set permissions, and ensure they can log in from anywhere.</div>
 
-     <div class="workflow-step">
+   <div class="workflow-step">
   <div class="wf-num" style="font-size:14px;">➕</div>
   <div>
     <div class="wf-title">➕ How to Add a Team Member (Firestore — instant sync)</div>
@@ -1851,13 +1864,26 @@ function toggleSidebar(){
       <strong>Step 2:</strong> Fill name, role, email, WhatsApp, and a unique password.<br>
       <strong>Step 3:</strong> Set permissions using the preset or custom checkboxes.<br>
       <strong>Step 4:</strong> Click <strong>💾 Save Member</strong>.<br>
-      <strong>Step 5:</strong> That's it. The member is saved to Firestore instantly.<br><br>
+      <strong>Step 5:</strong> That's it. The member is saved to Firestore instantly via a live <code>onSnapshot</code> listener.<br><br>
       <strong>The member can now:</strong><br>
       • Open <code>admin.html</code> on <strong>any device</strong> — their password works immediately.<br>
       • No config file download needed. No file sharing. No git push required.<br>
       • If you suspend them, they lose access within seconds on all devices.
     </div>
     <div class="wf-timing">✅ No more Export → Share → Embed workflow for team members.</div>
+  </div>
+</div>
+
+<div class="workflow-step">
+  <div class="wf-num" style="background:linear-gradient(135deg,#7B5EA7,#5B3E8A);font-size:14px;">⚖</div>
+  <div>
+    <div class="wf-title">⚖ Team Sync vs Ticket Sync — Not the Same Speed</div>
+    <div class="wf-desc">
+      These two don't behave identically — know the difference so nothing surprises you:<br><br>
+      <strong style="color:#22C55E;">Team members</strong> use a live Firestore listener (<code>onSnapshot</code>). Any add/edit/suspend appears on every open device <strong>within seconds, automatically</strong> — no refresh needed.<br><br>
+      <strong style="color:#F59E0B;">Tickets</strong> use a one-time fetch (<code>syncTicketsFromFirestore()</code>), which only runs <strong>on login/page load</strong>. If Device A edits a ticket while Device B is already open, Device B won't see the change until it refreshes or re-logs in.<br><br>
+      <strong>Practical rule:</strong> if two people might touch the same ticket, have the second person refresh the admin panel before editing — or better, assign one ticket to one person at a time.
+    </div>
   </div>
 </div>
 
@@ -1916,32 +1942,40 @@ function toggleSidebar(){
     <div class="guide-section">
       <div class="guide-section-hdr"><div class="card-header-icon" style="background:rgba(255,107,53,.1);"><i data-lucide="layout" style="width:15px;height:15px;stroke:var(--accent);"></i></div><div><div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;">The Architecture</div></div></div>
       <div class="guide-section-body">
-        The SparkEdge portal is a <strong>static HTML system hosted on GitHub Pages</strong> — no database, no server, no monthly fees. It consists of 3 core files and a client folder:<br><br>
+        The SparkEdge portal is a <strong>static HTML front-end hosted on GitHub Pages, backed by a live Firebase Firestore database</strong> — no traditional server to maintain, but real cross-device sync via the cloud. It consists of 3 core files plus a client folder:<br><br>
         • <code>index.html</code> — The login page where clients enter their ticket ID (e.g. SE-001) to access their dashboard.<br>
         • <code>admin.html</code> — This file. Your private workspace for managing everything. Not hosted publicly (or password-protected).<br>
         • <code>docs.html</code> — Document Generator. Creates Invoice, SOW, Welcome Packet, and Proposal as downloadable HTML/PDF files.<br>
-        • <code>clients/SE-001.html</code>, <code>SE-002.html</code> etc. — Individual client dashboards, generated from admin and pushed to GitHub.
+        • <code>clients/SE-001.html</code>, <code>SE-002.html</code> etc. — Individual client dashboards. These are generated from the admin editor and either pushed to GitHub as static files, or read live from Firestore via <code>portal.js</code>.<br><br>
+        <strong style="color:var(--text);">The Firestore project</strong> is <code>sparkedge-client-portal</code>, with these collections: <code>clients</code> (tickets), <code>team</code> (members), <code>vouchers</code> (referrals), and <code>settings</code> (agency/payment info). All four sync to the cloud — team members in real time, the rest on page load/save.
       </div>
     </div>
 
-    <div class="guide-section">
+ <div class="guide-section">
       <div class="guide-section-hdr"><div class="card-header-icon" style="background:rgba(255,107,53,.1);"><i data-lucide="ticket" style="width:15px;height:15px;stroke:var(--accent);"></i></div><div><div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;">The Ticket System</div></div></div>
       <div class="guide-section-body">
         Each client has a <strong>unique Ticket ID</strong> (e.g. SE-001, SE-002). When a client enters this ID on the login page, they're redirected to their personal dashboard at <code>clients/SE-001.html</code>.<br><br>
-        The ticket stores: Client identity, project status & progress, payment stages, deliverables checklist, timeline updates, project files, and a note from the manager.<br><br>
-        <strong>To add a new client:</strong> Go to New Ticket → Fill details → Save → Generate & Download the file → Put it in <code>clients/</code> folder → Also add the ticket ID to the <code>validTickets</code> array in <code>index.html</code> → Push to GitHub.
+        The ticket stores: Client identity, project status & progress, payment stages, deliverables checklist, timeline updates, project files, and a note from the manager. This same data also lives as a document in the Firestore <code>clients</code> collection (document ID = ticket ID), which is what <strong>☁ Save Live</strong> writes to.<br><br>
+        <strong>To add a new client (two valid paths):</strong><br>
+        <strong>Path A — Static file (works offline, needs GitHub push):</strong> New Ticket → Fill details → Save → Generate & Download the file → Put it in <code>clients/</code> folder → Add the ticket ID to the <code>validTickets</code> array in <code>index.html</code> → Push to GitHub.<br><br>
+        <strong>Path B — Live Firestore (instant, no GitHub push needed):</strong> New Ticket → Fill details → Save → click <strong>☁ Save Live</strong> in the editor. If your <code>clients/SE-00X.html</code> template is set up to read live data via <code>portal.js</code> + Firestore (rather than the hardcoded <code>clientData</code> object), the client sees updates immediately without any redeploy.
       </div>
     </div>
 
     <div class="guide-section">
       <div class="guide-section-hdr"><div class="card-header-icon" style="background:rgba(255,107,53,.1);"><i data-lucide="database" style="width:15px;height:15px;stroke:var(--accent);"></i></div><div><div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;">Data Storage</div></div></div>
       <div class="guide-section-body">
-        Admin data (tickets, vouchers, team members, settings) is stored in your <strong>browser's localStorage</strong> on your device. This means:<br><br>
-        • ✅ Works offline, no server needed.<br>
-        • ✅ Fast, instant saves.<br>
-        • ⚠️ Data is per-device and per-browser. If you clear browser data, tickets may be lost — <strong>always generate & save the HTML files to GitHub as your backup.</strong><br>
-        • ⚠️ If you switch devices, re-create tickets or import from saved HTML files.<br><br>
-        Client-facing files (the <code>clients/SE-001.html</code> files) are the real source of truth once pushed to GitHub.
+        Admin data now lives in <strong>two places at once</strong> — your browser's localStorage (fast local cache) AND Firebase Firestore (cloud, cross-device):<br><br>
+        • <strong style="color:#22C55E;">Team members</strong> — Firestore is the source of truth, with a live listener keeping every open device in sync within seconds. <code>HARDCODED_MEMBERS</code> in the file is only an offline fallback if Firestore is unreachable.<br>
+        • <strong style="color:#F59E0B;">Tickets</strong> — saved to localStorage instantly, AND pushed to Firestore on every <strong>💾 Save</strong> / <strong>☁ Save Live</strong>. On login, <code>syncTicketsFromFirestore()</code> pulls the latest cloud copy down and merges it into your local list.<br>
+        • <strong style="color:#3B82F6;">Vouchers</strong> — same pattern: localStorage + Firestore <code>vouchers</code> collection, pulled fresh via <code>syncVouchersFromFirestore()</code> on login.<br>
+        • <strong style="color:#7B5EA7;">Settings</strong> — saved to both localStorage and the Firestore <code>settings</code> collection, which the live client portal reads from directly.<br><br>
+        <strong style="color:var(--text);">What this means in practice:</strong><br>
+        • ✅ You're no longer locked to one device/browser — log into admin.html anywhere and your team/tickets/vouchers/settings show up.<br>
+        • ✅ If you clear browser data, nothing is permanently lost — Firestore still has it, and it re-syncs on next login.<br>
+        • ⚠️ Ticket sync is NOT instant like team members — it only refreshes on login/page load, so avoid two people editing the same ticket simultaneously on different devices.<br>
+        • ⚠️ Still keep occasional <strong>Export</strong> backups as extra insurance — Firestore is reliable, but a downloaded JSON costs nothing and covers the rare "what if" scenario.<br><br>
+        Client-facing files (the <code>clients/SE-001.html</code> files) remain the real source of truth for clients viewing their dashboard, whether served as static files from GitHub or rendered live from Firestore via <code>portal.js</code>.
       </div>
     </div>
 
@@ -1977,6 +2011,24 @@ function toggleSidebar(){
       </div>
     </div>
 
+
+    <!--  -->
+<div class="guide-section">
+      <div class="guide-section-hdr"><div class="card-header-icon" style="background:rgba(255,107,53,.1);"><i data-lucide="cloud" style="width:15px;height:15px;stroke:var(--accent);"></i></div><div><div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;">The Firestore Backend, Explained</div></div></div>
+      <div class="guide-section-body">
+        All three SparkEdge files (<code>index.html</code> client portal, <code>admin.html</code>, and the Retention Portal) connect to the same Firebase project: <strong style="color:var(--text);">sparkedge-client-portal</strong>.<br><br>
+        <strong style="color:var(--text);">Collections in use:</strong><br>
+        • <code>clients</code> — ticket/project data (used by admin.html's ticket editor)<br>
+        • <code>team</code> — team member accounts &amp; permissions, live-synced<br>
+        • <code>vouchers</code> — referral codes and redemption status<br>
+        • <code>settings</code> — agency name, UPI ID, bank details shown to clients<br>
+        • <code>ret_clients</code> — client retention records (used by the separate Retention Portal)<br>
+        • <code>ret_sendlog</code> — message send history (Retention Portal)<br><br>
+        <strong style="color:var(--text);">Security rules:</strong> Firestore rules are currently set to allow open read/write on these collections so any logged-in team member's browser can sync freely. This means anyone with the Firestore project credentials embedded in the HTML can technically read/write this data directly — treat the <code>admin.html</code> file itself as confidential, the same as you would a password.<br><br>
+        <strong style="color:var(--text);">If sync ever breaks:</strong> open the browser console (F12) and look for a <code>permission-denied</code> or network error. Most issues trace back to either (a) Firestore security rules blocking the collection, or (b) the device being offline.
+      </div>
+    </div>
+    <!--  -->
     <div class="guide-section">
       <div class="guide-section-hdr"><div class="card-header-icon" style="background:rgba(255,107,53,.1);"><i data-lucide="link" style="width:15px;height:15px;stroke:var(--accent);"></i></div><div><div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;">How to Edit the Doc Generator Button Link</div></div></div>
       <div class="guide-section-body">
