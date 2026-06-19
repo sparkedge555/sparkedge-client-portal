@@ -108,6 +108,33 @@ nav{position:sticky;top:0;z-index:200;background:rgba(10,10,15,.95);backdrop-fil
 }
 .main-area{margin-left:230px;min-height:calc(100vh - 60px);transition:margin-left .3s}
 .container{max-width:1400px;margin:0 auto;padding:24px 20px}
+.sb-credit{
+  text-align:center;
+  font-size:8.5px;
+  color:rgba(136,136,168,.3);
+  padding:6px 10px 10px;
+  letter-spacing:.3px;
+  font-weight:500;
+}
+.sb-credit strong{
+  color:rgba(255,107,53,.4);
+  font-weight:600;
+}
+
+
+.login-credit{
+  margin-top:24px;
+  padding-top:16px;
+  border-top:1px solid rgba(255,255,255,.05);
+  font-size:9px;
+  color:rgba(136,136,168,.28);
+  letter-spacing:.3px;
+  font-weight:500;
+}
+.login-credit strong{
+  color:rgba(255,107,53,.38);
+  font-weight:600;
+}
 
 /* ══ FOOTER ══ */
 footer{
@@ -382,6 +409,7 @@ tbody td .td-sub{font-size:10px;color:var(--text-dim);margin-top:2px}
       <button class="login-eye" onclick="toggleEye()" id="eyeBtn">👁</button>
     </div>
     <button class="login-btn" onclick="doLogin()">Unlock Retention Portal →</button>
+    <div class="login-credit">Owned by <strong>Raunak Karn</strong></div>
   </div>
 </div>
 
@@ -442,7 +470,10 @@ tbody td .td-sub{font-size:10px;color:var(--text-dim);margin-top:2px}
 
   <div style="flex:1"></div>
   <div class="sb-divider"></div>
-  <button class="sb-link" id="sbLogoutBtn" onclick="doLogout()" style="color:var(--danger);display:none"><span class="s-icon">🚪</span>Logout</button>
+  <!-- Logout — always visible after login -->
+<button class="sb-link" id="sbLogoutBtn" onclick="doLogout()" style="color:var(--danger);display:none"><span class="s-icon">🚪</span>Logout</button>
+
+<div class="sb-credit">Crafted by <strong>Raunak Karn</strong></div>
 </aside>
 
 <!-- MAIN -->
