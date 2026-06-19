@@ -647,6 +647,7 @@ function attachTeamListener(){
       });
       window._teamCache=merged;
       localStorage.setItem('se_ret_members',JSON.stringify(merged));
+      if(currentSection==='team') renderSection('team');
     },err=>console.warn('Team listener:',err.message));
   }catch(e){console.warn('Team listener setup:',e.message)}
 }
@@ -773,21 +774,23 @@ function saveData(){
 }
 loadData();
 
-async function syncClientsFromFirestore(){
+window._clientListenerAttached = false;
+function attachClientListener(){
+  if(window._clientListenerAttached) return;
+  window._clientListenerAttached = true;
   try{
-    const snap=await getDb().collection('ret_clients').get();
-    if(snap.empty)return;
-    const fsClients=[];
-    snap.forEach(d=>fsClients.push({id:d.id,...d.data()}));
-    // Merge
-    fsClients.forEach(fc=>{
-      const idx=clients.findIndex(c=>c.id===fc.id);
-      if(idx>=0)clients[idx]={...clients[idx],...fc};
-      else clients.push(fc);
-    });
-    saveData();
-    renderSection(currentSection);
-  }catch(e){console.warn('Firestore client sync:',e.message);}
+    getDb().collection('ret_clients').onSnapshot(snap=>{
+      const fsClients=[];
+      snap.forEach(d=>fsClients.push({id:d.id,...d.data()}));
+      fsClients.forEach(fc=>{
+        const idx=clients.findIndex(c=>c.id===fc.id);
+        if(idx>=0) clients[idx]={...clients[idx],...fc};
+        else clients.push(fc);
+      });
+      saveData();
+      renderSection(currentSection);
+    }, err=>console.warn('Client listener error:', err.message));
+  }catch(e){console.warn('Could not attach client listener:', e.message);}
 }
 
 async function pushClientToFirestore(client){
@@ -1460,11 +1463,12 @@ async function saveClient(){
   renderSection(currentSection);
 }
 
-function deleteClient(id){
+async function deleteClient(id){
   if(!confirm('Delete this client permanently? This cannot be undone.'))return;
   clients=clients.filter(x=>x.id!==id);
   saveData();
-  try{getDb().collection('ret_clients').doc(id).delete();}catch{}
+  try{ await getDb().collection('ret_clients').doc(id).delete(); }
+  catch(e){ console.warn('Firestore delete failed:', e.message); }
   showToast('🗑 Client deleted.');
   renderSection(currentSection);
 }

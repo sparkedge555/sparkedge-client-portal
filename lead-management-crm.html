@@ -735,6 +735,7 @@ function attachCrmTeamListener(){
       });
       window._crmTeamCache = merged;
       localStorage.setItem(CRM_AUTH_KEY, JSON.stringify(merged));
+       if(typeof currentSection !== 'undefined' && currentSection === 'team') renderSection('team');
     }, err => {
       console.warn('CRM team listener error:', err.message);
       try{
@@ -752,6 +753,14 @@ function attachCrmTeamListener(){
 
 
 window._crmLeadsListenerAttached = false;
+
+async function migrateLocalLeadsToFirestore(){
+  if(localStorage.getItem('se_leads_migrated')==='1') return;
+  const local = JSON.parse(localStorage.getItem('se_leads')||'[]');
+  for(const l of local){ await pushLeadToFirestore(l); }
+  localStorage.setItem('se_leads_migrated','1');
+}
+
 function attachLeadsListener(){
   if(window._crmLeadsListenerAttached) return;
   window._crmLeadsListenerAttached = true;
@@ -759,8 +768,11 @@ function attachLeadsListener(){
     getCrmDb().collection('leads').onSnapshot(snapshot => {
       const fsLeads = [];
       snapshot.forEach(doc => fsLeads.push({ id: doc.id, ...doc.data() }));
-      leads = fsLeads;
-      localStorage.setItem('se_leads', JSON.stringify(leads)); // offline backup only
+      fsLeads.forEach(fl=>{
+        const idx = leads.findIndex(l=>l.id===fl.id);
+        if(idx>=0) leads[idx] = fl; else leads.push(fl);
+      });
+      localStorage.setItem('se_leads', JSON.stringify(leads));
       if(typeof currentSection !== 'undefined') renderSection(currentSection);
     }, err => {
       console.warn('Leads listener error:', err.message);
@@ -875,7 +887,7 @@ async function doLogin(){
   document.getElementById('pwdInput').value = '';
 }
 
-function hideCrmLogin(){
+async function hideCrmLogin(){
   const s = document.getElementById('loginScreen');
   s.style.opacity = '0'; s.style.transition = 'opacity .3s';
   setTimeout(()=>{ s.style.display='none'; }, 300);
@@ -883,6 +895,7 @@ function hideCrmLogin(){
  updateCrmUserUI();
   applyCrmPermissions();
   attachCrmTeamListener();
+  await migrateLocalLeadsToFirestore();
   attachLeadsListener();
   renderSection('dashboard');
 }
