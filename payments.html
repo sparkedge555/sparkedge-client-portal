@@ -191,7 +191,9 @@ tbody td .td-main{font-weight:600;color:var(--text);font-size:13px}
   <div class="login-orb orb1"></div>
   <div class="login-orb orb2"></div>
   <div class="login-card">
-    <div class="login-logo">💰</div>
+   <div class="login-logo">
+  <i data-lucide="indian-rupee" style="width:28px;height:28px;stroke:var(--accent);fill:none;"></i>
+</div>
     <div class="login-brand">SparkEdge Payments</div>
     <div class="login-sub">Commission & Salary Tracker · Internal Access</div>
     <div id="loginErr" class="login-err">⚠ Incorrect password. Please try again.</div>
@@ -210,10 +212,14 @@ tbody td .td-main{font-weight:600;color:var(--text);font-size:13px}
 <nav>
   <div style="display:flex;align-items:center;gap:10px">
     <button class="hamburger" onclick="toggleSidebar()">☰</button>
-    <div class="nav-brand">💰 Payments</div>
+    <div class="nav-brand">
+  <i data-lucide="indian-rupee" style="width:16px;height:16px;stroke:url(#brandGrad);fill:none;flex-shrink:0;"></i> Payments
+</div>
   </div>
   <div class="nav-right">
-    <button class="btn btn-primary btn-sm" onclick="openLedgerModal()" id="addPayBtn">＋ Add Entry</button>
+<button class="btn btn-primary btn-sm" onclick="openLedgerModal()" id="addPayBtn">
+  <i data-lucide="plus" style="width:13px;height:13px;stroke:#fff;fill:none;"></i> Add Entry
+</button>
   </div>
 </nav>
 
@@ -225,28 +231,45 @@ tbody td .td-main{font-weight:600;color:var(--text);font-size:13px}
     <div class="sb-user-role" id="sbUserRole">—</div>
   </div>
 
-  <div class="sb-label">Overview</div>
-  <button class="sb-link active" onclick="navTo('dashboard')">📊 Dashboard</button>
-  <button class="sb-link" onclick="navTo('ledger')">📒 Payment Ledger <span class="sb-badge" id="sbPendingBadge">0</span></button>
+ <div class="sb-label">Overview</div>
+<button class="sb-link active" onclick="navTo('dashboard')">
+  <i data-lucide="layout-dashboard" style="width:15px;height:15px;stroke:currentColor;fill:none;flex-shrink:0;"></i> Dashboard
+</button>
+<button class="sb-link" onclick="navTo('ledger')">
+  <i data-lucide="book-open" style="width:15px;height:15px;stroke:currentColor;fill:none;flex-shrink:0;"></i> Payment Ledger <span class="sb-badge" id="sbPendingBadge">0</span>
+</button>
 
-  <div class="sb-divider"></div>
-  <div class="sb-label">People</div>
-  <button class="sb-link" onclick="navTo('team')">🧑‍💻 Team Members</button>
-  <button class="sb-link" onclick="navTo('partners')">🤝 Referral Partners</button>
+<div class="sb-divider"></div>
+<div class="sb-label">People</div>
+<button class="sb-link" onclick="navTo('team')">
+  <i data-lucide="users" style="width:15px;height:15px;stroke:currentColor;fill:none;flex-shrink:0;"></i> Team Members
+</button>
+<button class="sb-link" onclick="navTo('partners')">
+  <i data-lucide="handshake" style="width:15px;height:15px;stroke:currentColor;fill:none;flex-shrink:0;"></i> Referral Partners
+</button>
 
-  <div class="sb-divider"></div>
-  <div class="sb-label">Tickets</div>
-  <button class="sb-link" onclick="navTo('claims')">🎫 Ticket Ownership</button>
+<div class="sb-divider"></div>
+<div class="sb-label">Tickets</div>
+<button class="sb-link" onclick="navTo('claims')">
+  <i data-lucide="ticket" style="width:15px;height:15px;stroke:currentColor;fill:none;flex-shrink:0;"></i> Ticket Ownership
+</button>
 
-  <div class="sb-divider"></div>
-  <div class="sb-label">Reports</div>
-  <button class="sb-link" onclick="navTo('myearnings')">💼 My Earnings</button>
-<button class="sb-link" onclick="navTo('workflow')">📋 Workflow Guide</button>
-  <button class="sb-link" id="sbTeamMgmtLink" onclick="navTo('teammgmt')" style="display:none">🛡 Manage Access</button>
-
+<div class="sb-divider"></div>
+<div class="sb-label">Reports</div>
+<button class="sb-link" onclick="navTo('myearnings')">
+  <i data-lucide="briefcase" style="width:15px;height:15px;stroke:currentColor;fill:none;flex-shrink:0;"></i> My Earnings
+</button>
+<button class="sb-link" onclick="navTo('workflow')">
+  <i data-lucide="map" style="width:15px;height:15px;stroke:currentColor;fill:none;flex-shrink:0;"></i> Workflow Guide
+</button>
+<button class="sb-link" id="sbTeamMgmtLink" onclick="navTo('teammgmt')" style="display:none">
+  <i data-lucide="shield-check" style="width:15px;height:15px;stroke:currentColor;fill:none;flex-shrink:0;"></i> Manage Access
+</button>
   <div style="flex:1"></div>
   <div class="sb-divider"></div>
-  <button class="sb-link" id="sbLogoutBtn" style="color:var(--danger);display:none" onclick="doLogout()">🚪 Logout</button>
+  <button class="sb-link" id="sbLogoutBtn" style="color:var(--danger);display:none" onclick="doLogout()">
+  <i data-lucide="log-out" style="width:15px;height:15px;stroke:currentColor;fill:none;flex-shrink:0;"></i> Logout
+</button>
 <div style="text-align:center;font-size:8.5px;color:rgba(122,122,154,.3);padding:10px 10px 4px;letter-spacing:.3px;font-weight:500;">
   Owned by <strong style="color:rgba(255,107,53,.4);font-weight:600;">Raunak Karn</strong>
 </div>
@@ -272,7 +295,9 @@ tbody td .td-main{font-weight:600;color:var(--text);font-size:13px}
   <div class="modal">
     <div class="modal-header">
       <div class="modal-title" id="ledgerModalTitle">Add Payment Entry</div>
-      <button class="modal-close" onclick="closeModal('ledgerModal')">✕</button>
+      <button class="modal-close" onclick="closeModal('ledgerModal')">
+  <i data-lucide="x" style="width:14px;height:14px;stroke:currentColor;fill:none;"></i>
+</button>
     </div>
     <div id="dupWarnBox"></div>
     <div class="form-grid">
@@ -287,10 +312,14 @@ tbody td .td-main{font-weight:600;color:var(--text);font-size:13px}
         <label>Select Person *</label>
         <select id="lf_earnerId"></select>
       </div>
-      <div class="section-divider">🎫 Linked Ticket / Client</div>
+      <div class="section-divider">
+  <i data-lucide="ticket" style="width:12px;height:12px;stroke:currentColor;fill:none;"></i> Linked Ticket / Client
+</div>
       <div class="fg"><label>Ticket ID *</label><input id="lf_ticketId" placeholder="SE-001" oninput="this.value=this.value.toUpperCase();checkTicketOwnership()"/></div>
       <div class="fg"><label>Client Name</label><input id="lf_clientName" placeholder="Client name"/></div>
-      <div class="section-divider">💵 Payment Details</div>
+<div class="section-divider">
+  <i data-lucide="wallet" style="width:12px;height:12px;stroke:currentColor;fill:none;"></i> Payment Details
+</div>
       <div class="fg"><label>Type *</label>
         <select id="lf_type">
           <option value="commission">Commission</option>
@@ -310,7 +339,9 @@ tbody td .td-main{font-weight:600;color:var(--text);font-size:13px}
       <div class="fg full"><label>Note (visible to the earner — full transparency)</label><textarea id="lf_note" placeholder="e.g. 50% advance commission for project closed on 12 June"></textarea></div>
       <div class="form-actions">
         <button class="btn btn-secondary" onclick="closeModal('ledgerModal')">Cancel</button>
-        <button class="btn btn-primary" onclick="saveLedgerEntry()">💾 Save Entry</button>
+        <button class="btn btn-primary" onclick="saveLedgerEntry()">
+  <i data-lucide="save" style="width:13px;height:13px;stroke:#fff;fill:none;"></i> Save Entry
+</button>
       </div>
     </div>
   </div>
@@ -321,7 +352,9 @@ tbody td .td-main{font-weight:600;color:var(--text);font-size:13px}
   <div class="modal sm">
     <div class="modal-header">
       <div class="modal-title" id="teamModalTitle">Add Team Member</div>
-      <button class="modal-close" onclick="closeModal('teamModal')">✕</button>
+      <button class="modal-close" onclick="closeModal('teamModal')">
+  <i data-lucide="x" style="width:14px;height:14px;stroke:currentColor;fill:none;"></i>
+</button>
     </div>
     <div class="form-grid">
       <input type="hidden" id="tm_editId" value=""/>
@@ -338,7 +371,9 @@ tbody td .td-main{font-weight:600;color:var(--text);font-size:13px}
         </select>
       </div>
      <div class="fg"><label>Fixed Salary (₹/month, if any)</label><input id="tm_salary" type="number" placeholder="10000"/></div>
-      <div class="section-divider">💳 Payment Details (where they receive money)</div>
+<div class="section-divider">
+  <i data-lucide="credit-card" style="width:12px;height:12px;stroke:currentColor;fill:none;"></i> Payment Details (where they receive money)
+</div>
       <div class="fg full"><label>Payment Method</label>
         <select id="tm_payMethod">
           <option value="upi">UPI</option>
@@ -364,7 +399,9 @@ tbody td .td-main{font-weight:600;color:var(--text);font-size:13px}
       </div>
       <div class="form-actions">
         <button class="btn btn-secondary" onclick="closeModal('teamModal')">Cancel</button>
-        <button class="btn btn-primary" onclick="saveTeamMember()">💾 Save</button>
+          <button class="btn btn-primary" onclick="saveTeamMember()">
+  <i data-lucide="save" style="width:13px;height:13px;stroke:#fff;fill:none;"></i> Save
+</button>
       </div>
     </div>
   </div>
@@ -375,7 +412,9 @@ tbody td .td-main{font-weight:600;color:var(--text);font-size:13px}
   <div class="modal sm">
     <div class="modal-header">
       <div class="modal-title" id="partnerModalTitle">Add Referral Partner</div>
-      <button class="modal-close" onclick="closeModal('partnerModal')">✕</button>
+<button class="modal-close" onclick="closeModal('partnerModal')">
+  <i data-lucide="x" style="width:14px;height:14px;stroke:currentColor;fill:none;"></i>
+</button>
     </div>
     <div class="form-grid">
       <input type="hidden" id="pf_editId" value=""/>
@@ -392,7 +431,9 @@ tbody td .td-main{font-weight:600;color:var(--text);font-size:13px}
       <div class="fg full"><label>Notes</label><textarea id="pf_notes" placeholder="How you know them, agreement details, etc."></textarea></div>
       <div class="form-actions">
         <button class="btn btn-secondary" onclick="closeModal('partnerModal')">Cancel</button>
-        <button class="btn btn-primary" onclick="savePartner()">💾 Save Partner</button>
+<button class="btn btn-primary" onclick="savePartner()">
+  <i data-lucide="save" style="width:13px;height:13px;stroke:#fff;fill:none;"></i> Save Partner
+</button>
       </div>
     </div>
   </div>
@@ -1264,6 +1305,7 @@ document.querySelectorAll('.modal-overlay').forEach(el=>{
   el.addEventListener('click',function(e){if(e.target===this)this.classList.remove('open');});
 });
 setTimeout(()=>{ if(typeof lucide!=='undefined') lucide.createIcons(); }, 100);
+setTimeout(()=>{ if(typeof lucide!=='undefined') lucide.createIcons(); }, 600);
 </script>
 </body>
 </html>
