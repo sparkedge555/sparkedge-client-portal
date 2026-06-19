@@ -587,3 +587,1756 @@ tbody td .td-sub{font-size:10px;color:var(--text-dim);margin-top:2px}
 
 </body>
 </html>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   SPARKEDGE RETENTION PORTAL — FULL JAVASCRIPT
+   Auth: RAUNAK@1 (owner) + Firebase team sync + HARDCODED_MEMBERS
+   Firebase: same config as other portals
+═══════════════════════════════════════════════════════════════ */
+
+/* ── Firebase ── */
+const FB_CONFIG = {
+  apiKey:"AIzaSyA0rufGe1NcKnsalr7VFnIuRLwfjPyD0QE",
+  authDomain:"sparkedge-client-portal.firebaseapp.com",
+  projectId:"sparkedge-client-portal",
+  storageBucket:"sparkedge-client-portal.firebasestorage.app",
+  messagingSenderId:"848868473172",
+  appId:"1:848868473172:web:2111dd537b9bc7549370c1"
+};
+let _fbInited = false;
+function getDb(){
+  if(!_fbInited){
+    if(!firebase.apps.length) firebase.initializeApp(FB_CONFIG);
+    _fbInited = true;
+  }
+  return firebase.firestore();
+}
+
+/* ── HARDCODED MEMBERS (same pattern as other portals) ── */
+// ▼▼▼ PASTE MEMBER CONFIG HERE ▼▼▼
+const HARDCODED_MEMBERS = [
+  {
+    "id":"mem_1778838014185",
+    "name":"Pinkesh Kr Prabhakar",
+    "role":"Marketing Manager",
+    "email":"pinkeshkumarprabhakar9@gmail.com",
+    "wa":"9693717475",
+    "password":"Pinkesh@1",
+    "permissions":["view","edit","send","export"],
+    "status":"active",
+    "addedAt":"15/5/2026"
+  }
+];
+// ▲▲▲ END MEMBER CONFIG ▲▲▲
+
+window._teamCache = [...HARDCODED_MEMBERS];
+window._teamListenerAttached = false;
+window.PORTAL_USER = null;
+
+/* ── Team Firestore sync ── */
+function attachTeamListener(){
+  if(window._teamListenerAttached) return;
+  window._teamListenerAttached = true;
+  try{
+    getDb().collection('team').onSnapshot(snap=>{
+      const fs=[];
+      snap.forEach(d=>fs.push({id:d.id,...d.data()}));
+      const merged=[...HARDCODED_MEMBERS];
+      fs.forEach(fm=>{
+        const idx=merged.findIndex(h=>h.id===fm.id);
+        idx>=0?merged[idx]=fm:merged.push(fm);
+      });
+      window._teamCache=merged;
+      localStorage.setItem('se_ret_members',JSON.stringify(merged));
+    },err=>console.warn('Team listener:',err.message));
+  }catch(e){console.warn('Team listener setup:',e.message)}
+}
+
+function getMembers(){return window._teamCache||[...HARDCODED_MEMBERS]}
+async function saveMembers(arr){
+  localStorage.setItem('se_ret_members',JSON.stringify(arr));
+  window._teamCache=arr;
+  try{
+    const db=getDb();const batch=db.batch();
+    arr.forEach(m=>{if(!m.id)m.id='mem_'+Date.now();batch.set(db.collection('team').doc(m.id),m)});
+    await batch.commit();showToast('✅ Team synced!');
+  }catch(e){showToast('⚠️ Saved locally only.');}
+}
+
+/* ── SESSION CHECK ── */
+(function(){
+  try{
+    const s=sessionStorage.getItem('se_ret_session');
+    if(s){
+      window.PORTAL_USER=JSON.parse(s);
+      document.getElementById('loginScreen').style.display='none';
+      document.getElementById('app').style.display='block';
+      setTimeout(()=>{
+        updateUserUI();
+        applyCaps();
+        attachTeamListener();
+        syncClientsFromFirestore();
+        renderSection('dashboard');
+      },50);
+    }
+  }catch{}
+})();
+
+async function doLogin(){
+  const val=document.getElementById('loginPwd').value.trim();
+  const err=document.getElementById('loginErr');
+  err.style.display='none';
+
+  if(val==='RAUNAK@1'){
+    window.PORTAL_USER={name:'Raunak (Owner)',role:'Owner',isOwner:true,permissions:['all']};
+    sessionStorage.setItem('se_ret_session',JSON.stringify(window.PORTAL_USER));
+    unlockPortal();return;
+  }
+  // Try cache first, then Firestore
+  let members=getMembers();
+  let member=members.find(m=>m.password===val&&m.status==='active');
+  if(!member){
+    try{
+      const snap=await getDb().collection('team').get();
+      const fs=[];snap.forEach(d=>fs.push({id:d.id,...d.data()}));
+      const merged=[...HARDCODED_MEMBERS];
+      fs.forEach(fm=>{const idx=merged.findIndex(h=>h.id===fm.id);idx>=0?merged[idx]=fm:merged.push(fm)});
+      window._teamCache=merged;
+      member=merged.find(m=>m.password===val&&m.status==='active');
+    }catch(e){}
+  }
+  if(member){
+    window.PORTAL_USER={name:member.name,role:member.role,isOwner:false,permissions:member.permissions||[],memberId:member.id};
+    sessionStorage.setItem('se_ret_session',JSON.stringify(window.PORTAL_USER));
+    unlockPortal();return;
+  }
+  err.style.display='block';
+  const inp=document.getElementById('loginPwd');inp.value='';inp.focus();
+}
+
+function unlockPortal(){
+  const s=document.getElementById('loginScreen');
+  s.style.opacity='0';s.style.transition='opacity .3s';
+  setTimeout(()=>{s.style.display='none';document.getElementById('app').style.display='block';},300);
+  updateUserUI();applyCaps();attachTeamListener();
+  syncClientsFromFirestore();
+  renderSection('dashboard');
+}
+
+function updateUserUI(){
+  const u=window.PORTAL_USER;if(!u)return;
+  const n=document.getElementById('sbUserName');const r=document.getElementById('sbUserRole');
+  const lb=document.getElementById('sbLogoutBtn');const tl=document.getElementById('sbTeamLink');
+  if(n)n.textContent=u.name;
+  if(r)r.textContent=u.role;
+  if(lb)lb.style.display='flex';
+  if(tl)tl.style.display=u.isOwner?'flex':'none';
+}
+
+function has(perm){
+  const u=window.PORTAL_USER;if(!u)return false;
+  if(u.isOwner)return true;
+  return(u.permissions||[]).includes(perm)||u.permissions.includes('all');
+}
+
+function applyCaps(){
+  // Hide export if no permission
+  if(!has('export')){
+    document.querySelectorAll('[data-cap="export"]').forEach(el=>el.style.display='none');
+  }
+  if(!has('edit')){
+    document.querySelectorAll('[data-cap="edit"]').forEach(el=>el.style.display='none');
+  }
+}
+
+function toggleEye(){
+  const i=document.getElementById('loginPwd');const b=document.getElementById('eyeBtn');
+  i.type=i.type==='password'?'text':'password';b.textContent=i.type==='password'?'👁':'🙈';
+}
+function doLogout(){sessionStorage.removeItem('se_ret_session');window.PORTAL_USER=null;location.reload();}
+
+/* ════════════════════════════════════
+   DATA LAYER
+════════════════════════════════════ */
+const STORE_KEY='se_ret_clients';
+const SEND_LOG_KEY='se_ret_sendlog';
+let clients=[];
+let sendLog=[];
+
+function loadData(){
+  try{clients=JSON.parse(localStorage.getItem(STORE_KEY)||'[]');}catch{clients=[];}
+  try{sendLog=JSON.parse(localStorage.getItem(SEND_LOG_KEY)||'[]');}catch{sendLog=[];}
+}
+function saveData(){
+  localStorage.setItem(STORE_KEY,JSON.stringify(clients));
+  localStorage.setItem(SEND_LOG_KEY,JSON.stringify(sendLog));
+  updateSidebarBadges();
+}
+loadData();
+
+async function syncClientsFromFirestore(){
+  try{
+    const snap=await getDb().collection('ret_clients').get();
+    if(snap.empty)return;
+    const fsClients=[];
+    snap.forEach(d=>fsClients.push({id:d.id,...d.data()}));
+    // Merge
+    fsClients.forEach(fc=>{
+      const idx=clients.findIndex(c=>c.id===fc.id);
+      if(idx>=0)clients[idx]={...clients[idx],...fc};
+      else clients.push(fc);
+    });
+    saveData();
+    renderSection(currentSection);
+  }catch(e){console.warn('Firestore client sync:',e.message);}
+}
+
+async function pushClientToFirestore(client){
+  try{await getDb().collection('ret_clients').doc(client.id).set(client);}
+  catch(e){console.warn('Firestore push:',e.message);}
+}
+
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2);}
+function today(){return new Date().toISOString().slice(0,10);}
+function initials(n){return(n||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2)||'?';}
+function fmtDate(d){if(!d)return '—';try{return new Date(d).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});}catch{return d;}}
+function daysUntil(dateStr){
+  if(!dateStr)return null;
+  const diff=new Date(dateStr)-new Date();
+  return Math.ceil(diff/86400000);
+}
+function fmtMoney(v){return v?'₹'+Number(v).toLocaleString('en-IN'):'—';}
+
+/* ════════════════════════════════════
+   RENEWAL / EXPIRY LOGIC
+════════════════════════════════════ */
+const REMINDER_STAGES=[
+  {days:365,label:'1 Year Ahead',color:'safe'},
+  {days:90, label:'3 Months Ahead',color:'safe'},
+  {days:30, label:'30 Days Left',color:'warning'},
+  {days:20, label:'20 Days Left',color:'warning'},
+  {days:15, label:'15 Days Left',color:'warning'},
+  {days:10, label:'10 Days Left',color:'danger'},
+  {days:7,  label:'1 Week Left',color:'danger'},
+  {days:3,  label:'3 Days Left',color:'danger'},
+  {days:1,  label:'TOMORROW — Urgent!',color:'danger'},
+  {days:0,  label:'Expires TODAY',color:'danger'},
+];
+
+function getExpiryStatus(dateStr){
+  const d=daysUntil(dateStr);
+  if(d===null)return null;
+  if(d<0)return{days:d,label:'EXPIRED',cls:'danger'};
+  if(d<=10)return{days:d,label:d===0?'Today!':d+'d left',cls:'danger'};
+  if(d<=30)return{days:d,label:d+'d left',cls:'warning'};
+  return{days:d,label:d+'d left',cls:'safe'};
+}
+
+function getClientExpiryAlerts(c){
+  const alerts=[];
+  const checks=[
+    {key:'domainExpiry',label:'Domain',name:c.domain||c.name},
+    {key:'hostingExpiry',label:'Hosting',name:c.biz||c.name},
+    {key:'sslExpiry',label:'SSL Certificate',name:c.domain||c.name},
+    {key:'licenseExpiry',label:'Software License',name:c.biz||c.name},
+    {key:'amcDate',label:'AMC Contract',name:c.biz||c.name},
+  ];
+  checks.forEach(ch=>{
+    if(c[ch.key]){
+      const s=getExpiryStatus(c[ch.key]);
+      if(s&&s.days<=60)alerts.push({...s,type:ch.label,clientId:c.id,clientName:c.name,detail:ch.name,date:c[ch.key]});
+    }
+  });
+  return alerts;
+}
+
+function getAllAlerts(){
+  const all=[];
+  clients.forEach(c=>all.push(...getClientExpiryAlerts(c)));
+  return all.sort((a,b)=>a.days-b.days);
+}
+
+function updateSidebarBadges(){
+  const urgent=getAllAlerts().filter(a=>a.days<=30).length;
+  const badge=document.getElementById('sbRenewalBadge');
+  if(badge){badge.textContent=urgent;badge.style.display=urgent>0?'':'none';}
+}
+updateSidebarBadges();
+
+/* ════════════════════════════════════
+   NAVIGATION
+════════════════════════════════════ */
+let currentSection='dashboard';
+
+function navTo(s){
+  showSection(s);closeSidebar();
+}
+function showSection(s){
+  currentSection=s;
+  document.querySelectorAll('.sb-link').forEach(l=>{
+    const fn=l.getAttribute('onclick')||'';
+    l.classList.toggle('active',fn.includes("'"+s+"'"));
+  });
+  renderSection(s);
+}
+function renderSection(s){
+  const el=document.getElementById('mainContent');
+  if(!el)return;
+  const map={
+    dashboard:renderDashboard,
+    renewals:renderRenewals,
+    vault:renderVault,
+    clients:renderClients,
+    vip:()=>renderClients('vip'),
+    inactive:()=>renderClients('inactive'),
+    newsletter:renderNewsletter,
+    sendlog:renderSendLog,
+    templates:renderTemplates,
+    analytics:renderAnalytics,
+    table:renderTable,
+    team:renderTeam,
+  };
+  el.innerHTML=(map[s]||renderDashboard)();
+}
+
+/* ════════════════════════════════════
+   SIDEBAR + HAMBURGER
+════════════════════════════════════ */
+function toggleSidebar(){
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sidebarOverlay').classList.toggle('open');
+}
+function closeSidebar(){
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebarOverlay').classList.remove('open');
+}
+
+/* ════════════════════════════════════
+   DASHBOARD
+════════════════════════════════════ */
+function renderDashboard(){
+  const total=clients.length;
+  const vip=clients.filter(c=>c.type==='vip').length;
+  const inactive=clients.filter(c=>c.type==='inactive').length;
+  const active=total-inactive;
+  const revenue=clients.reduce((a,c)=>a+(parseFloat(c.revenue)||0),0);
+  const alerts=getAllAlerts();
+  const urgent=alerts.filter(a=>a.days<=10);
+  const upcoming=alerts.filter(a=>a.days>10&&a.days<=30);
+  const sentThisMonth=sendLog.filter(l=>{
+    const d=new Date(l.sentAt);const n=new Date();
+    return d.getMonth()===n.getMonth()&&d.getFullYear()===n.getFullYear();
+  }).length;
+
+  return `
+  <div class="page-eyebrow">🔁 Client Retention Portal</div>
+  <div class="page-title">Dashboard</div>
+  <div class="page-sub">Real-time overview — renewals, client health, and communication</div>
+
+  <div class="stats-row">
+    <div class="stat-card"><div class="stat-label">Total Clients</div><div class="stat-value">${total}</div><div class="stat-sub">All time</div></div>
+    <div class="stat-card green"><div class="stat-label">Active Clients</div><div class="stat-value" style="color:var(--success)">${active}</div><div class="stat-sub">${vip} VIP ⭐</div></div>
+    <div class="stat-card red"><div class="stat-label">Urgent Renewals</div><div class="stat-value" style="color:var(--danger)">${urgent.length}</div><div class="stat-sub">Expire within 10 days</div></div>
+    <div class="stat-card amber"><div class="stat-label">Upcoming Renewals</div><div class="stat-value" style="color:var(--warning)">${upcoming.length}</div><div class="stat-sub">Within 30 days</div></div>
+    <div class="stat-card blue"><div class="stat-label">Messages Sent</div><div class="stat-value" style="color:var(--info)">${sentThisMonth}</div><div class="stat-sub">This month</div></div>
+    <div class="stat-card purple"><div class="stat-label">Total Revenue</div><div class="stat-value" style="color:var(--purple);font-size:18px">${fmtMoney(revenue)}</div><div class="stat-sub">All clients</div></div>
+  </div>
+
+  <!-- URGENT ALERTS -->
+  ${urgent.length?`
+  <div style="background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.25);border-radius:14px;padding:18px;margin-bottom:20px">
+    <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:var(--danger);margin-bottom:12px">🚨 Urgent — Act Now (Expiring in ≤10 Days)</div>
+    <div class="renewal-wrap">
+    ${urgent.map(a=>`
+      <div class="renewal-item danger">
+        <div class="renewal-dot danger"></div>
+        <div class="renewal-info">
+          <div class="renewal-name">${a.clientName} — ${a.type}</div>
+          <div class="renewal-meta">${a.detail} · Expires: ${fmtDate(a.date)}</div>
+        </div>
+        <div class="renewal-days danger">${a.days===0?'TODAY':a.days<0?'EXPIRED':a.days+'d'}</div>
+        <button class="btn btn-primary btn-sm" onclick="sendReminderQuick('${a.clientId}','${a.type}')">📲 Remind</button>
+      </div>`).join('')}
+    </div>
+  </div>`:''}
+
+  <!-- QUICK ACTIONS -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:24px">
+    <div class="stat-card" style="cursor:pointer;border-style:dashed" onclick="openAddClient()">
+      <div style="font-size:28px;margin-bottom:8px">➕</div>
+      <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700">Add Client</div>
+      <div style="font-size:11px;color:var(--text-muted);margin-top:4px">Onboard a new retained client</div>
+    </div>
+    <div class="stat-card" style="cursor:pointer;border-style:dashed" onclick="navTo('renewals')">
+      <div style="font-size:28px;margin-bottom:8px">⏰</div>
+      <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700">Check Renewals</div>
+      <div style="font-size:11px;color:var(--text-muted);margin-top:4px">${alerts.length} active alerts</div>
+    </div>
+    <div class="stat-card" style="cursor:pointer;border-style:dashed" onclick="navTo('newsletter')">
+      <div style="font-size:28px;margin-bottom:8px">📧</div>
+      <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700">Send Newsletter</div>
+      <div style="font-size:11px;color:var(--text-muted);margin-top:4px">Pre-built templates ready</div>
+    </div>
+    <div class="stat-card" style="cursor:pointer;border-style:dashed" onclick="navTo('vault')">
+      <div style="font-size:28px;margin-bottom:8px">🔐</div>
+      <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700">Password Vault</div>
+      <div style="font-size:11px;color:var(--text-muted);margin-top:4px">All client credentials</div>
+    </div>
+  </div>
+
+  <!-- RECENT CLIENTS -->
+  <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;margin-bottom:12px;color:var(--text)">Recent Clients</div>
+  <div class="clients-grid">
+    ${[...clients].sort((a,b)=>b.addedAt-a.addedAt).slice(0,6).map(clientCardHTML).join('')||`<div class="empty"><div class="empty-icon">👥</div><p>No clients yet. Add your first one!</p></div>`}
+  </div>`;
+}
+
+/* ════════════════════════════════════
+   RENEWALS PAGE
+════════════════════════════════════ */
+function renderRenewals(){
+  const alerts=getAllAlerts();
+  const overdue=alerts.filter(a=>a.days<0);
+  const urgent=alerts.filter(a=>a.days>=0&&a.days<=10);
+  const soon=alerts.filter(a=>a.days>10&&a.days<=30);
+  const month=alerts.filter(a=>a.days>30&&a.days<=60);
+
+  const section=(title,arr,cls)=>arr.length?`
+    <div style="margin-bottom:24px">
+      <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:700;margin-bottom:10px;color:${cls==='danger'?'var(--danger)':cls==='warning'?'var(--warning)':'var(--success)'}">${title} (${arr.length})</div>
+      <div class="renewal-wrap">
+        ${arr.map(a=>`
+        <div class="renewal-item ${a.cls}">
+          <div class="renewal-dot ${a.cls}"></div>
+          <div class="renewal-info">
+            <div class="renewal-name">${a.clientName} <span style="color:var(--text-dim);font-weight:400;font-size:11px">— ${a.type}</span></div>
+            <div class="renewal-meta">${a.detail} · Due: ${fmtDate(a.date)}</div>
+          </div>
+          <div class="renewal-days ${a.cls}">${a.days<0?'EXPIRED':a.days===0?'TODAY':a.days+'d'}</div>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-sm btn-secondary" onclick="openClientDetail('${a.clientId}')">👁</button>
+            <button class="btn btn-sm btn-primary" onclick="sendReminderQuick('${a.clientId}','${a.type}')">📲 Remind</button>
+          </div>
+        </div>`).join('')}
+      </div>
+    </div>`:''
+
+  return `
+  <div class="page-eyebrow">⏰ Renewal Tracker</div>
+  <div class="page-title">All Renewals & Expiries</div>
+  <div class="page-sub">Domain, hosting, SSL, AMC — track every renewal. Never miss a reminder.</div>
+
+  ${!alerts.length?`<div class="empty"><div class="empty-icon">✅</div><p>No renewals to track. Add domain/expiry dates when adding clients.</p></div>`:''}
+  ${section('🔴 OVERDUE / EXPIRED',overdue,'danger')}
+  ${section('🚨 Urgent — 0 to 10 Days',urgent,'danger')}
+  ${section('⚠️ Soon — 11 to 30 Days',soon,'warning')}
+  ${section('📅 Coming Up — 31 to 60 Days',month,'safe')}
+
+  <div style="background:rgba(59,130,246,.06);border:1px solid rgba(59,130,246,.2);border-radius:14px;padding:18px;margin-top:8px">
+    <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--info);margin-bottom:10px">📋 How Reminder Stages Work</div>
+    <div style="display:flex;flex-direction:column;gap:6px">
+      ${REMINDER_STAGES.map((r,i)=>`
+      <div class="reminder-stage">
+        <div class="r-num">${i+1}</div>
+        <div class="r-info">
+          <div class="r-days">${r.days===365?'12 months before':r.days===0?'Expiry Day':r.days+' days before'}</div>
+          <div class="r-desc">Send reminder: "${r.label}"</div>
+        </div>
+        <div style="width:70px;height:4px;background:${r.color==='danger'?'var(--danger)':r.color==='warning'?'var(--warning)':'var(--success)'};border-radius:2px;margin-right:8px"></div>
+        <span style="font-size:10px;font-weight:600;color:${r.color==='danger'?'var(--danger)':r.color==='warning'?'var(--warning)':'var(--success)'}">Stage ${i+1}</span>
+      </div>`).join('')}
+    </div>
+  </div>`;
+}
+
+/* ════════════════════════════════════
+   CLIENT VAULT
+════════════════════════════════════ */
+function renderVault(){
+  if(!has('vault')&&!has('view')){
+    return `<div class="empty"><div class="empty-icon">🔒</div><p>You don't have permission to view the vault.</p></div>`;
+  }
+  const withVault=clients.filter(c=>c.vault&&c.vault.length);
+  return `
+  <div class="page-eyebrow">🔐 Password Vault</div>
+  <div class="page-title">Client Credentials Vault</div>
+  <div class="page-sub">All saved client passwords, logins, and credentials. Click to copy.</div>
+  <div style="background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.2);border-radius:10px;padding:12px 16px;margin-bottom:20px;font-size:12px;color:var(--danger)">
+    🔒 Confidential — Do not share screenshots. Passwords visible only to authorized users.
+  </div>
+  <div class="toolbar">
+    <div class="search-wrap"><span class="search-icon">🔍</span><input placeholder="Search client or platform..." oninput="filterVault(this.value)" id="vaultSearch"/></div>
+  </div>
+  <div id="vaultList">
+    ${withVault.length?withVault.map(c=>`
+    <div class="detail-section vault-block" data-search="${c.name.toLowerCase()} ${(c.biz||'').toLowerCase()}">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+        <div style="width:36px;height:36px;border-radius:9px;background:var(--grad);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:#fff">${initials(c.name)}</div>
+        <div>
+          <div style="font-size:14px;font-weight:700">${c.name}</div>
+          <div style="font-size:11px;color:var(--text-muted)">${c.biz||''}</div>
+        </div>
+        <button class="btn btn-secondary btn-sm" style="margin-left:auto" onclick="openClientDetail('${c.id}')">👁 View Client</button>
+      </div>
+      ${c.vault.map((v,i)=>`
+      <div class="pwd-row">
+        <div>
+          <div class="pwd-key">${v.label||'Credential '+(i+1)}</div>
+          <div class="pwd-platform">${v.platform||''}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div>
+            <div style="font-size:10px;color:var(--text-dim);margin-bottom:3px">Username / Email</div>
+            <span class="pwd-val" onclick="copyToClip('${(v.username||'').replace(/'/g,"\\'")}','Username')">${v.username||'—'}</span>
+          </div>
+          <div>
+            <div style="font-size:10px;color:var(--text-dim);margin-bottom:3px">Password</div>
+            <span class="pwd-val" onclick="copyToClip('${(v.password||'').replace(/'/g,"\\'")}','Password')">${v.password?'••••••••':'—'}</span>
+          </div>
+          <div>
+            <div style="font-size:10px;color:var(--text-dim);margin-bottom:3px">URL</div>
+            ${v.url?`<a href="${v.url}" target="_blank" class="pwd-val" style="color:var(--info)">Open ↗</a>`:`<span style="font-size:11px;color:var(--text-dim)">—</span>`}
+          </div>
+        </div>
+      </div>`).join('')}
+    </div>`).join(''):`<div class="empty"><div class="empty-icon">🔐</div><p>No credentials saved. Add them while creating/editing clients.</p></div>`}
+  </div>`;
+}
+
+function filterVault(q){
+  document.querySelectorAll('.vault-block').forEach(el=>{
+    el.style.display=el.dataset.search.includes(q.toLowerCase())?'':'none';
+  });
+}
+
+function copyToClip(text,label){
+  navigator.clipboard.writeText(text).then(()=>showToast(`✅ ${label} copied!`)).catch(()=>{
+    const el=document.createElement('textarea');el.value=text;document.body.appendChild(el);el.select();document.execCommand('copy');document.body.removeChild(el);showToast(`✅ ${label} copied!`);
+  });
+}
+
+/* ════════════════════════════════════
+   CLIENT LIST
+════════════════════════════════════ */
+let _cf='',_cs='',_csvc='';
+
+function renderClients(filter){
+  let arr=clients;
+  let title='All Clients',sub='Every retained client in the system';
+  if(filter==='vip'){arr=clients.filter(c=>c.type==='vip');title='⭐ VIP Clients';sub='High-value priority clients';}
+  else if(filter==='inactive'){arr=clients.filter(c=>c.type==='inactive');title='💤 Inactive Clients';sub='Clients not currently on retainer';}
+
+  return `
+  <div class="page-eyebrow">👥 Clients</div>
+  <div class="page-title">${title}</div>
+  <div class="page-sub">${sub} · ${arr.length} total</div>
+  <div class="toolbar">
+    <div class="search-wrap"><span class="search-icon">🔍</span>
+      <input placeholder="Search name, business, phone, domain..." oninput="filterClients(this.value,'${filter||''}')" id="clientSearch" value="${_cf}"/>
+    </div>
+    <select class="fsel" onchange="filterClientStatus(this.value,'${filter||''}')" id="statusFilter">
+      <option value="">All Types</option>
+      <option value="regular" ${_cs==='regular'?'selected':''}>Regular</option>
+      <option value="vip" ${_cs==='vip'?'selected':''}>⭐ VIP</option>
+      <option value="inactive" ${_cs==='inactive'?'selected':''}>💤 Inactive</option>
+    </select>
+    <select class="fsel" onchange="filterClientService(this.value,'${filter||''}')" id="svcFilter">
+      <option value="">All Services</option>
+      <option>Website Design & Development</option>
+      <option>Billing Software</option>
+      <option>Logo & Branding</option>
+      <option>Social Media Management</option>
+      <option>Landing Page</option>
+      <option>ERP / Management Portal</option>
+    </select>
+    <button class="btn btn-primary btn-sm" onclick="openAddClient()">＋ Add Client</button>
+  </div>
+  <div class="clients-grid" id="clientsGrid">
+    ${renderClientCards(arr)}
+  </div>`;
+}
+
+function renderClientCards(arr){
+  const f=applyClientFilters(arr);
+  return f.length?f.map(clientCardHTML).join(''):`<div class="empty" style="grid-column:1/-1"><div class="empty-icon">🔍</div><p>No clients match your search.</p></div>`;
+}
+
+function applyClientFilters(arr){
+  let r=[...arr];
+  if(_cf)r=r.filter(c=>(c.name+c.phone+c.biz+c.email+c.domain).toLowerCase().includes(_cf.toLowerCase()));
+  if(_cs)r=r.filter(c=>c.type===_cs);
+  if(_csvc)r=r.filter(c=>c.service===_csvc);
+  return r;
+}
+function filterClients(v,f){_cf=v;document.getElementById('clientsGrid').innerHTML=renderClientCards(f==='vip'?clients.filter(c=>c.type==='vip'):f==='inactive'?clients.filter(c=>c.type==='inactive'):clients);}
+function filterClientStatus(v,f){_cs=v;filterClients(_cf,f);}
+function filterClientService(v,f){_csvc=v;filterClients(_cf,f);}
+
+function clientCardHTML(c){
+  const domSt=c.domainExpiry?getExpiryStatus(c.domainExpiry):null;
+  const hostSt=c.hostingExpiry?getExpiryStatus(c.hostingExpiry):null;
+  const worst=[domSt,hostSt].filter(Boolean).sort((a,b)=>a.days-b.days)[0];
+  const cardCls=worst&&worst.days<=10?'expiring-soon':worst&&worst.days<=30?'expiring-30':'';
+
+  return `
+  <div class="client-card ${cardCls}" onclick="openClientDetail('${c.id}')">
+    <div class="cc-header">
+      <div class="cc-avatar">${initials(c.name)}</div>
+      <div style="flex:1;min-width:0">
+        <div class="cc-name">${c.name}</div>
+        <div class="cc-biz">${c.biz||'No business name'} ${c.city?'· '+c.city:''}</div>
+        <div style="margin-top:5px;display:flex;gap:5px;flex-wrap:wrap">
+          ${c.type==='vip'?'<span class="pill pill-vip">⭐ VIP</span>':''}
+          ${c.type==='inactive'?'<span class="pill pill-inactive">💤 Inactive</span>':'<span class="pill pill-active">✓ Active</span>'}
+        </div>
+      </div>
+      <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();editClient('${c.id}')" title="Edit">✏️</button>
+    </div>
+    <div class="cc-info">
+      <div class="cc-field"><label>Phone</label><span>${c.phone||'—'}</span></div>
+      <div class="cc-field"><label>Service</label><span>${c.service||'—'}</span></div>
+      <div class="cc-field"><label>Domain</label><span>${c.domain||'—'}</span></div>
+      <div class="cc-field"><label>Revenue</label><span>${fmtMoney(c.revenue)}</span></div>
+    </div>
+    <div class="cc-tags">
+      ${c.service?`<span class="tag tag-service">${c.service}</span>`:''}
+      ${domSt?`<span class="tag tag-expiry ${domSt.cls}">🌐 ${domSt.label}</span>`:''}
+      ${hostSt?`<span class="tag tag-expiry ${hostSt.cls}">🖥 ${hostSt.label}</span>`:''}
+    </div>
+    <div class="cc-actions" onclick="event.stopPropagation()">
+      ${c.wa||c.phone?`<a class="btn btn-success btn-sm" href="https://wa.me/91${(c.wa||c.phone).replace(/[^0-9]/g,'')}" target="_blank">💬 WA</a>`:''}
+      ${c.liveUrl?`<a class="btn btn-info btn-sm" href="${c.liveUrl}" target="_blank">🌐 Site</a>`:''}
+      ${c.github?`<a class="btn btn-secondary btn-sm" href="${c.github}" target="_blank">GitHub</a>`:''}
+      <button class="btn btn-warning btn-sm" onclick="sendReminderQuick('${c.id}','general')">📲 Message</button>
+    </div>
+  </div>`;
+}
+
+/* ════════════════════════════════════
+   CLIENT DETAIL VIEW
+════════════════════════════════════ */
+function openClientDetail(id){
+  const c=clients.find(x=>x.id===id);if(!c)return;
+  document.getElementById('mainContent').innerHTML=renderClientDetail(c);
+}
+
+function renderClientDetail(c){
+  const alerts=getClientExpiryAlerts(c);
+  const clientSendLog=sendLog.filter(l=>l.clientId===c.id);
+
+  return `
+  <button class="btn btn-secondary btn-sm" onclick="renderSection(currentSection)" style="margin-bottom:16px">← Back</button>
+
+  <div class="detail-hero">
+    <div class="detail-avatar">${initials(c.name)}</div>
+    <div class="detail-meta" style="flex:1">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:10px">
+        <div>
+          <h2>${c.name}</h2>
+          <p>${c.biz||'No business name'} ${c.city?'· '+c.city:''}</p>
+          <div style="margin-top:8px;display:flex;gap:7px;flex-wrap:wrap">
+            ${c.type==='vip'?'<span class="pill pill-vip">⭐ VIP</span>':''}
+            ${c.type==='inactive'?'<span class="pill pill-inactive">💤 Inactive</span>':'<span class="pill pill-active">✓ Active</span>'}
+            ${c.service?`<span style="background:rgba(255,107,53,.1);color:var(--accent);border:1px solid rgba(255,107,53,.2);border-radius:20px;padding:3px 10px;font-size:10px;font-weight:700">${c.service}</span>`:''}
+          </div>
+        </div>
+        <div style="display:flex;gap:7px;flex-wrap:wrap">
+          ${c.wa||c.phone?`<a class="btn btn-success btn-sm" href="https://wa.me/91${(c.wa||c.phone).replace(/[^0-9]/g,'')}" target="_blank">💬 WhatsApp</a>`:''}
+          <button class="btn btn-secondary btn-sm" onclick="editClient('${c.id}')">✏️ Edit</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteClient('${c.id}')">🗑</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ALERTS -->
+  ${alerts.length?`
+  <div class="detail-section" style="border-color:rgba(239,68,68,.3);background:rgba(239,68,68,.04)">
+    <div class="detail-section-title">⚠️ Renewal Alerts</div>
+    ${alerts.map(a=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--bg-raised);border:1px solid var(--border);border-radius:9px;margin-bottom:6px">
+      <span style="font-size:16px">${a.cls==='danger'?'🔴':'🟡'}</span>
+      <div style="flex:1"><div style="font-size:12px;font-weight:600">${a.type}</div><div style="font-size:11px;color:var(--text-muted)">Expires: ${fmtDate(a.date)}</div></div>
+      <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:${a.cls==='danger'?'var(--danger)':'var(--warning)'}">
+        ${a.days<0?'EXPIRED':a.days===0?'TODAY!':a.days+'d left'}
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="sendReminderQuick('${c.id}','${a.type}')">📲 Remind</button>
+    </div>`).join('')}
+  </div>`:''}
+
+  <!-- CONTACT INFO -->
+  <div class="detail-section">
+    <div class="detail-section-title">👤 Contact Information</div>
+    <div class="detail-grid">
+      ${[['Phone',c.phone],['WhatsApp',c.wa||c.phone],['Email',c.email],['City',c.city],['Since',fmtDate(c.since)],['Ticket ID',c.ticketId],['Type',c.type],['Revenue',fmtMoney(c.revenue)]].map(([l,v])=>`<div class="detail-field"><div class="detail-field-label">${l}</div><div class="detail-field-val">${v||'—'}</div></div>`).join('')}
+    </div>
+  </div>
+
+  <!-- DOMAIN & HOSTING -->
+  <div class="detail-section">
+    <div class="detail-section-title">🌐 Domain & Hosting</div>
+    <div class="detail-grid">
+      ${[['Domain',c.domain],['Registrar',c.registrar],['Domain Expiry',fmtDate(c.domainExpiry)],['Hosting Expiry',fmtDate(c.hostingExpiry)],['SSL Expiry',fmtDate(c.sslExpiry)],['AMC Date',fmtDate(c.amcDate)]].map(([l,v])=>`<div class="detail-field"><div class="detail-field-label">${l}</div><div class="detail-field-val">${v||'—'}</div></div>`).join('')}
+    </div>
+    <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+      ${c.liveUrl?`<a class="btn btn-info btn-sm" href="${c.liveUrl}" target="_blank">🌐 Live Site</a>`:''}
+      ${c.github?`<a class="btn btn-secondary btn-sm" href="${c.github}" target="_blank">📁 GitHub Repo</a>`:''}
+      ${c.drive?`<a class="btn btn-secondary btn-sm" href="${c.drive}" target="_blank">📁 Drive Folder</a>`:''}
+      ${c.figma?`<a class="btn btn-secondary btn-sm" href="${c.figma}" target="_blank">🎨 Figma</a>`:''}
+      ${c.hostingPanel?`<a class="btn btn-secondary btn-sm" href="${c.hostingPanel}" target="_blank">⚙️ Hosting Panel</a>`:''}
+    </div>
+  </div>
+
+  <!-- VAULT -->
+  ${has('vault')||has('all')?`
+  <div class="detail-section">
+    <div class="detail-section-title">🔑 Password Vault</div>
+    ${c.vault&&c.vault.length?c.vault.map((v,i)=>`
+    <div class="pwd-row">
+      <div>
+        <div class="pwd-key">${v.label||'Credential '+(i+1)}</div>
+        <div class="pwd-platform">${v.platform||v.url||''}</div>
+      </div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
+        ${v.username?`<div><div style="font-size:9px;color:var(--text-dim)">Username</div><span class="pwd-val" onclick="copyToClip('${v.username.replace(/'/g,"\\'")}','Username')">${v.username}</span></div>`:''}
+        ${v.password?`<div><div style="font-size:9px;color:var(--text-dim)">Password</div><span class="pwd-val" id="pv_${i}" onclick="togglePwd('pv_${i}','${v.password.replace(/'/g,"\\'")}')">Click to reveal</span></div>`:''}
+        ${v.url?`<a href="${v.url}" target="_blank" class="btn btn-info btn-sm">Open ↗</a>`:''}
+      </div>
+    </div>`).join(''):
+    `<div style="color:var(--text-dim);font-size:12px">No credentials saved for this client.</div>`}
+  </div>`:''}
+
+  <!-- NOTES & PROJECT -->
+  ${c.projectNotes||c.notes?`
+  <div class="detail-section">
+    <div class="detail-section-title">📝 Notes</div>
+    ${c.projectNotes?`<div style="margin-bottom:12px"><div style="font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Project Notes</div><div style="font-size:13px;color:var(--text-muted);line-height:1.7;white-space:pre-wrap">${c.projectNotes}</div></div>`:''}
+    ${c.notes?`<div><div style="font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Internal Notes</div><div style="font-size:13px;color:var(--text-muted);line-height:1.7;white-space:pre-wrap">${c.notes}</div></div>`:''}
+  </div>`:''}
+
+  <!-- SEND LOG -->
+  <div class="detail-section">
+    <div class="detail-section-title">📬 Message History (${clientSendLog.length})</div>
+    ${clientSendLog.length?`<div class="tl">${clientSendLog.slice().reverse().map(l=>`
+    <div class="tl-item">
+      <div class="tl-dot"></div>
+      <div class="tl-content">
+        <div class="tl-date">${new Date(l.sentAt).toLocaleString('en-IN',{dateStyle:'medium',timeStyle:'short'})}</div>
+        <div class="tl-text"><strong>${l.templateName}</strong> · via ${l.channel||'WhatsApp'} · by ${l.sentBy||'Admin'}</div>
+        ${l.note?`<div style="font-size:11px;color:var(--text-dim);margin-top:3px">${l.note}</div>`:''}
+      </div>
+    </div>`).join('')}</div>`:`<div style="color:var(--text-dim);font-size:12px">No messages sent yet.</div>`}
+    <button class="btn btn-primary btn-sm" style="margin-top:12px" onclick="openSendToOne('${c.id}')">📤 Send Message</button>
+  </div>`;
+}
+
+function togglePwd(elId,pwd){
+  const el=document.getElementById(elId);
+  if(el.textContent==='Click to reveal'){el.textContent=pwd;el.title='Click to copy';el.onclick=()=>copyToClip(pwd,'Password');}
+  else{copyToClip(pwd,'Password');}
+}
+
+/* ════════════════════════════════════
+   ADD / EDIT CLIENT
+════════════════════════════════════ */
+let editClientId=null;
+
+function openAddClient(){
+  if(!has('edit')){showToast('⛔ No permission to add clients.');return;}
+  editClientId=null;
+  document.getElementById('clientModalTitle').textContent='Add New Client';
+  clearClientForm();
+  document.getElementById('vaultRows').innerHTML='';
+  addVaultRow();
+  document.getElementById('clientModal').classList.add('open');
+}
+
+function editClient(id){
+  if(!has('edit')){showToast('⛔ No permission to edit clients.');return;}
+  const c=clients.find(x=>x.id===id);if(!c)return;
+  editClientId=id;
+  document.getElementById('clientModalTitle').textContent='Edit Client — '+c.name;
+  const flds={cf_name:'name',cf_biz:'biz',cf_phone:'phone',cf_wa:'wa',cf_email:'email',cf_city:'city',
+    cf_since:'since',cf_service:'service',cf_services_extra:'services_extra',cf_ticketId:'ticketId',cf_revenue:'revenue',
+    cf_projectNotes:'projectNotes',cf_domain:'domain',cf_domainExpiry:'domainExpiry',cf_hostingExpiry:'hostingExpiry',
+    cf_liveUrl:'liveUrl',cf_github:'github',cf_githubUser:'githubUser',cf_hostingPanel:'hostingPanel',
+    cf_drive:'drive',cf_figma:'figma',cf_links:'links',cf_sslExpiry:'sslExpiry',cf_licenseExpiry:'licenseExpiry',
+    cf_amcDate:'amcDate',cf_notes:'notes'};
+  Object.entries(flds).forEach(([fid,ck])=>{
+    const el=document.getElementById(fid);if(el)el.value=c[ck]||'';
+  });
+  document.getElementById('cf_type').value=c.type||'regular';
+  document.getElementById('cf_registrar').value=c.registrar||'';
+  document.getElementById('cf_reminderChannel').value=c.reminderChannel||'whatsapp';
+
+  // Vault
+  document.getElementById('vaultRows').innerHTML='';
+  (c.vault||[]).forEach(v=>addVaultRow(v));
+  if(!(c.vault&&c.vault.length))addVaultRow();
+  document.getElementById('clientModal').classList.add('open');
+}
+
+function clearClientForm(){
+  ['cf_name','cf_biz','cf_phone','cf_wa','cf_email','cf_city','cf_since','cf_services_extra','cf_ticketId',
+   'cf_revenue','cf_projectNotes','cf_domain','cf_domainExpiry','cf_hostingExpiry','cf_liveUrl','cf_github',
+   'cf_githubUser','cf_hostingPanel','cf_drive','cf_figma','cf_links','cf_sslExpiry','cf_licenseExpiry',
+   'cf_amcDate','cf_notes'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('cf_type').value='regular';
+  document.getElementById('cf_registrar').value='';
+  document.getElementById('cf_reminderChannel').value='whatsapp';
+  document.getElementById('cf_service').value='';
+}
+
+function addVaultRow(v){
+  v=v||{};
+  const div=document.createElement('div');
+  div.className='vault-row';
+  div.innerHTML=`
+    <input placeholder="Label (e.g. cPanel Login)" value="${v.label||''}"/>
+    <input placeholder="Username / Email" value="${v.username||''}"/>
+    <input placeholder="Password" value="${v.password||''}"/>
+    <div style="display:flex;flex-direction:column;gap:4px">
+      <input placeholder="URL / Platform" value="${v.url||''}" style="margin-bottom:0"/>
+    </div>
+    <button class="btn-remove" onclick="this.closest('.vault-row').remove()">✕</button>`;
+  document.getElementById('vaultRows').appendChild(div);
+}
+
+async function saveClient(){
+  const name=document.getElementById('cf_name').value.trim();
+  const phone=document.getElementById('cf_phone').value.trim();
+  if(!name){alert('Client name is required!');return;}
+
+  // Collect vault
+  const vaultRows=[...document.querySelectorAll('#vaultRows .vault-row')];
+  const vault=vaultRows.map(row=>{
+    const inputs=row.querySelectorAll('input');
+    return{label:inputs[0].value.trim(),username:inputs[1].value.trim(),password:inputs[2].value.trim(),url:inputs[3].value.trim()};
+  }).filter(v=>v.label||v.username||v.password);
+
+  const data={
+    id:editClientId||uid(),
+    name,phone,
+    biz:document.getElementById('cf_biz').value.trim(),
+    wa:document.getElementById('cf_wa').value.trim(),
+    email:document.getElementById('cf_email').value.trim(),
+    city:document.getElementById('cf_city').value.trim(),
+    type:document.getElementById('cf_type').value,
+    since:document.getElementById('cf_since').value,
+    service:document.getElementById('cf_service').value,
+    services_extra:document.getElementById('cf_services_extra').value.trim(),
+    ticketId:document.getElementById('cf_ticketId').value.trim(),
+    revenue:document.getElementById('cf_revenue').value,
+    projectNotes:document.getElementById('cf_projectNotes').value.trim(),
+    domain:document.getElementById('cf_domain').value.trim(),
+    registrar:document.getElementById('cf_registrar').value,
+    domainExpiry:document.getElementById('cf_domainExpiry').value,
+    hostingExpiry:document.getElementById('cf_hostingExpiry').value,
+    liveUrl:document.getElementById('cf_liveUrl').value.trim(),
+    github:document.getElementById('cf_github').value.trim(),
+    githubUser:document.getElementById('cf_githubUser').value.trim(),
+    hostingPanel:document.getElementById('cf_hostingPanel').value.trim(),
+    drive:document.getElementById('cf_drive').value.trim(),
+    figma:document.getElementById('cf_figma').value.trim(),
+    links:document.getElementById('cf_links').value.trim(),
+    sslExpiry:document.getElementById('cf_sslExpiry').value,
+    licenseExpiry:document.getElementById('cf_licenseExpiry').value,
+    amcDate:document.getElementById('cf_amcDate').value,
+    reminderChannel:document.getElementById('cf_reminderChannel').value,
+    notes:document.getElementById('cf_notes').value.trim(),
+    vault,
+    addedAt:editClientId?(clients.find(x=>x.id===editClientId)||{}).addedAt||Date.now():Date.now(),
+    updatedAt:Date.now()
+  };
+
+  if(editClientId){
+    const idx=clients.findIndex(x=>x.id===editClientId);
+    if(idx>=0)clients[idx]=data;
+  }else{clients.push(data);}
+
+  saveData();
+  closeModal('clientModal');
+  showToast('✅ Client saved!');
+  await pushClientToFirestore(data);
+  renderSection(currentSection);
+}
+
+function deleteClient(id){
+  if(!confirm('Delete this client permanently? This cannot be undone.'))return;
+  clients=clients.filter(x=>x.id!==id);
+  saveData();
+  try{getDb().collection('ret_clients').doc(id).delete();}catch{}
+  showToast('🗑 Client deleted.');
+  renderSection(currentSection);
+}
+
+/* ════════════════════════════════════
+   NEWSLETTER / MESSAGE SYSTEM
+════════════════════════════════════ */
+const MSG_TEMPLATES=[
+  {
+    id:'t01',category:'Renewal Reminder',icon:'🔔',
+    name:'Domain Expiry — 30 Days',
+    description:'Sent 30 days before domain expiry',
+    subject:'Your domain expires in 30 days — Action required',
+    body:`Hello [Name] ji! 🙏
+
+Hope sab achha chal raha hai!
+
+Aapka domain *[DOMAIN]* agle *30 dinon* mein expire hone wala hai — *[EXPIRY_DATE]* ko.
+
+Agar renewal nahi ki gayi toh aapki website band ho jaayegi aur domain kisi aur ko mil sakti hai.
+
+✅ *Kya karna hai:*
+Bas yeh URL pe jaake renew kar lo:
+🔗 [Registrar URL]
+
+Ya hum aapki taraf se renew kar sakte hain — bas [amount] lagega. WhatsApp karo!
+
+Koi bhi sawaal ho — seedha yahan reply karo. 🙏
+
+— Raunak, SparkEdge ⚡
+📞 +91 91424 50715`
+  },
+  {
+    id:'t02',category:'Renewal Reminder',icon:'🚨',
+    name:'Domain Expiry — 10 Days',
+    description:'Urgent — sent 10 days before expiry',
+    subject:'🚨 URGENT: Your domain expires in 10 days!',
+    body:`[Name] ji! 🚨
+
+Yeh *urgent reminder* hai —
+
+Aapka domain *[DOMAIN]* sirf *10 din mein* expire ho raha hai — *[EXPIRY_DATE]*.
+
+❌ Agar abhi renew nahi kiya:
+• Aapki website DOWN ho jaayegi
+• Domain someone else ko mil sakti hai
+• Email bhi kaam karna band kar dega
+
+✅ *Abhi renew karo — 10 min ka kaam hai!*
+
+Ya hume WhatsApp karo — hum aaj hi handle kar lete hain. ₹[amount] lagega.
+
+🔗 [Registrar Link]
+
+Jaldi karo — thoda time bacha hai! 🙏
+
+— SparkEdge ⚡ | +91 91424 50715`
+  },
+  {
+    id:'t03',category:'Renewal Reminder',icon:'⏰',
+    name:'Hosting Expiry — 30 Days',
+    description:'Hosting renewal reminder',
+    subject:'Your web hosting expires in 30 days',
+    body:`[Name] ji! 🙏
+
+Quick reminder — aapki *website hosting* agle *30 dinon* mein expire ho rahi hai.
+
+📅 Expiry Date: *[EXPIRY_DATE]*
+
+Hosting expire hone ke baad:
+❌ Website offline ho jaayegi
+❌ Data loss ka risk rehta hai
+
+✅ Abhi renew karo: [hosting URL]
+
+Koi help chahiye toh bata do — hum handle kar lete hain! 😊
+
+— SparkEdge ⚡`
+  },
+  {
+    id:'t04',category:'Newsletter',icon:'📰',
+    name:'Monthly Update — New Services',
+    description:'Share new offerings with existing clients',
+    subject:'New services from SparkEdge — Exclusive for you!',
+    body:`[Name] ji! 👋
+
+Hope business achha chal raha hai! 😊
+
+Aapko SparkEdge ki taraf se kuch nayi updates share karni thi —
+
+🆕 *New Services We Now Offer:*
+• ⚡ Speed Optimization (website fast karo — 2x speed guaranteed)
+• 📱 WhatsApp Business API Integration
+• 🤖 AI Chatbot for your website
+• 📊 Monthly SEO Reports
+
+🎁 *Exclusive Client Offer:*
+Kyunki aap hamare existing client ho — *20% discount* milega kisi bhi naye service pe!
+
+Interested? Bas WhatsApp karo aur hum details bhejte hain. 🙏
+
+— Raunak, SparkEdge ⚡
+📞 +91 91424 50715 | sparkedge555@gmail.com`
+  },
+  {
+    id:'t05',category:'Newsletter',icon:'🎉',
+    name:'Festival Greetings + Offer',
+    description:'Festival season message with special offer',
+    subject:'Happy [Festival] from SparkEdge! 🎊 Special Offer Inside',
+    body:`[Name] ji! 🎉
+
+SparkEdge ki taraf se aapko aur aapke parivar ko *[FESTIVAL]* ki bahut bahut shubhkaamnayein! 🙏
+
+Is special occasion pe aapke liye ek khaas offer hai —
+
+🎁 *[Festival] Special — 25% OFF*
+Kisi bhi service pe valid: 25% discount
+Valid till: [DATE]
+
+Services:
+🌐 Website — Starting ₹7,999
+🖥 Billing Software — ₹2,999
+📱 Social Media — ₹2,499/month
+
+Offer limited time ke liye hai — aaj hi WhatsApp karo! 🙏
+
+— Raunak & Team SparkEdge ⚡`
+  },
+  {
+    id:'t06',category:'Check-in',icon:'💬',
+    name:'Annual Check-in Message',
+    description:'Yearly touchpoint with existing clients',
+    subject:'How is everything going? Annual check-in from SparkEdge',
+    body:`[Name] ji! 🙏
+
+[Business] ka sab kuch theek chal raha hai na?
+
+Aapke saath kaam karte hue [MONTHS_SINCE] ho gaye — waqt kitni jaldi beet jaata hai! 😊
+
+Bas check karna tha:
+✅ Website sahi chal rahi hai?
+✅ Koi issue ya update chahiye?
+✅ Koi naya feature add karna hai?
+
+Agar kuch bhi chahiye — maintenance, update, new page — seedha yahan message karo. Existing client hone ki wajah se *priority service* milegi aur *special rate* bhi. 🤝
+
+Thank you for trusting us! Aapka trust hamare liye sab kuch hai. 🙏
+
+— Raunak, SparkEdge ⚡
+📞 +91 91424 50715`
+  },
+  {
+    id:'t07',category:'Upsell',icon:'📈',
+    name:'Upgrade Your Plan',
+    description:'Offer upgrade or additional services',
+    subject:'Upgrade your digital presence — exclusive rates for you',
+    body:`[Name] ji! 👋
+
+Hope sab badhiya chal raha hai!
+
+Maine dekha ki aapki [CURRENT_SERVICE] kaafi time se chal rahi hai. Kuch upgrade options share karna tha jo aapke business ke liye valuable ho sakte hain:
+
+🚀 *Recommended Add-ons for [Business]:*
+• 📊 Google Analytics + Monthly Reports — ₹1,499/month
+• 🔍 On-Page SEO Package — ₹2,999 one-time
+• 📱 Mobile App Version — ₹12,999 onwards
+• 🤖 AI Chatbot Integration — ₹4,999 one-time
+
+*Existing client hone ke naate:*
+🎁 Inme se kisi bhi service pe *15% extra discount* milega aapko!
+
+Interested? Call ya WhatsApp karo — discuss karte hain. No pressure at all! 😊
+
+— SparkEdge ⚡`
+  },
+  {
+    id:'t08',category:'Thank You',icon:'❤️',
+    name:'Thank You & Testimonial Request',
+    description:'Post-project thank you with review request',
+    subject:'Thank you for choosing SparkEdge! 🙏',
+    body:`[Name] ji! 🙏❤️
+
+Ek baar phir se bahut bahut shukriya ki aapne SparkEdge pe trust kiya!
+
+*[Project name]* complete hone ke baad se, hum hoping hain ki aap satisfied hain.
+
+Ek chhoti si request hai — *2 minutes* mein help kar sakte ho? 😊
+
+⭐ *Google Review likhdo:*
+[GOOGLE_REVIEW_LINK]
+
+Ya WhatsApp pe screenshot review bhej do — social proof se hume naye clients milte hain.
+
+Aur agar koi dost/relative/business wala digital services dhundh raha ho — referral dena mat bhoolo! 🤝
+
+Jab bhi zaroorat ho — main hamesha available hoon. 🙏
+
+— Raunak, SparkEdge ⚡`
+  },
+  {
+    id:'t09',category:'Reminder',icon:'🔄',
+    name:'Annual Maintenance Reminder',
+    description:'AMC renewal and maintenance package',
+    subject:'Annual Maintenance Contract renewal — SparkEdge',
+    body:`[Name] ji! 🙏
+
+Aapka *Annual Maintenance Contract (AMC)* agle *[DAYS]* din mein renew hone wala hai.
+
+📅 Renewal Date: *[AMC_DATE]*
+
+*AMC Mein Kya Include Hai:*
+✅ Unlimited minor updates
+✅ Security monitoring
+✅ Monthly backup
+✅ Performance optimization
+✅ Priority WhatsApp support
+
+*Renewal Amount:* ₹[AMC_AMOUNT]/year
+
+Renew karne ke liye abhi WhatsApp karo — hum invoice bhej dete hain. ✅
+
+— SparkEdge ⚡ | sparkedge555@gmail.com`
+  },
+  {
+    id:'t10',category:'Reminder',icon:'🛡',
+    name:'SSL Renewal Reminder',
+    description:'SSL certificate expiry reminder',
+    subject:'⚠️ Your SSL certificate expires soon — secure your website',
+    body:`[Name] ji! 🔐
+
+Important alert —
+
+Aapka *SSL Certificate* agle *[DAYS]* din mein expire hone wala hai.
+
+📅 Expiry Date: *[EXPIRY_DATE]*
+
+*SSL Expire Hone Ka Matlab:*
+❌ Browser pe "Not Secure" warning aayegi
+❌ Customers aapki site se dar ke jaayenge
+❌ Google ranking gir sakti hai
+
+✅ *Solution:* Hum aapka SSL renew kar dete hain — free ya ₹[amount] mein (depending on provider)
+
+Abhi WhatsApp karo — aaj hi fix karte hain! ⚡
+
+— SparkEdge | +91 91424 50715`
+  }
+];
+
+function renderNewsletter(){
+  const categories=[...new Set(MSG_TEMPLATES.map(t=>t.category))];
+  return `
+  <div class="page-eyebrow">📧 Communication Hub</div>
+  <div class="page-title">Newsletter & Messages</div>
+  <div class="page-sub">Pre-built templates for renewals, newsletters, check-ins, and upsells</div>
+
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-bottom:24px">
+    ${categories.map(cat=>{
+      const count=MSG_TEMPLATES.filter(t=>t.category===cat).length;
+      return `<button class="tab active" onclick="filterNewsletter('${cat}',this)">${cat} (${count})</button>`;
+    }).join('')}
+    <button class="tab" onclick="filterNewsletter('all',this)">All Templates</button>
+  </div>
+
+  <div id="templateList">
+    ${MSG_TEMPLATES.map(tpl=>renderTemplateCard(tpl)).join('')}
+  </div>
+
+  <div style="background:rgba(59,130,246,.06);border:1px solid rgba(59,130,246,.2);border-radius:14px;padding:18px;margin-top:20px">
+    <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--info);margin-bottom:10px">📌 How to Use Templates</div>
+    <div style="font-size:12px;color:var(--text-muted);line-height:1.9">
+      1. Click any template → expand → Preview the message<br>
+      2. Click <strong style="color:var(--text)">✏️ Customize</strong> to edit the message for a specific client<br>
+      3. Click <strong style="color:var(--text)">📤 Send to Clients</strong> → select who to send to → confirm<br>
+      4. All sends are tracked in Send Log automatically<br>
+      5. WhatsApp opens with message pre-filled — just hit Send!
+    </div>
+  </div>`;
+}
+
+function renderTemplateCard(tpl){
+  const sentCount=sendLog.filter(l=>l.templateId===tpl.id).length;
+  return `
+  <div class="msg-card" data-cat="${tpl.category}">
+    <div class="msg-card-header" onclick="toggleTemplate('${tpl.id}')">
+      <div style="display:flex;align-items:center;gap:12px;flex:1">
+        <div class="msg-type-icon" style="background:rgba(255,107,53,.1)">${tpl.icon}</div>
+        <div>
+          <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:700">${tpl.name}</div>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:2px">${tpl.description} · Sent ${sentCount} time${sentCount!==1?'s':''}</div>
+        </div>
+        <span style="background:rgba(255,107,53,.1);color:var(--accent);border:1px solid rgba(255,107,53,.2);border-radius:5px;padding:2px 8px;font-size:10px;font-weight:700;margin-left:auto">${tpl.category}</span>
+      </div>
+      <span style="color:var(--text-dim);margin-left:10px;font-size:16px" id="tarr_${tpl.id}">▼</span>
+    </div>
+    <div class="msg-card-body" id="tbody_${tpl.id}">
+      <div style="font-size:11px;color:var(--text-dim);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px">Preview</div>
+      <div class="msg-text-box" id="tprev_${tpl.id}">${tpl.body}</div>
+      <div style="display:none;margin-bottom:12px" id="tedit_${tpl.id}">
+        <div style="font-size:11px;color:var(--text-dim);margin-bottom:6px;text-transform:uppercase;letter-spacing:1px">Edit Message</div>
+        <textarea class="msg-edit-area" id="tarea_${tpl.id}">${tpl.body}</textarea>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-secondary btn-sm" onclick="toggleTplEdit('${tpl.id}')">✏️ Customize</button>
+        <button class="btn btn-primary btn-sm" onclick="openSendModal('${tpl.id}')">📤 Send to Clients</button>
+        <button class="btn btn-success btn-sm" onclick="copyTpl('${tpl.id}')">📋 Copy</button>
+      </div>
+      <div class="send-history">
+        ${sendLog.filter(l=>l.templateId===tpl.id).slice(-5).reverse().map(l=>`
+        <div class="send-row">
+          <div class="send-client">${l.clientName}</div>
+          <div class="send-date">${new Date(l.sentAt).toLocaleDateString('en-IN')}</div>
+          <div class="send-channel">${l.channel||'WA'}</div>
+        </div>`).join('')}
+      </div>
+    </div>
+  </div>`;
+}
+
+function toggleTemplate(id){
+  const body=document.getElementById('tbody_'+id);
+  const arr=document.getElementById('tarr_'+id);
+  const open=body.classList.toggle('open');
+  if(arr)arr.style.transform=open?'rotate(180deg)':'';
+}
+
+function toggleTplEdit(id){
+  const prev=document.getElementById('tprev_'+id);
+  const edit=document.getElementById('tedit_'+id);
+  const isEdit=edit.style.display==='block';
+  edit.style.display=isEdit?'none':'block';
+  prev.style.display=isEdit?'block':'none';
+  if(!isEdit)document.getElementById('tarea_'+id).value=document.getElementById('tprev_'+id).textContent;
+}
+
+function copyTpl(id){
+  const el=document.getElementById('tarea_'+id)||document.getElementById('tprev_'+id);
+  copyToClip(el.value||el.textContent,'Message');
+}
+
+function filterNewsletter(cat,btn){
+  document.querySelectorAll('.msg-card[data-cat]').forEach(el=>{
+    el.style.display=(cat==='all'||el.dataset.cat===cat)?'':'none';
+  });
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+/* ════════════════════════════════════
+   SEND MODAL
+════════════════════════════════════ */
+function openSendModal(templateId){
+  const tpl=MSG_TEMPLATES.find(t=>t.id===templateId);if(!tpl)return;
+  document.getElementById('sendModalBody').innerHTML=renderSendModalBody(tpl);
+  document.getElementById('sendModal').classList.add('open');
+}
+
+function openSendToOne(clientId){
+  const c=clients.find(x=>x.id===clientId);if(!c)return;
+  document.getElementById('sendModalBody').innerHTML=renderSendOneBody(c);
+  document.getElementById('sendModal').classList.add('open');
+}
+
+function renderSendModalBody(tpl){
+  const editedBody=document.getElementById('tarea_'+tpl.id)?.value||tpl.body;
+  const activeClients=clients.filter(c=>c.type!=='inactive');
+  return `
+  <div style="margin-bottom:16px">
+    <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;margin-bottom:4px">${tpl.icon} ${tpl.name}</div>
+    <div style="font-size:12px;color:var(--text-muted)">${tpl.description}</div>
+  </div>
+
+  <div style="margin-bottom:14px">
+    <label style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--text-dim);margin-bottom:6px;display:block">Message Preview</label>
+    <div class="msg-text-box" style="max-height:150px;overflow-y:auto;font-size:11px">${editedBody}</div>
+  </div>
+
+  <div style="margin-bottom:14px">
+    <label style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--text-dim);margin-bottom:8px;display:block">Send To</label>
+    <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+      <button class="btn btn-secondary btn-sm" onclick="selectAllSend()">Select All</button>
+      <button class="btn btn-secondary btn-sm" onclick="selectNoneSend()">Deselect All</button>
+      <button class="btn btn-success btn-sm" onclick="selectVIPSend()">VIP Only</button>
+    </div>
+    <div style="max-height:220px;overflow-y:auto;display:flex;flex-direction:column;gap:6px" id="sendClientList">
+      ${activeClients.map(c=>`
+      <label style="display:flex;align-items:center;gap:10px;background:var(--bg-raised);border:1px solid var(--border);border-radius:8px;padding:9px 12px;cursor:pointer">
+        <input type="checkbox" class="send-check" value="${c.id}" data-type="${c.type}" style="accent-color:var(--accent);width:15px;height:15px"/>
+        <div style="flex:1">
+          <div style="font-size:12px;font-weight:600">${c.name}</div>
+          <div style="font-size:10px;color:var(--text-muted)">${c.biz||''} · ${c.phone||''}</div>
+        </div>
+        ${c.type==='vip'?'<span class="pill pill-vip">⭐</span>':''}
+        <span class="send-channel-badge" style="font-size:10px;padding:2px 7px;background:rgba(37,211,102,.1);color:#25D366;border:1px solid rgba(37,211,102,.25);border-radius:5px">WA</span>
+      </label>`).join('')}
+    </div>
+  </div>
+
+  <div style="margin-bottom:14px">
+    <label style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--text-dim);margin-bottom:6px;display:block">Note (optional)</label>
+    <input id="sendNote" placeholder="Internal note about this send..." style="width:100%;background:var(--bg-raised);border:1px solid var(--border);border-radius:9px;padding:9px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none"/>
+  </div>
+
+  <div style="display:flex;justify-content:flex-end;gap:10px">
+    <button class="btn btn-secondary" onclick="closeModal('sendModal')">Cancel</button>
+    <button class="btn btn-primary" onclick="executeSend('${tpl.id}','${tpl.name}')">📤 Send to Selected</button>
+  </div>`;
+}
+
+function renderSendOneBody(c){
+  return `
+  <div style="margin-bottom:16px;display:flex;align-items:center;gap:12px">
+    <div style="width:44px;height:44px;border-radius:11px;background:var(--grad);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:#fff">${initials(c.name)}</div>
+    <div><div style="font-size:15px;font-weight:700">${c.name}</div><div style="font-size:12px;color:var(--text-muted)">${c.biz||''} · ${c.phone||''}</div></div>
+  </div>
+  <div style="margin-bottom:14px">
+    <label style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--text-dim);margin-bottom:6px;display:block">Choose Template</label>
+    <select id="sendOneTpl" style="width:100%;background:var(--bg-raised);border:1px solid var(--border);border-radius:9px;padding:9px 12px;color:var(--text);font-size:13px;outline:none">
+      <option value="">— Select a template —</option>
+      ${MSG_TEMPLATES.map(t=>`<option value="${t.id}">${t.icon} ${t.name}</option>`).join('')}
+    </select>
+  </div>
+  <div style="margin-bottom:14px">
+    <label style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--text-dim);margin-bottom:6px;display:block">Custom Message (or type your own)</label>
+    <textarea id="sendOneMsg" style="width:100%;background:var(--bg-raised);border:1px solid var(--border);border-radius:9px;padding:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:12px;outline:none;resize:vertical;min-height:120px;line-height:1.6" placeholder="Type custom message or select template above..."></textarea>
+  </div>
+  <div style="display:flex;gap:10px;justify-content:flex-end">
+    <button class="btn btn-secondary" onclick="closeModal('sendModal')">Cancel</button>
+    <button class="btn btn-success btn-sm" onclick="previewSendOne('${c.id}')">👁 Preview on WA</button>
+    <button class="btn btn-primary" onclick="logAndSendOne('${c.id}','${c.name}')">📲 Open WhatsApp</button>
+  </div>`;
+}
+
+function loadTplIntoSendOne(){
+  const sel=document.getElementById('sendOneTpl');
+  if(!sel)return;
+  sel.onchange=function(){
+    const tpl=MSG_TEMPLATES.find(t=>t.id===this.value);
+    if(tpl&&document.getElementById('sendOneMsg'))document.getElementById('sendOneMsg').value=tpl.body;
+  };
+}
+
+function previewSendOne(cid){
+  const c=clients.find(x=>x.id===cid);if(!c)return;
+  const msg=(document.getElementById('sendOneMsg').value||'').replace(/\[Name\]/g,c.name).replace(/\[DOMAIN\]/g,c.domain||'').replace(/\[Business\]/g,c.biz||'');
+  const num=(c.wa||c.phone||'').replace(/[^0-9]/g,'');
+  window.open(`https://wa.me/91${num}?text=${encodeURIComponent(msg)}`,'_blank');
+}
+
+function logAndSendOne(cid,cname){
+  const c=clients.find(x=>x.id===cid);if(!c)return;
+  const tplSel=document.getElementById('sendOneTpl');
+  const tplId=tplSel?.value||'custom';
+  const tplName=MSG_TEMPLATES.find(t=>t.id===tplId)?.name||'Custom Message';
+  const msg=(document.getElementById('sendOneMsg')?.value||'').replace(/\[Name\]/g,c.name).replace(/\[DOMAIN\]/g,c.domain||'').replace(/\[Business\]/g,c.biz||'');
+  if(!msg.trim()){showToast('⚠️ Enter a message first!');return;}
+  const num=(c.wa||c.phone||'').replace(/[^0-9]/g,'');
+  sendLog.push({id:uid(),clientId:cid,clientName:cname,templateId:tplId,templateName:tplName,channel:'WhatsApp',sentAt:Date.now(),sentBy:window.PORTAL_USER?.name||'Admin',note:''});
+  saveData();
+  closeModal('sendModal');
+  window.open(`https://wa.me/91${num}?text=${encodeURIComponent(msg)}`,'_blank');
+  showToast(`✅ Message sent to ${cname} & logged!`);
+}
+
+function selectAllSend(){document.querySelectorAll('.send-check').forEach(cb=>cb.checked=true);}
+function selectNoneSend(){document.querySelectorAll('.send-check').forEach(cb=>cb.checked=false);}
+function selectVIPSend(){document.querySelectorAll('.send-check').forEach(cb=>{cb.checked=cb.dataset.type==='vip';});}
+
+function executeSend(tplId,tplName){
+  const tpl=MSG_TEMPLATES.find(t=>t.id===tplId);if(!tpl)return;
+  const msgBody=document.getElementById('tarea_'+tplId)?.value||tpl.body;
+  const note=document.getElementById('sendNote')?.value||'';
+  const selected=[...document.querySelectorAll('.send-check:checked')].map(cb=>cb.value);
+  if(!selected.length){showToast('⚠️ Select at least one client!');return;}
+
+  selected.forEach(cid=>{
+    const c=clients.find(x=>x.id===cid);if(!c)return;
+    sendLog.push({id:uid(),clientId:cid,clientName:c.name,templateId:tplId,templateName:tplName,channel:'WhatsApp',sentAt:Date.now(),sentBy:window.PORTAL_USER?.name||'Admin',note});
+  });
+  saveData();
+
+  // Open WA for each (with delay)
+  const selectedClients=selected.map(id=>clients.find(c=>c.id===id)).filter(Boolean);
+  if(selectedClients.length===1){
+    const c=selectedClients[0];
+    const num=(c.wa||c.phone||'').replace(/[^0-9]/g,'');
+    const msg=msgBody.replace(/\[Name\]/g,c.name).replace(/\[DOMAIN\]/g,c.domain||'').replace(/\[Business\]/g,c.biz||'');
+    window.open(`https://wa.me/91${num}?text=${encodeURIComponent(msg)}`,'_blank');
+  }else{
+    // Bulk: show confirmation
+    alert(`✅ Logged ${selected.length} messages!\n\nTo send WhatsApp manually:\n• Go to Send Log → click each client → WhatsApp link\n\nOR open Quick Replies and send one by one.`);
+  }
+  closeModal('sendModal');
+  showToast(`✅ Sent & logged to ${selected.length} client(s)!`);
+  renderSection(currentSection);
+}
+
+/* ════════════════════════════════════
+   QUICK REMINDER SENDER
+════════════════════════════════════ */
+function sendReminderQuick(clientId, type){
+  const c=clients.find(x=>x.id===clientId);if(!c)return;
+  const tplMap={
+    'Domain':MSG_TEMPLATES.find(t=>t.id==='t01'),
+    'Hosting':MSG_TEMPLATES.find(t=>t.id==='t03'),
+    'SSL Certificate':MSG_TEMPLATES.find(t=>t.id==='t10'),
+    'AMC Contract':MSG_TEMPLATES.find(t=>t.id==='t09'),
+    'general':MSG_TEMPLATES.find(t=>t.id==='t06'),
+  };
+  const tpl=tplMap[type]||tplMap['general'];
+  if(!tpl)return;
+  let msg=tpl.body.replace(/\[Name\]/g,c.name).replace(/\[DOMAIN\]/g,c.domain||'yourdomain.com').replace(/\[Business\]/g,c.biz||'').replace(/\[EXPIRY_DATE\]/g,fmtDate(c.domainExpiry||c.hostingExpiry||c.sslExpiry||'')).replace(/\[DAYS\]/g,daysUntil(c.domainExpiry||c.hostingExpiry||c.sslExpiry||'')?.toString()||'');
+  const num=(c.wa||c.phone||'').replace(/[^0-9]/g,'');
+  sendLog.push({id:uid(),clientId,clientName:c.name,templateId:tpl.id,templateName:tpl.name+' (Quick)',channel:'WhatsApp',sentAt:Date.now(),sentBy:window.PORTAL_USER?.name||'Admin',note:type+' reminder'});
+  saveData();
+  window.open(`https://wa.me/91${num}?text=${encodeURIComponent(msg)}`,'_blank');
+  showToast(`📲 WhatsApp opened for ${c.name}!`);
+}
+
+/* ════════════════════════════════════
+   SEND LOG
+════════════════════════════════════ */
+function renderSendLog(){
+  const sorted=[...sendLog].sort((a,b)=>b.sentAt-a.sentAt);
+  return `
+  <div class="page-eyebrow">📬 Communication Log</div>
+  <div class="page-title">Send Log</div>
+  <div class="page-sub">Every message sent, logged with timestamp, template, and channel</div>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+    <div style="font-size:12px;color:var(--text-muted)">${sorted.length} total messages tracked</div>
+    <button class="btn btn-danger btn-sm" onclick="clearSendLog()">🗑 Clear Log</button>
+  </div>
+  ${sorted.length?`
+  <div class="table-wrap">
+    <table>
+      <thead><tr>
+        <th>Date & Time</th><th>Client</th><th>Template Used</th><th>Channel</th><th>Sent By</th><th>Note</th><th>Action</th>
+      </tr></thead>
+      <tbody>
+        ${sorted.map(l=>`
+        <tr>
+          <td>${new Date(l.sentAt).toLocaleString('en-IN',{dateStyle:'medium',timeStyle:'short'})}</td>
+          <td>
+            <div class="td-main">${l.clientName}</div>
+          </td>
+          <td>${l.templateName}</td>
+          <td><span class="tbl-pill tbl-info">${l.channel||'WA'}</span></td>
+          <td style="color:var(--text-muted);font-size:11px">${l.sentBy||'Admin'}</td>
+          <td style="font-size:11px;color:var(--text-dim)">${l.note||'—'}</td>
+          <td>
+            ${(()=>{const c=clients.find(x=>x.id===l.clientId);const num=c?(c.wa||c.phone||'').replace(/[^0-9]/g,''):'';return num?`<a class="btn btn-success btn-sm" href="https://wa.me/91${num}" target="_blank">💬</a>`:'—';})()}
+          </td>
+        </tr>`).join('')}
+      </tbody>
+    </table>
+  </div>`:`<div class="empty"><div class="empty-icon">📭</div><p>No messages logged yet. Send templates from Newsletter page.</p></div>`}`;
+}
+
+function clearSendLog(){
+  if(!confirm('Clear all send log entries?'))return;
+  sendLog=[];saveData();
+  showToast('🗑 Send log cleared.');
+  renderSection('sendlog');
+}
+
+/* ════════════════════════════════════
+   TEMPLATES PAGE
+════════════════════════════════════ */
+function renderTemplates(){
+  return `
+  <div class="page-eyebrow">💬 Message Templates</div>
+  <div class="page-title">Quick Reply Library</div>
+  <div class="page-sub">All ${MSG_TEMPLATES.length} templates — click to expand, customize, and send</div>
+  <div id="templateList">
+    ${MSG_TEMPLATES.map(tpl=>renderTemplateCard(tpl)).join('')}
+  </div>`;
+}
+
+/* ════════════════════════════════════
+   ANALYTICS
+════════════════════════════════════ */
+function renderAnalytics(){
+  const total=clients.length;
+  const vip=clients.filter(c=>c.type==='vip').length;
+  const inactive=clients.filter(c=>c.type==='inactive').length;
+  const revenue=clients.reduce((a,c)=>a+(parseFloat(c.revenue)||0),0);
+  const svcMap={};clients.forEach(c=>{if(c.service)svcMap[c.service]=(svcMap[c.service]||0)+1;});
+  const srcMap={};clients.forEach(c=>{if(c.registrar)srcMap[c.registrar]=(srcMap[c.registrar]||0)+1;});
+  const alerts=getAllAlerts();
+  const monthMap={};
+  sendLog.forEach(l=>{
+    const m=new Date(l.sentAt).toLocaleDateString('en-IN',{month:'short',year:'numeric'});
+    monthMap[m]=(monthMap[m]||0)+1;
+  });
+  const tplMap={};
+  sendLog.forEach(l=>{tplMap[l.templateName]=(tplMap[l.templateName]||0)+1;});
+
+  const row=(l,v,c)=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px"><span style="color:var(--text-muted)">${l}</span><span style="font-weight:700;color:${c||'var(--text)'};">${v}</span></div>`;
+
+  return `
+  <div class="page-eyebrow">📈 Analytics</div>
+  <div class="page-title">Retention Analytics</div>
+  <div class="page-sub">Client health, renewal stats, and communication metrics</div>
+
+  <div class="stats-row">
+    <div class="stat-card"><div class="stat-label">Total Clients</div><div class="stat-value">${total}</div></div>
+    <div class="stat-card green"><div class="stat-label">Active</div><div class="stat-value" style="color:var(--success)">${total-inactive}</div></div>
+    <div class="stat-card purple"><div class="stat-label">VIP</div><div class="stat-value" style="color:var(--purple)">${vip}</div></div>
+    <div class="stat-card red"><div class="stat-label">Renewal Alerts</div><div class="stat-value" style="color:var(--danger)">${alerts.length}</div></div>
+    <div class="stat-card amber"><div class="stat-label">Revenue</div><div class="stat-value" style="color:var(--warning);font-size:18px">${fmtMoney(revenue)}</div></div>
+    <div class="stat-card blue"><div class="stat-label">Messages Sent</div><div class="stat-value" style="color:var(--info)">${sendLog.length}</div></div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px">
+    <div class="detail-section">
+      <div class="detail-section-title">🛠 Clients by Service</div>
+      ${Object.entries(svcMap).sort((a,b)=>b[1]-a[1]).map(([k,v])=>row(k,v)).join('')||'<div style="color:var(--text-dim);font-size:12px">No data</div>'}
+    </div>
+    <div class="detail-section">
+      <div class="detail-section-title">🌐 Domain Registrar Distribution</div>
+      ${Object.entries(srcMap).sort((a,b)=>b[1]-a[1]).map(([k,v])=>row(k,v)).join('')||'<div style="color:var(--text-dim);font-size:12px">No data</div>'}
+    </div>
+    <div class="detail-section">
+      <div class="detail-section-title">📧 Messages by Month</div>
+      ${Object.entries(monthMap).sort().reverse().slice(0,8).map(([m,v])=>row(m,v,v>10?'var(--success)':'var(--text)')).join('')||'<div style="color:var(--text-dim);font-size:12px">No messages sent yet</div>'}
+    </div>
+    <div class="detail-section">
+      <div class="detail-section-title">📋 Most Used Templates</div>
+      ${Object.entries(tplMap).sort((a,b)=>b[1]-a[1]).slice(0,8).map(([k,v])=>row(k,v)).join('')||'<div style="color:var(--text-dim);font-size:12px">No data</div>'}
+    </div>
+    <div class="detail-section" style="grid-column:1/-1">
+      <div class="detail-section-title">⏰ Renewal Calendar (Next 60 Days)</div>
+      ${alerts.length?alerts.map(a=>`
+      <div style="display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid var(--border)">
+        <div style="width:7px;height:7px;border-radius:50%;background:${a.cls==='danger'?'var(--danger)':'var(--warning)'};flex-shrink:0"></div>
+        <div style="flex:1"><div style="font-size:12px;font-weight:600">${a.clientName} — ${a.type}</div><div style="font-size:10px;color:var(--text-dim)">${fmtDate(a.date)}</div></div>
+        <div style="font-size:12px;font-weight:700;color:${a.cls==='danger'?'var(--danger)':'var(--warning)'}">${a.days<0?'EXPIRED':a.days+'d'}</div>
+        <button class="btn btn-primary btn-sm" onclick="sendReminderQuick('${a.clientId}','${a.type}')">📲</button>
+      </div>`).join(''):
+      `<div style="color:var(--text-dim);font-size:12px;text-align:center;padding:20px">🎉 No renewals in next 60 days!</div>`}
+    </div>
+  </div>`;
+}
+
+/* ════════════════════════════════════
+   TABLE / SHEET VIEW
+════════════════════════════════════ */
+let _ts='',_tsvc='';
+function renderTable(){
+  return `
+  <div class="page-eyebrow">📋 Sheet View</div>
+  <div class="page-title">All Clients — Table</div>
+  <div class="page-sub">Spreadsheet-style view of all client data</div>
+  <div class="toolbar">
+    <div class="search-wrap"><span class="search-icon">🔍</span><input placeholder="Search..." oninput="filterTable(this.value)" id="tblSearch"/></div>
+    <select class="fsel" onchange="filterTableSvc(this.value)"><option value="">All Services</option>
+      ${['Website Design & Development','Billing Software','Logo & Branding','Social Media Management','ERP / Management Portal','Landing Page'].map(s=>`<option>${s}</option>`).join('')}
+    </select>
+    <button class="btn btn-success btn-sm" onclick="exportData()" data-cap="export">⬇ Export</button>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr>
+        <th>Name</th><th>Business</th><th>Phone</th><th>Service</th><th>Domain</th>
+        <th>Domain Expiry</th><th>Hosting Expiry</th><th>Revenue</th><th>Type</th><th>Actions</th>
+      </tr></thead>
+      <tbody id="tblBody">${renderTableRows(clients)}</tbody>
+    </table>
+  </div>`;
+}
+function filterTable(v){_ts=v;const el=document.getElementById('tblBody');if(el)el.innerHTML=renderTableRows(clients);}
+function filterTableSvc(v){_tsvc=v;const el=document.getElementById('tblBody');if(el)el.innerHTML=renderTableRows(clients);}
+function renderTableRows(arr){
+  let r=[...arr];
+  if(_ts)r=r.filter(c=>(c.name+c.phone+c.biz+c.domain).toLowerCase().includes(_ts.toLowerCase()));
+  if(_tsvc)r=r.filter(c=>c.service===_tsvc);
+  if(!r.length)return`<tr><td colspan="10" style="text-align:center;padding:30px;color:var(--text-dim)">No clients found</td></tr>`;
+  return r.map(c=>{
+    const dSt=c.domainExpiry?getExpiryStatus(c.domainExpiry):null;
+    const hSt=c.hostingExpiry?getExpiryStatus(c.hostingExpiry):null;
+    return`<tr>
+      <td><div class="td-main">${c.name}</div></td>
+      <td>${c.biz||'—'}</td>
+      <td>${c.phone||'—'}</td>
+      <td>${c.service||'—'}</td>
+      <td>${c.domain||'—'}</td>
+      <td>${dSt?`<span class="tbl-pill tbl-${dSt.cls}">${fmtDate(c.domainExpiry)} (${dSt.label})</span>`:fmtDate(c.domainExpiry)||'—'}</td>
+      <td>${hSt?`<span class="tbl-pill tbl-${hSt.cls}">${fmtDate(c.hostingExpiry)} (${hSt.label})</span>`:fmtDate(c.hostingExpiry)||'—'}</td>
+      <td style="color:var(--gold);font-weight:600">${fmtMoney(c.revenue)}</td>
+      <td>${c.type==='vip'?'<span class="tbl-pill" style="background:rgba(255,179,71,.12);color:var(--gold)">⭐ VIP</span>':c.type==='inactive'?'<span class="tbl-pill tbl-info">💤 Inactive</span>':'<span class="tbl-pill tbl-safe">Active</span>'}</td>
+      <td onclick="event.stopPropagation()"><div style="display:flex;gap:5px">
+        <button class="btn btn-secondary btn-sm" onclick="openClientDetail('${c.id}')">👁</button>
+        <button class="btn btn-secondary btn-sm" onclick="editClient('${c.id}')">✏️</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteClient('${c.id}')">🗑</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+
+/* ════════════════════════════════════
+   TEAM PAGE
+════════════════════════════════════ */
+function renderTeam(){
+  if(!window.PORTAL_USER?.isOwner){
+    return`<div class="empty"><div class="empty-icon">🔒</div><p>Only the owner can manage team members.</p></div>`;
+  }
+  const members=getMembers();
+  return`
+  <div class="page-eyebrow">🧑‍💻 Team</div>
+  <div class="page-title">Team & Access Management</div>
+  <div class="page-sub">Add members, set permissions, enable cross-device login via Firestore</div>
+
+  <div style="background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.2);border-radius:12px;padding:16px 18px;margin-bottom:20px">
+    <div style="font-size:12px;font-weight:700;color:var(--warning);margin-bottom:6px">⚡ Cross-Device Login via Firestore</div>
+    <div style="font-size:12px;color:var(--text-muted);line-height:1.8">Members added here are synced to Firebase instantly. Any team member can login from any device — no file sharing needed. Suspending a member revokes access on all devices within seconds.</div>
+  </div>
+
+  <div style="display:flex;justify-content:flex-end;margin-bottom:16px">
+    <button class="btn btn-primary" onclick="openTeamModal()">＋ Add Member</button>
+  </div>
+
+  <!-- OWNER CARD -->
+  <div style="background:rgba(255,107,53,.05);border:1px solid rgba(255,107,53,.25);border-radius:12px;padding:16px 18px;margin-bottom:10px;display:flex;align-items:center;gap:14px">
+    <div style="width:44px;height:44px;border-radius:11px;background:var(--grad);display:flex;align-items:center;justify-content:center;font-size:18px">👑</div>
+    <div style="flex:1">
+      <div style="font-size:14px;font-weight:700">Raunak (Owner)</div>
+      <div style="font-size:11px;color:var(--accent);margin-top:2px">Full Access · All Permissions · Cannot be removed</div>
+    </div>
+    <span class="pill pill-active">Active</span>
+  </div>
+
+  ${members.map((m,i)=>`
+  <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin-bottom:10px;display:flex;align-items:flex-start;gap:14px;flex-wrap:wrap">
+    <div style="width:44px;height:44px;border-radius:11px;background:linear-gradient(135deg,#3B82F6,#7B5EA7);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:#fff;flex-shrink:0">${initials(m.name)}</div>
+    <div style="flex:1;min-width:200px">
+      <div style="font-size:14px;font-weight:700">${m.name}</div>
+      <div style="font-size:11px;color:var(--accent);margin-top:2px">${m.role||'Team Member'}</div>
+      <div style="font-size:11px;color:var(--text-muted);margin-top:4px">${m.email||''} ${m.wa?'· WA: '+m.wa:''} · Added: ${m.addedAt||'—'}</div>
+      <div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:5px">
+        ${(m.permissions||[]).map(p=>`<span style="background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);color:var(--success);font-size:10px;font-weight:600;padding:2px 8px;border-radius:5px">${p}</span>`).join('')}
+        ${!(m.permissions||[]).length?'<span style="font-size:11px;color:var(--text-dim)">No permissions</span>':''}
+      </div>
+      <div style="margin-top:6px">
+        <span class="${m.status==='active'?'pill pill-active':'pill pill-inactive'}">${m.status==='active'?'✅ Active':'⛔ Suspended'}</span>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:6px">
+      <button class="btn btn-secondary btn-sm" onclick="openTeamModal('${m.id}')">✏️ Edit</button>
+      <button class="btn btn-sm ${m.status==='active'?'btn-warning':'btn-success'}" onclick="toggleMemberStatus('${m.id}')">${m.status==='active'?'⛔ Suspend':'✅ Activate'}</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteMember('${m.id}')">🗑 Remove</button>
+    </div>
+  </div>`).join('')||`<div class="empty"><div class="empty-icon">👥</div><p>No team members yet. Add your first!</p></div>`}`;
+}
+
+let editMemberId=null;
+function openTeamModal(id){
+  editMemberId=id||null;
+  document.getElementById('teamModalTitle').textContent=id?'Edit Member':'Add Team Member';
+  if(id){
+    const m=getMembers().find(x=>x.id===id);if(!m)return;
+    document.getElementById('tm_name').value=m.name||'';
+    document.getElementById('tm_role').value=m.role||'';
+    document.getElementById('tm_email').value=m.email||'';
+    document.getElementById('tm_wa').value=m.wa||'';
+    document.getElementById('tm_pwd').value=m.password||'';
+    document.getElementById('tm_editId').value=id;
+    ['view','edit','vault','send','export'].forEach(p=>{const el=document.getElementById('tp_'+p);if(el)el.checked=(m.permissions||[]).includes(p);});
+  }else{
+    ['tm_name','tm_role','tm_email','tm_wa','tm_pwd'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+    document.getElementById('tm_editId').value='';
+    ['view','edit','vault','send','export'].forEach(p=>{const el=document.getElementById('tp_'+p);if(el)el.checked=false;});
+  }
+  document.getElementById('teamMemberModal').classList.add('open');
+}
+
+async function saveTeamMember(){
+  const name=document.getElementById('tm_name').value.trim();
+  const pwd=document.getElementById('tm_pwd').value.trim();
+  if(!name){alert('Name required!');return;}
+  if(!pwd||pwd.length<6){alert('Password must be at least 6 characters!');return;}
+  if(pwd==='RAUNAK@1'){alert('Cannot use owner password!');return;}
+  const perms=['view','edit','vault','send','export'].filter(p=>document.getElementById('tp_'+p)?.checked);
+  const members=getMembers();
+  const editId=document.getElementById('tm_editId').value;
+  if(!editId){
+    if(members.find(m=>m.password===pwd)){alert('Password already in use!');return;}
+    members.push({id:'mem_'+Date.now(),name,role:document.getElementById('tm_role').value.trim(),email:document.getElementById('tm_email').value.trim(),wa:document.getElementById('tm_wa').value.trim(),password:pwd,permissions:perms,status:'active',addedAt:new Date().toLocaleDateString('en-IN')});
+  }else{
+    const idx=members.findIndex(m=>m.id===editId);
+    if(idx>=0)members[idx]={...members[idx],name,role:document.getElementById('tm_role').value.trim(),email:document.getElementById('tm_email').value.trim(),wa:document.getElementById('tm_wa').value.trim(),password:pwd,permissions:perms};
+  }
+  await saveMembers(members);
+  closeModal('teamMemberModal');
+  showToast('✅ Team member saved & synced!');
+  renderSection('team');
+}
+
+async function toggleMemberStatus(id){
+  const members=getMembers();
+  const m=members.find(x=>x.id===id);if(!m)return;
+  m.status=m.status==='active'?'suspended':'active';
+  await saveMembers(members);
+  showToast(m.status==='active'?'✅ Member activated!':'⛔ Member suspended!');
+  renderSection('team');
+}
+
+async function deleteMember(id){
+  if(!confirm('Remove this member? They lose access immediately.'))return;
+  const members=getMembers().filter(m=>m.id!==id);
+  try{await getDb().collection('team').doc(id).delete();}catch{}
+  await saveMembers(members);
+  showToast('🗑 Member removed from all devices.');
+  renderSection('team');
+}
+
+/* ════════════════════════════════════
+   EXPORT / IMPORT
+════════════════════════════════════ */
+function exportData(){
+  if(!has('export')){showToast('⛔ No export permission.');return;}
+  const data={clients,sendLog,exportedAt:new Date().toISOString(),exportedBy:window.PORTAL_USER?.name||'Admin'};
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='sparkedge-retention-'+(new Date().toISOString().slice(0,10))+'.json';
+  a.click();
+  showToast('✅ Data exported!');
+}
+
+function openImportModal(){
+  if(!has('export')){showToast('⛔ No import permission.');return;}
+  document.getElementById('importModal').classList.add('open');
+}
+
+function importData(){
+  const raw=document.getElementById('importText').value.trim();
+  if(!raw){alert('Paste JSON data!');return;}
+  try{
+    const data=JSON.parse(raw);
+    let added=0,updated=0;
+    const importedClients=Array.isArray(data)?data:(data.clients||[]);
+    const importedLog=Array.isArray(data)?[]:(data.sendLog||[]);
+    importedClients.forEach(ic=>{
+      const idx=clients.findIndex(c=>c.id===ic.id);
+      if(idx>=0){clients[idx]={...clients[idx],...ic};updated++;}
+      else{clients.push(ic);added++;}
+    });
+    importedLog.forEach(il=>{if(!sendLog.find(l=>l.id===il.id))sendLog.push(il);});
+    saveData();
+    closeModal('importModal');
+    showToast(`✅ Imported: ${added} new, ${updated} updated.`);
+    renderSection(currentSection);
+  }catch(e){alert('Error: '+e.message);}
+}
+
+/* ════════════════════════════════════
+   UTILS
+════════════════════════════════════ */
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+function showToast(msg,dur=2800){const t=document.getElementById('toast');t.textContent=msg;t.style.display='block';setTimeout(()=>t.style.display='none',dur);}
+
+// Close modals on outside click
+document.querySelectorAll('.modal-overlay').forEach(el=>{
+  el.addEventListener('click',function(e){if(e.target===this)this.classList.remove('open');});
+});
+
+// Init
+loadData();
+updateSidebarBadges();
+</script>
+
+</body>
+</html>
