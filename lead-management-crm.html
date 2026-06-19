@@ -438,6 +438,67 @@ footer .footer-copy{font-size:11px;color:var(--text-dim)}
   .pipeline-wrap{grid-template-columns:1fr}
   .btn-add span,.btn-dl span{display:none}
 }
+
+/* scroll bar */
+/* ══════════ PREMIUM SCROLLBAR — THEME MATCHED ══════════ */
+
+/* Firefox */
+*{
+  scrollbar-width: thin;
+  scrollbar-color: #FF6B35 rgba(255,255,255,.04);
+}
+
+/* Chrome / Edge / Safari — global */
+::-webkit-scrollbar{
+  width: 9px;
+  height: 9px;
+}
+::-webkit-scrollbar-track{
+  background: rgba(255,255,255,.03);
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb{
+  background: linear-gradient(180deg, #FF6B35, #FF3CAC);
+  border-radius: 10px;
+  border: 2px solid var(--bg);
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover{
+  background: linear-gradient(180deg, #FF8255, #FF5CC0);
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-corner{
+  background: transparent;
+}
+
+/* Sidebar — slightly slimmer + glowing thumb on hover */
+.sidebar::-webkit-scrollbar{
+  width: 6px;
+}
+.sidebar::-webkit-scrollbar-track{
+  background: transparent;
+}
+.sidebar::-webkit-scrollbar-thumb{
+  background: linear-gradient(180deg, rgba(255,107,53,.55), rgba(255,60,172,.55));
+  border-radius: 10px;
+  border: none;
+}
+.sidebar::-webkit-scrollbar-thumb:hover{
+  background: linear-gradient(180deg, #FF6B35, #FF3CAC);
+  box-shadow: 0 0 8px rgba(255,107,53,.5);
+}
+.sidebar{
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,107,53,.55) transparent;
+}
+
+/* Table-wrap and modal scroll areas — match too */
+.table-wrap::-webkit-scrollbar,
+.modal::-webkit-scrollbar,
+.pipeline-wrap::-webkit-scrollbar{
+  height: 8px;
+  width: 8px;
+}
 </style>
 </head>
 <body>
