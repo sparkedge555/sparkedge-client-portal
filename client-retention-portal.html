@@ -769,7 +769,8 @@ async function saveMembers(arr){
         updateUserUI();
         applyCaps();
         attachTeamListener();
-        syncClientsFromFirestore();
+        attachClientListener();
+        attachSendLogListener();
         renderSection('dashboard');
       },50);
     }
@@ -813,7 +814,8 @@ function unlockPortal(){
   s.style.opacity='0';s.style.transition='opacity .3s';
   setTimeout(()=>{s.style.display='none';document.getElementById('app').style.display='block';},300);
   updateUserUI();applyCaps();attachTeamListener();
-  syncClientsFromFirestore();
+ attachClientListener();
+ attachSendLogListener();
   renderSection('dashboard');
 }
 
@@ -867,6 +869,29 @@ function saveData(){
   updateSidebarBadges();
 }
 loadData();
+
+window._sendLogListenerAttached = false;
+function attachSendLogListener(){
+  if(window._sendLogListenerAttached) return;
+  window._sendLogListenerAttached = true;
+  try{
+    getDb().collection('ret_sendlog').onSnapshot(snap=>{
+      const fsLog=[];
+      snap.forEach(d=>fsLog.push({id:d.id,...d.data()}));
+      fsLog.forEach(fl=>{
+        if(!sendLog.find(l=>l.id===fl.id)) sendLog.push(fl);
+      });
+      localStorage.setItem(SEND_LOG_KEY, JSON.stringify(sendLog));
+      updateSidebarBadges();
+      if(['sendlog','newsletter','dashboard'].includes(currentSection)) renderSection(currentSection);
+    }, err=>console.warn('SendLog listener:', err.message));
+  }catch(e){console.warn('Could not attach sendlog listener:', e.message);}
+}
+
+async function pushSendLogToFirestore(entry){
+  try{ await getDb().collection('ret_sendlog').doc(entry.id).set(entry); }
+  catch(e){ console.warn('SendLog Firestore push:', e.message); }
+}
 
 window._clientListenerAttached = false;
 function attachClientListener(){
@@ -2020,8 +2045,10 @@ function logAndSendOne(cid,cname){
   const msg=(document.getElementById('sendOneMsg')?.value||'').replace(/\[Name\]/g,c.name).replace(/\[DOMAIN\]/g,c.domain||'').replace(/\[Business\]/g,c.biz||'');
   if(!msg.trim()){showToast('⚠️ Enter a message first!');return;}
   const num=(c.wa||c.phone||'').replace(/[^0-9]/g,'');
-  sendLog.push({id:uid(),clientId:cid,clientName:cname,templateId:tplId,templateName:tplName,channel:'WhatsApp',sentAt:Date.now(),sentBy:window.PORTAL_USER?.name||'Admin',note:''});
-  saveData();
+  const _entry2={id:uid(),clientId:cid,clientName:cname,templateId:tplId,templateName:tplName,channel:'WhatsApp',sentAt:Date.now(),sentBy:window.PORTAL_USER?.name||'Admin',note:''};
+sendLog.push(_entry2);
+saveData();
+pushSendLogToFirestore(_entry2);
   closeModal('sendModal');
   window.open(`https://wa.me/91${num}?text=${encodeURIComponent(msg)}`,'_blank');
   showToast(`✅ Message sent to ${cname} & logged!`);
@@ -2038,11 +2065,13 @@ function executeSend(tplId,tplName){
   const selected=[...document.querySelectorAll('.send-check:checked')].map(cb=>cb.value);
   if(!selected.length){showToast('⚠️ Select at least one client!');return;}
 
-  selected.forEach(cid=>{
-    const c=clients.find(x=>x.id===cid);if(!c)return;
-    sendLog.push({id:uid(),clientId:cid,clientName:c.name,templateId:tplId,templateName:tplName,channel:'WhatsApp',sentAt:Date.now(),sentBy:window.PORTAL_USER?.name||'Admin',note});
-  });
-  saveData();
+ selected.forEach(cid=>{
+  const c=clients.find(x=>x.id===cid);if(!c)return;
+  const _entry3={id:uid(),clientId:cid,clientName:c.name,templateId:tplId,templateName:tplName,channel:'WhatsApp',sentAt:Date.now(),sentBy:window.PORTAL_USER?.name||'Admin',note};
+  sendLog.push(_entry3);
+  pushSendLogToFirestore(_entry3);
+});
+saveData();
 
   // Open WA for each (with delay)
   const selectedClients=selected.map(id=>clients.find(c=>c.id===id)).filter(Boolean);
@@ -2076,8 +2105,10 @@ function sendReminderQuick(clientId, type){
   if(!tpl)return;
   let msg=tpl.body.replace(/\[Name\]/g,c.name).replace(/\[DOMAIN\]/g,c.domain||'yourdomain.com').replace(/\[Business\]/g,c.biz||'').replace(/\[EXPIRY_DATE\]/g,fmtDate(c.domainExpiry||c.hostingExpiry||c.sslExpiry||'')).replace(/\[DAYS\]/g,daysUntil(c.domainExpiry||c.hostingExpiry||c.sslExpiry||'')?.toString()||'');
   const num=(c.wa||c.phone||'').replace(/[^0-9]/g,'');
-  sendLog.push({id:uid(),clientId,clientName:c.name,templateId:tpl.id,templateName:tpl.name+' (Quick)',channel:'WhatsApp',sentAt:Date.now(),sentBy:window.PORTAL_USER?.name||'Admin',note:type+' reminder'});
-  saveData();
+ const _entry1={id:uid(),clientId,clientName:c.name,templateId:tpl.id,templateName:tpl.name+' (Quick)',channel:'WhatsApp',sentAt:Date.now(),sentBy:window.PORTAL_USER?.name||'Admin',note:type+' reminder'};
+sendLog.push(_entry1);
+saveData();
+pushSendLogToFirestore(_entry1);
   window.open(`https://wa.me/91${num}?text=${encodeURIComponent(msg)}`,'_blank');
   showToast(`📲 WhatsApp opened for ${c.name}!`);
 }
@@ -2121,11 +2152,17 @@ function renderSendLog(){
   </div>`:`<div class="empty"><div class="empty-icon">📭</div><p>No messages logged yet. Send templates from Newsletter page.</p></div>`}`;
 }
 
-function clearSendLog(){
-  if(!confirm('Clear all send log entries?'))return;
+async function clearSendLog(){
+  if(!confirm('Clear all send log entries? This deletes from Firestore on ALL devices.'))return;
+  const old=[...sendLog];
   sendLog=[];saveData();
   showToast('🗑 Send log cleared.');
   renderSection('sendlog');
+  try{
+    const db=getDb();const batch=db.batch();
+    old.forEach(l=>batch.delete(db.collection('ret_sendlog').doc(l.id)));
+    await batch.commit();
+  }catch(e){console.warn('Firestore sendlog clear failed:', e.message);}
 }
 
 /* ════════════════════════════════════
