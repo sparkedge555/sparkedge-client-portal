@@ -528,7 +528,7 @@ function unlockUI(){
   document.getElementById('sbTeamMgmtLink').style.display=isOwner?'flex':'none';
   const addBtn=document.getElementById('addPayBtn');
   if(addBtn){
-    const canAdd=isOwner||has('add_payment')||has('viewall')||has('addpay');
+   const canAdd=isOwner||has('viewall')||has('addpay');
     addBtn.style.display=canAdd?'inline-flex':'none';
   }
   const logoutBtn=document.getElementById('sbLogoutBtn');
@@ -583,7 +583,8 @@ function renderSection(s){
 function renderDashboard(){
   const ledger=getLedger();
   const isOwner=window.PORTAL_USER.isOwner;
-  const visible=isOwner?ledger:ledger.filter(l=>l.earnerId===window.PORTAL_USER.memberId);
+  const canViewAll=isOwner||has('viewall');
+  const visible=canViewAll?ledger:ledger.filter(l=>l.earnerId===window.PORTAL_USER.memberId);
 
   const totalPaid=visible.filter(l=>l.status==='paid').reduce((a,l)=>a+Number(l.amount||0),0);
   const totalPending=visible.filter(l=>l.status==='pending').reduce((a,l)=>a+Number(l.amount||0),0);
@@ -591,7 +592,7 @@ function renderDashboard(){
   const salPaid=visible.filter(l=>l.status==='paid'&&l.type==='salary').reduce((a,l)=>a+Number(l.amount||0),0);
 
   let ownerExtra='';
-  if(isOwner){
+  if(canViewAll){
     const teamTotal=ledger.filter(l=>l.earnerType==='team').reduce((a,l)=>a+Number(l.amount||0),0);
     const partnerTotal=ledger.filter(l=>l.earnerType==='partner').reduce((a,l)=>a+Number(l.amount||0),0);
     const byMember={};
@@ -649,8 +650,9 @@ function ledgerRowHTML(l,showWho){
 let _lf='',_lstatus='',_ltype='',_lwho='';
 function renderLedger(){
   const isOwner=window.PORTAL_USER.isOwner;
-  const all=isOwner?getLedger():getLedger().filter(l=>l.earnerId===window.PORTAL_USER.memberId);
-  return `
+  const canViewAll=isOwner||has('viewall');
+  const all=canViewAll?getLedger():getLedger().filter(l=>l.earnerId===window.PORTAL_USER.memberId);
+   return `
   <div class="page-eyebrow">📒 Payment Ledger</div>
   <div class="page-title">All Payment Records</div>
   <div class="page-sub">${isOwner?'Every commission, salary & bonus entry — team and partners':'Your own payment history'}</div>
@@ -668,15 +670,16 @@ function renderLedger(){
 }
 function refreshLedgerTable(){
   const isOwner=window.PORTAL_USER.isOwner;
-  const all=isOwner?getLedger():getLedger().filter(l=>l.earnerId===window.PORTAL_USER.memberId);
-  document.getElementById('ledgerTableWrap').innerHTML=renderLedgerTable(all);
+  const canViewAll=isOwner||has('viewall');
+  const all=canViewAll?getLedger():getLedger().filter(l=>l.earnerId===window.PORTAL_USER.memberId);
+    document.getElementById('ledgerTableWrap').innerHTML=renderLedgerTable(all);
 }
 function renderLedgerTable(arr){
   let r=[...arr];
   if(_lf)r=r.filter(l=>((l.ticketId||'')+(l.clientName||'')+(l.earnerName||'')).toLowerCase().includes(_lf.toLowerCase()));
   if(_lstatus)r=r.filter(l=>l.status===_lstatus);
   if(_ltype)r=r.filter(l=>l.type===_ltype);
-  const isOwner=window.PORTAL_USER.isOwner;
+  const isOwner=window.PORTAL_USER.isOwner||has('viewall');
   if(!r.length)return `<div class="empty"><div class="empty-icon">📭</div><p>No entries match.</p></div>`;
   return `<div class="table-wrap"><table><thead><tr>
     <th>Date</th>${isOwner?'<th>Person</th><th>Type</th>':'<th>Type</th>'}<th>Ticket</th><th>Client</th><th>Amount</th><th>Status</th><th>Note</th><th>Actions</th>
@@ -1148,8 +1151,25 @@ function openLedgerModal(id){
 }
 function onEarnerTypeChange(){populateEarnerSelect();}
 function populateEarnerSelect(){
-  const type=document.getElementById('lf_earnerType').value;
+  const isOwner=window.PORTAL_USER.isOwner;
+  const canPickAnyone=isOwner||has('viewall');
+  const typeSel=document.getElementById('lf_earnerType');
   const sel=document.getElementById('lf_earnerId');
+  const statusSel=document.getElementById('lf_status');
+
+  if(!canPickAnyone){
+    // addpay-only member -> locked to self, status locked to Pending
+    typeSel.value='team';
+    typeSel.disabled=true;
+    const me=getMembers().find(m=>m.id===window.PORTAL_USER.memberId);
+    sel.innerHTML=me?`<option value="${me.id}" data-name="${me.name}">${me.name} (You)</option>`:'<option value="">—</option>';
+    sel.disabled=true;
+    statusSel.value='pending';
+    statusSel.disabled=true;
+    return;
+  }
+  typeSel.disabled=false;sel.disabled=false;statusSel.disabled=false;
+  const type=typeSel.value;
   const list=type==='team'?getMembers():getPartners();
   sel.innerHTML=list.map(x=>`<option value="${x.id}" data-name="${x.name}">${x.name}</option>`).join('')||'<option value="">No one added yet</option>';
 }
