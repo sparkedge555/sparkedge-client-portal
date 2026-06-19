@@ -101,6 +101,66 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .sidebar-footer{padding:14px 12px;border-top:1px solid var(--border);}
 .sidebar-footer a{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-muted);text-decoration:none;padding:7px 10px;border-radius:8px;transition:color .15s;}
 .sidebar-footer a:hover{color:var(--text);}
+.sb-credit{
+  text-align:center;
+  font-size:8.5px;
+  color:rgba(122,122,154,.3);
+  padding:8px 10px 2px;
+  letter-spacing:.3px;
+  font-weight:500;
+}
+.sb-credit strong{
+  color:rgba(255,107,53,.4);
+  font-weight:600;
+}
+.admin-login-credit{
+  margin-top:18px;
+  padding-top:14px;
+  border-top:1px solid var(--border);
+  font-size:9px;
+  color:rgba(122,122,154,.3);
+  letter-spacing:.3px;
+  font-weight:500;
+}
+.admin-login-credit strong{
+  color:rgba(255,107,53,.4);
+  font-weight:600;
+}
+.app-footer{
+  padding:18px 28px;
+  border-top:1px solid var(--border);
+  text-align:center;
+  margin-top:8px;
+}
+.app-footer .af-links{
+  display:flex;
+  justify-content:center;
+  gap:16px;
+  margin-bottom:8px;
+  flex-wrap:wrap;
+}
+.app-footer a{
+  color:var(--text-muted);
+  text-decoration:none;
+  font-size:12px;
+  transition:color .15s;
+}
+.app-footer a:hover{ color:var(--accent); }
+.app-footer .af-copy{
+  font-size:11px;
+  color:var(--text-dim);
+}
+.app-footer .af-credit{
+  font-size:9px;
+  color:rgba(122,122,154,.3);
+  margin-top:6px;
+  letter-spacing:.3px;
+  font-weight:500;
+}
+.app-footer .af-credit strong{
+  color:rgba(255,107,53,.4);
+  font-weight:600;
+}
 
 /* ── MAIN AREA ── */
 .main{margin-left:220px;min-height:100vh;display:flex;flex-direction:column;}
@@ -512,10 +572,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
     </div>
     <div class="admin-login-error" id="adminPwdError">⚠ Incorrect password. Please try again.</div>
     <button class="admin-login-btn" onclick="checkAdminPwd()">
-      Unlock Admin Panel →
-    </button>
-    <div class="admin-lock-icon">🔒 SparkEdge Internal Workspace</div>
-  </div>
+  Unlock Admin Panel →
+</button>
+<div class="admin-lock-icon">🔒 SparkEdge Internal Workspace</div>
+<div class="admin-login-credit">Owned by <strong>Raunak Karn</strong></div>
 </div>
 
 <script>
@@ -850,10 +910,12 @@ function toggleSidebar(){
       <span class="nav-item-icon icon icon-md"><i data-lucide="globe"></i></span> Client Portal ↗
     </button>
   </nav>
-  <div class="sidebar-footer">
-    <a href="mailto:sparkedge555@gmail.com">✉ sparkedge555@gmail.com</a>
-    <button id="memberLogoutBtn" onclick="adminLogout()" style="display:none;width:100%;margin-top:8px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);border-radius:8px;padding:8px 12px;font-size:12px;font-weight:600;color:#EF4444;cursor:pointer;text-align:left;"><i data-lucide="log-out" style="width:14px;height:14px;"></i> Log Out</button>
-  </div>
+<div class="sidebar-footer">
+  <a href="mailto:sparkedge555@gmail.com">✉ sparkedge555@gmail.com</a>
+  <a href="tel:+919142450715">📞 +91 91424 50715</a>
+  <button id="memberLogoutBtn" onclick="adminLogout()" style="display:none;width:100%;margin-top:8px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);border-radius:8px;padding:8px 12px;font-size:12px;font-weight:600;color:#EF4444;cursor:pointer;text-align:left;"><i data-lucide="log-out" style="width:14px;height:14px;"></i> Log Out</button>
+  <div class="sb-credit">Owned by <strong>Raunak Karn</strong></div>
+</div>
 </aside>
 
 <!-- ══════════ MAIN ══════════ -->
@@ -2013,7 +2075,23 @@ function toggleSidebar(){
     </div>
   </div>
 
+
+
+
+<div class="app-footer">
+    <div class="af-links">
+      <a href="mailto:sparkedge555@gmail.com">sparkedge555@gmail.com</a>
+      <a href="tel:+919142450715">+91 91424 50715</a>
+      <a href="https://wa.me/919142450715" target="_blank">WhatsApp</a>
+      <a onclick="exportData()" style="cursor:pointer;color:var(--green)">⬇ Export Data</a>
+      <a onclick="showPage('workflow')" style="cursor:pointer;color:var(--accent)">🗺 Workflow Guide</a>
+      <a onclick="showPage('guide')" style="cursor:pointer;color:#3B82F6">📘 System Guide</a>
+    </div>
+    <div class="af-copy">© 2026 SparkEdge · Admin Panel · Synced live via Firestore</div>
+    <div class="af-credit">Built &amp; maintained by <strong>Raunak Karn</strong></div>
+  </div>
 </div>
+
 
 <!-- ══════════ MODAL: DELETE TICKET ══════════ -->
 <div class="modal-overlay" id="deleteModal">
