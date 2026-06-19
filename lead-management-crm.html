@@ -426,6 +426,17 @@ footer .footer-links{display:flex;justify-content:center;gap:16px;margin-bottom:
 footer a{color:var(--text-muted);text-decoration:none;font-size:12px;transition:.2s}
 footer a:hover{color:var(--accent)}
 footer .footer-copy{font-size:11px;color:var(--text-dim)}
+footer .footer-credit{
+  font-size:9px;
+  color:rgba(136,136,168,.32);
+  margin-top:6px;
+  letter-spacing:.3px;
+  font-weight:500;
+}
+footer .footer-credit strong{
+  color:rgba(255,107,53,.4);
+  font-weight:600;
+}
 
 /* TOAST */
 #toast{position:fixed;bottom:24px;right:24px;background:var(--bg-card);border:1px solid rgba(46,204,113,.4);color:var(--success);border-radius:12px;padding:12px 20px;font-size:13px;font-weight:600;z-index:9999;display:none;box-shadow:0 8px 30px rgba(0,0,0,.4)}
@@ -627,7 +638,8 @@ footer .footer-copy{font-size:11px;color:var(--text-dim)}
     <a onclick="navTo('quickreplies')" style="cursor:pointer;color:var(--accent)">💬 Quick Replies</a>
     <a onclick="navTo('workflow')" style="cursor:pointer;color:var(--info)">🗺 Workflow Guide</a>
   </div>
-  <div class="footer-copy">© 2026 SparkEdge · Lead Management CRM · All data stored locally in your browser</div>
+  <div class="footer-copy">© 2026 SparkEdge · Lead Management CRM · Synced live via Firestore</div>
+  <div class="footer-credit">Built &amp; maintained by <strong>Raunak Karn</strong></div>
 </footer>
 
 </div><!-- /app -->

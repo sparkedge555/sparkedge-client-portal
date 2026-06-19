@@ -109,6 +109,46 @@ nav{position:sticky;top:0;z-index:200;background:rgba(10,10,15,.95);backdrop-fil
 .main-area{margin-left:230px;min-height:calc(100vh - 60px);transition:margin-left .3s}
 .container{max-width:1400px;margin:0 auto;padding:24px 20px}
 
+/* ══ FOOTER ══ */
+footer{
+  border-top:1px solid var(--border);
+  padding:22px 20px;
+  text-align:center;
+  margin-left:230px;
+  transition:margin-left .3s;
+}
+@media(max-width:900px){ footer{ margin-left:0; } }
+footer .footer-links{
+  display:flex;
+  justify-content:center;
+  gap:16px;
+  margin-bottom:9px;
+  flex-wrap:wrap;
+}
+footer a{
+  color:var(--text-muted);
+  text-decoration:none;
+  font-size:12px;
+  transition:.2s;
+  cursor:pointer;
+}
+footer a:hover{ color:var(--accent); }
+footer .footer-copy{
+  font-size:11px;
+  color:var(--text-dim);
+}
+footer .footer-credit{
+  font-size:9px;
+  color:rgba(136,136,168,.32);
+  margin-top:6px;
+  letter-spacing:.3px;
+  font-weight:500;
+}
+footer .footer-credit strong{
+  color:rgba(255,107,53,.4);
+  font-weight:600;
+}
+
 /* ══ STAT CARDS ══ */
 .stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:24px}
 .stat-card{background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:18px;position:relative;overflow:hidden}
@@ -409,6 +449,20 @@ tbody td .td-sub{font-size:10px;color:var(--text-dim);margin-top:2px}
 <div class="main-area">
   <div class="container" id="mainContent"></div>
 </div>
+
+<footer>
+  <div class="footer-links">
+    <a href="mailto:sparkedge555@gmail.com">sparkedge555@gmail.com</a>
+    <a href="tel:+919142450715">+91 91424 50715</a>
+    <a href="https://wa.me/919142450715" target="_blank">WhatsApp</a>
+    <a onclick="exportData()">⬇ Download My Data</a>
+    <a onclick="navTo('newsletter')">💬 Quick Replies</a>
+    <a onclick="navTo('workflow')">🗺 Workflow Guide</a>
+  </div>
+  <div class="footer-copy">© 2026 SparkEdge · Client Retention Portal · Synced live via Firestore</div>
+  <div class="footer-credit">Built &amp; maintained by <strong>Raunak Karn</strong></div>
+</footer>
+
 
 </div><!-- /app -->
 
