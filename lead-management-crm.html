@@ -491,8 +491,8 @@ footer .footer-copy{font-size:11px;color:var(--text-dim)}
     <div class="nav-brand"><span>⚡</span> SparkEdge CRM</div>
   </div>
   <div class="nav-right">
-    <button id="crmExportBtn" class="btn-dl" onclick="downloadData()">⬇ Export</button>
-    <button id="crmImportBtn" class="btn-dl btn-import" onclick="openImport()">⬆ Import</button>
+    <span style="display:flex;align-items:center;gap:6px;background:rgba(46,204,113,.1);border:1px solid rgba(46,204,113,.3);border-radius:9px;padding:7px 12px;font-size:11px;font-weight:600;color:var(--success);">🟢 Synced to Cloud</span>
+<button id="crmExportBtn" class="btn-dl" onclick="downloadData()" title="Optional manual backup">⬇ Backup</button>
     <button id="crmAddLeadBtn" class="btn-add" onclick="openModal()">＋ Add Lead</button>
   </div>
 </nav>
@@ -750,6 +750,36 @@ function attachCrmTeamListener(){
   }catch(e){ console.warn('Could not attach CRM team listener:', e.message); }
 }
 
+
+window._crmLeadsListenerAttached = false;
+function attachLeadsListener(){
+  if(window._crmLeadsListenerAttached) return;
+  window._crmLeadsListenerAttached = true;
+  try{
+    getCrmDb().collection('leads').onSnapshot(snapshot => {
+      const fsLeads = [];
+      snapshot.forEach(doc => fsLeads.push({ id: doc.id, ...doc.data() }));
+      leads = fsLeads;
+      localStorage.setItem('se_leads', JSON.stringify(leads)); // offline backup only
+      if(typeof currentSection !== 'undefined') renderSection(currentSection);
+    }, err => {
+      console.warn('Leads listener error:', err.message);
+      showToast('⚠️ Live sync lost — showing last saved data.');
+    });
+  }catch(e){
+    console.warn('Could not attach leads listener:', e.message);
+  }
+}
+
+async function pushLeadToFirestore(lead){
+  try{ await getCrmDb().collection('leads').doc(lead.id).set(lead); }
+  catch(e){ showToast('⚠️ Cloud sync failed — saved locally only.'); }
+}
+async function deleteLeadFromFirestore(id){
+  try{ await getCrmDb().collection('leads').doc(id).delete(); }
+  catch(e){ console.warn('Delete sync failed:', e.message); }
+}
+
 function crmGetMembers(){
   return window._crmTeamCache || [...HARDCODED_MEMBERS];
 }
@@ -853,6 +883,7 @@ function hideCrmLogin(){
  updateCrmUserUI();
   applyCrmPermissions();
   attachCrmTeamListener();
+  attachLeadsListener();
   renderSection('dashboard');
 }
 
@@ -1117,6 +1148,7 @@ function quickStatus(id, dir){
   if(dir==='next'&&idx<stageOrder.length-1){ c.status=stageOrder[idx+1]; }
   else if(dir==='prev'&&idx>0){ c.status=stageOrder[idx-1]; }
   save();
+  pushLeadToFirestore(c);
   showToast(`✅ Moved to: ${statusLabel(c.status)}`);
   renderSection(currentSection);
 }
@@ -1246,6 +1278,7 @@ function quickWon(id){
   c.status='closed-won';
   c.closedAt=Date.now();
   save();
+  pushLeadToFirestore(c);
   showToast('🎉 Lead marked as WON! Moving to Clients.');
   renderSection(currentSection);
 }
@@ -1257,6 +1290,7 @@ function quickLost(id){
   c.lostReason=reason||'';
   c.closedAt=Date.now();
   save();
+  pushLeadToFirestore(c);
   showToast('❌ Lead marked as Lost.');
   renderSection(currentSection);
 }
@@ -1644,8 +1678,9 @@ function saveLead(){
   if(editId){ const i=leads.findIndex(x=>x.id===editId); if(i>-1) leads[i]=data; }
   else leads.push(data);
   save();
+  pushLeadToFirestore(data);   // ← add this line
   closeModal();
-  showToast('✅ Lead saved!');
+  showToast('✅ Lead saved! Syncing to cloud...');
   renderSection(currentSection);
 }
 
@@ -1653,6 +1688,7 @@ function deleteLead(id){
   if(!confirm('Delete this lead permanently?')) return;
   leads=leads.filter(x=>x.id!==id);
   save();
+  deleteLeadFromFirestore(id);
   showToast('🗑 Lead deleted');
   renderSection(currentSection);
 }

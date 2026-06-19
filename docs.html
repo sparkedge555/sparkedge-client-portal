@@ -831,6 +831,31 @@ function getMembers(){
   return _teamCacheDocs;
 }
 
+window._docsTeamListenerAttached = false;
+function attachDocsTeamListener(){
+  if(window._docsTeamListenerAttached) return;
+  window._docsTeamListenerAttached = true;
+  try{
+    getDbDocs().collection('team').onSnapshot(snapshot => {
+      const fsMembers = [];
+      snapshot.forEach(doc => fsMembers.push({ id: doc.id, ...doc.data() }));
+      const merged = [...HARDCODED_MEMBERS];
+      fsMembers.forEach(fm => {
+        const idx = merged.findIndex(hm => hm.id === fm.id);
+        if (idx >= 0) merged[idx] = fm; else merged.push(fm);
+      });
+      _teamCacheDocs = merged;
+      localStorage.setItem(AUTH_KEY, JSON.stringify(merged));
+      const teamSection = document.getElementById('teamSection');
+      if(teamSection && teamSection.style.display !== 'none'){
+        renderTeamPage();
+      }
+    }, err => console.warn('[Docs] Team listener error:', err.message));
+  }catch(e){
+    console.warn('[Docs] Could not attach team listener:', e.message);
+  }
+}
+
 window.DOCS_USER = null;
 
 (function(){
@@ -842,6 +867,7 @@ window.DOCS_USER = null;
       document.getElementById('loginScreen').style.display='none';
       document.getElementById('appWrap').style.display='block';
       updateUserBadge();
+      attachDocsTeamListener();
       setTimeout(initApp,50);
     }
   }catch{}
@@ -886,6 +912,7 @@ function unlockDocs(){
   setTimeout(()=>{ screen.style.display='none'; screen.style.opacity=''; }, 300);
   document.getElementById('appWrap').style.display='block';
   updateUserBadge();
+   attachDocsTeamListener(); 
   initApp();
 }
 
