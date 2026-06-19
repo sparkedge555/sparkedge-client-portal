@@ -2170,7 +2170,7 @@ async function clearSendLog(){
   sendLog=[];saveData();
   showToast('🗑 Send log cleared.');
   renderSection('sendlog');
-try{
+  try{
     const db=getDb();const batch=db.batch();
     old.forEach(l=>batch.delete(db.collection('ret_sendlog').doc(l.id)));
     await batch.commit();
@@ -2178,6 +2178,7 @@ try{
     console.warn('Firestore sendlog clear failed:', e.message);
     showToast('⚠️ Cleared locally, but cloud delete failed.');
   }
+}
 
 /* ════════════════════════════════════
    TEMPLATES PAGE
