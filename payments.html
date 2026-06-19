@@ -241,11 +241,12 @@ tbody td .td-main{font-weight:600;color:var(--text);font-size:13px}
   <div class="sb-divider"></div>
   <div class="sb-label">Reports</div>
   <button class="sb-link" onclick="navTo('myearnings')">💼 My Earnings</button>
+<button class="sb-link" onclick="navTo('workflow')">📋 Workflow Guide</button>
   <button class="sb-link" id="sbTeamMgmtLink" onclick="navTo('teammgmt')" style="display:none">🛡 Manage Access</button>
 
   <div style="flex:1"></div>
   <div class="sb-divider"></div>
-  <button class="sb-link" style="color:var(--danger)" onclick="doLogout()">🚪 Logout</button>
+  <button class="sb-link" id="sbLogoutBtn" style="color:var(--danger);display:none" onclick="doLogout()">🚪 Logout</button>
 </aside>
 
 <div class="main-area"><div class="container" id="mainContent"></div></div>
@@ -384,25 +385,55 @@ function getDb(){if(!_fbInited){if(!firebase.apps.length)firebase.initializeApp(
    pay_ledger    — every payment record (commission/salary/bonus)
 */
 
-const HARDCODED_MEMBERS=[]; // optional offline fallback — add {id,name,role,wa,email,password,payType,salary,permissions,status} here if needed
 
-window._teamCache=[...HARDCODED_MEMBERS];
+
+const HARDCODED_MEMBERS = [];
+
+window._teamCache = [...HARDCODED_MEMBERS];
+window._teamListenerAttached = false;
 window._partnersCache=[];
 window._claimsCache=[];
 window._ledgerCache=[];
 window.PORTAL_USER=null;
+
+function attachTeamListener(){
+  if(window._teamListenerAttached) return;
+  window._teamListenerAttached = true;
+  try{
+    getDb().collection('pay_team').onSnapshot(snap=>{
+      const fs=[];
+      snap.forEach(d=>fs.push({id:d.id,...d.data()}));
+      const merged=[...HARDCODED_MEMBERS];
+      fs.forEach(fm=>{
+        const idx=merged.findIndex(h=>h.id===fm.id);
+        idx>=0?merged[idx]=fm:merged.push(fm);
+      });
+      window._teamCache=merged;
+      if(currentSection==='teammgmt')renderSection('teammgmt');
+    },err=>console.warn('pay_team listener:',err.message));
+  }catch(e){console.warn('Could not attach pay_team listener:',e.message);}
+}
+
+function getMembers(){return window._teamCache||[...HARDCODED_MEMBERS];}
+
+async function saveMembers(arr){
+  const db=getDb();
+  const batch=db.batch();
+  arr.forEach(m=>{
+    if(!m.id)m.id='mem_'+Date.now();
+    batch.set(db.collection('pay_team').doc(m.id),m);
+  });
+  await batch.commit();
+  showToast('✅ Team synced to cloud!');
+}
+
+async function deleteMemberFromFirestore(memberId){
+  try{await getDb().collection('pay_team').doc(memberId).delete();}
+  catch(e){console.warn('Could not delete from Firestore:',e.message);}
+}
 let currentSection='dashboard';
 
-/* ── Listeners ── */
-function attachTeamListener(){
-  getDb().collection('pay_team').onSnapshot(snap=>{
-    const fs=[];snap.forEach(d=>fs.push({id:d.id,...d.data()}));
-    const merged=[...HARDCODED_MEMBERS];
-    fs.forEach(fm=>{const i=merged.findIndex(h=>h.id===fm.id);i>=0?merged[i]=fm:merged.push(fm);});
-    window._teamCache=merged;
-    if(currentSection==='team'||currentSection==='teammgmt')renderSection(currentSection);
-  },err=>console.warn('team listener',err.message));
-}
+
 function attachPartnersListener(){
   getDb().collection('pay_partners').onSnapshot(snap=>{
     const arr=[];snap.forEach(d=>arr.push({id:d.id,...d.data()}));
@@ -439,6 +470,7 @@ function getLedger(){return window._ledgerCache||[];}
   }catch{}
 })();
 
+
 async function doLogin(){
   const val=document.getElementById('loginPwd').value.trim();
   const err=document.getElementById('loginErr');
@@ -453,10 +485,16 @@ async function doLogin(){
   if(!m){
     try{
       const snap=await getDb().collection('pay_team').get();
-      const fs=[];snap.forEach(d=>fs.push({id:d.id,...d.data()}));
-      window._teamCache=fs;
-      m=fs.find(x=>x.password===val&&x.status==='active');
-    }catch(e){}
+      const fs=[];
+      snap.forEach(d=>fs.push({id:d.id,...d.data()}));
+      const merged=[...HARDCODED_MEMBERS];
+      fs.forEach(fm=>{
+        const idx=merged.findIndex(h=>h.id===fm.id);
+        idx>=0?merged[idx]=fm:merged.push(fm);
+      });
+      window._teamCache=merged;
+      m=merged.find(x=>x.password===val&&x.status==='active');
+    }catch(e){console.warn('Firestore login fallback failed:',e.message);}
   }
   if(m){
     window.PORTAL_USER={name:m.name,role:m.role||'Team Member',isOwner:false,permissions:m.permissions||[],memberId:m.id};
@@ -472,9 +510,17 @@ function unlockUI(){
   document.getElementById('app').style.display='block';
   document.getElementById('sbUserName').textContent=window.PORTAL_USER.name;
   document.getElementById('sbUserRole').textContent=window.PORTAL_USER.role;
-  document.getElementById('sbTeamMgmtLink').style.display=window.PORTAL_USER.isOwner?'flex':'none';
-  if(!has('add_payment_any')&&!window.PORTAL_USER.isOwner&&!has('addpay')) document.getElementById('addPayBtn').style.display='none';
-  attachTeamListener();attachPartnersListener();attachClaimsListener();attachLedgerListener();
+  const isOwner=window.PORTAL_USER.isOwner;
+  document.getElementById('sbTeamMgmtLink').style.display=isOwner?'flex':'none';
+  const addBtn=document.getElementById('addPayBtn');
+  if(addBtn){
+    const canAdd=isOwner||has('add_payment')||has('viewall')||has('addpay');
+    addBtn.style.display=canAdd?'inline-flex':'none';
+  }
+  const logoutBtn=document.getElementById('sbLogoutBtn');
+  if(logoutBtn)logoutBtn.style.display='flex';
+  attachTeamListener();
+  attachPartnersListener();attachClaimsListener();attachLedgerListener();
   setTimeout(()=>lucide&&lucide.createIcons&&lucide.createIcons(),100);
   renderSection('dashboard');
 }
@@ -482,9 +528,11 @@ function toggleEye(){const i=document.getElementById('loginPwd');const b=documen
 function doLogout(){sessionStorage.removeItem('se_pay_session');window.PORTAL_USER=null;location.reload();}
 
 function has(p){
-  const u=window.PORTAL_USER;if(!u)return false;
+  const u=window.PORTAL_USER;
+  if(!u)return false;
   if(u.isOwner)return true;
-  return(u.permissions||[]).includes(p)||(u.permissions||[]).includes('all');
+  const perms=u.permissions||[];
+  return perms.includes(p)||perms.includes('all');
 }
 
 /* ── NAV / SIDEBAR ── */
@@ -510,7 +558,7 @@ function initials(n){return(n||'?').split(' ').map(w=>w[0]).join('').toUpperCase
 function renderSection(s){
   const el=document.getElementById('mainContent');
   const map={dashboard:renderDashboard,ledger:renderLedger,team:renderTeam,partners:renderPartners,
-    claims:renderClaims,myearnings:renderMyEarnings,teammgmt:renderTeamMgmt};
+    claims:renderClaims,myearnings:renderMyEarnings,teammgmt:renderTeamMgmt,workflow:renderWorkflow};
   el.innerHTML=(map[s]||renderDashboard)();
   setTimeout(()=>lucide&&lucide.createIcons&&lucide.createIcons(),50);
 }
@@ -678,6 +726,78 @@ function renderMyEarnings(){
   </div>`;
 }
 
+
+function renderWorkflow(){
+  const isOwner=window.PORTAL_USER?.isOwner;
+  const ownerGuide=`
+  <div style="background:rgba(255,107,53,.06);border:1px solid rgba(255,107,53,.2);border-radius:14px;padding:20px;margin-bottom:20px">
+    <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:800;color:var(--accent);margin-bottom:14px">👑 Owner Workflow</div>
+    <div style="display:flex;flex-direction:column;gap:14px">
+      ${[['1','Add Team Members','Go to Manage Access → + Add Team Member. Set their password, role, pay type, and permissions.'],
+         ['2','Add Referral Partners','Go to Referral Partners → + Add Partner. Set their default commission (flat ₹ or %).'],
+         ['3','Client Gets a Ticket','When a new client is onboarded via admin.html, note their Ticket ID (e.g. SE-005).'],
+         ['4','Team Member Claims Ticket','Ask team member to go to Ticket Ownership → enter Ticket ID → Claim.'],
+         ['5','Add Commission / Payment Entry','Go to Payment Ledger → + Add Entry. Set amount, type, status (Pending when owed, Paid when transferred).'],
+         ['6','Mark as Paid','When you transfer money → Payment Ledger → Mark Paid. Team member sees update instantly.'],
+         ['7','Monitor Everything','Dashboard shows full breakdown by person — paid vs pending.'],
+         ['8','Monthly Salary','Add a Salary entry each month → Pending → transfer → Mark Paid.'],
+      ].map(([n,title,desc])=>`<div style="display:flex;gap:14px">
+        <div style="width:32px;height:32px;border-radius:9px;background:var(--grad);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:#fff;flex-shrink:0">${n}</div>
+        <div><div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:700;margin-bottom:3px">${title}</div>
+        <div style="font-size:12px;color:var(--text-muted);line-height:1.7">${desc}</div></div>
+      </div>`).join('')}
+    </div>
+  </div>`;
+  const memberGuide=`
+  <div style="background:rgba(59,130,246,.06);border:1px solid rgba(59,130,246,.2);border-radius:14px;padding:20px;margin-bottom:20px">
+    <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:800;color:var(--info);margin-bottom:14px">🧑‍💻 Team Member Workflow</div>
+    <div style="display:flex;flex-direction:column;gap:14px">
+      ${[['1','Login','Use the password given by Raunak. You see only your data unless View All Payments permission is granted.'],
+         ['2','Claim Your Tickets','Go to Ticket Ownership → enter the Ticket ID of every client you closed → Claim.'],
+         ['3','View My Earnings','Go to My Earnings — see every payment: commissions, salary, bonuses. Green=paid, Amber=pending.'],
+         ['4','Request a Payment','If addpay permission: Payment Ledger → + Add Entry → select yourself → status: Pending.'],
+         ['5','Check Pending Balance','My Earnings shows total received and total owed. Message Raunak if something looks wrong.'],
+         ['6','View Partners','Only visible if you have Manage Partners permission.'],
+      ].map(([n,title,desc])=>`<div style="display:flex;gap:14px">
+        <div style="width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#3B82F6,#1D4ED8);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:#fff;flex-shrink:0">${n}</div>
+        <div><div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:700;margin-bottom:3px">${title}</div>
+        <div style="font-size:12px;color:var(--text-muted);line-height:1.7">${desc}</div></div>
+      </div>`).join('')}
+    </div>
+  </div>`;
+  const permRef=isOwner?`
+  <div style="background:rgba(155,127,212,.06);border:1px solid rgba(155,127,212,.2);border-radius:14px;padding:20px;margin-bottom:20px">
+    <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:var(--purple);margin-bottom:12px">🛡 Permissions Reference</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px">
+      ${[['claim','🎫 Claim Tickets','Can claim ticket ownership'],
+         ['addpay','➕ Add Own Pending','Can add payment requests for themselves'],
+         ['partners','🤝 Manage Partners','Can add and edit referral partners'],
+         ['viewall','👁 View All Payments','Can see full Payment Ledger'],
+      ].map(([p,label,desc])=>`<div style="background:var(--bg-raised);border:1px solid var(--border);border-radius:9px;padding:12px">
+        <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:4px">${label}</div>
+        <div style="font-size:11px;color:var(--text-muted);line-height:1.6">${desc}</div>
+        <div style="margin-top:6px;font-size:10px;color:var(--purple);background:rgba(155,127,212,.1);border:1px solid rgba(155,127,212,.2);border-radius:4px;padding:2px 7px;display:inline-block">key: "${p}"</div>
+      </div>`).join('')}
+    </div>
+  </div>`:'';
+  return `
+  <div class="page-eyebrow">📋 Workflow Guide</div>
+  <div class="page-title">How Payments Portal Works</div>
+  <div class="page-sub">Step-by-step guide — read this before you start</div>
+  ${isOwner?ownerGuide:''}
+  ${memberGuide}
+  ${permRef}
+  <div style="background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.2);border-radius:14px;padding:18px">
+    <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--success);margin-bottom:10px">☁️ How Data Syncs</div>
+    <div style="font-size:12px;color:var(--text-muted);line-height:1.9">
+      • Team Members — live Firestore listener on pay_team. Add/edit → reflects everywhere in seconds.<br>
+      • Payment Ledger — live listener on pay_ledger. Every entry is real-time.<br>
+      • Partners — live listener on pay_partners.<br>
+      • Ticket Claims — live listener on pay_claims.<br>
+      • No localStorage used — Firestore is the only data source.
+    </div>
+  </div>`;
+}
 /* ════════════════════════════════════
    TICKET OWNERSHIP / CLAIMS
 ════════════════════════════════════ */
@@ -809,21 +929,36 @@ async function saveTeamMember(){
   if(pwd==='RAUNAK@1'){alert('Cannot use owner password!');return;}
   const perms=['claim','addpay','partners','viewall'].filter(p=>document.getElementById('tp_'+p)?.checked);
   const members=getMembers();
-  if(!editTeamId&&members.find(m=>m.password===pwd)){alert('Password already used by another member!');return;}
-  const data={
-    id:editTeamId||('mem_'+Date.now()),name,role:document.getElementById('tm_role').value.trim(),
-    wa:document.getElementById('tm_wa').value.trim(),email:document.getElementById('tm_email').value.trim(),
-    password:pwd,payType:document.getElementById('tm_payType').value,salary:parseFloat(document.getElementById('tm_salary').value)||0,
-    permissions:perms,status:editTeamId?(members.find(m=>m.id===editTeamId)?.status||'active'):'active'
+  const editId=editTeamId;
+  const isDup=members.some(m=>m.password===pwd&&m.id!==editId);
+  if(isDup){alert('Password already in use by another member!');return;}
+  const memberData={
+    id:editId||('mem_'+Date.now()),name,
+    role:document.getElementById('tm_role').value.trim(),
+    wa:document.getElementById('tm_wa').value.trim(),
+    email:document.getElementById('tm_email').value.trim(),
+    password:pwd,payType:document.getElementById('tm_payType').value,
+    salary:parseFloat(document.getElementById('tm_salary').value)||0,
+    permissions:perms,
+    status:editId?(members.find(m=>m.id===editId)?.status||'active'):'active',
+    addedAt:editId?(members.find(m=>m.id===editId)?.addedAt||new Date().toLocaleDateString('en-IN')):new Date().toLocaleDateString('en-IN')
   };
   try{
-    await getDb().collection('pay_team').doc(data.id).set(data,{merge:true});
-    closeModal('teamModal');showToast('✅ Saved!');
+    await getDb().collection('pay_team').doc(memberData.id).set(memberData,{merge:true});
+    window._teamCache=members.filter(m=>m.id!==memberData.id).concat(memberData);
+    closeModal('teamModal');
+    showToast('✅ Member saved & synced to all devices!');
+    if(currentSection==='team'||currentSection==='teammgmt')renderSection(currentSection);
   }catch(e){showToast('❌ Failed: '+e.message);}
 }
 async function deleteTeamMember(id){
-  if(!confirm('Remove this member? They lose access immediately.'))return;
-  try{await getDb().collection('pay_team').doc(id).delete();showToast('🗑 Removed.');}catch(e){showToast('❌ Failed: '+e.message);}
+  if(!confirm('Remove this member? They lose access immediately on all devices.'))return;
+  try{
+    await deleteMemberFromFirestore(id);
+    window._teamCache=getMembers().filter(m=>m.id!==id);
+    showToast('🗑 Removed from all devices.');
+    renderSection(currentSection);
+  }catch(e){showToast('❌ Failed: '+e.message);}
 }
 
 /* ════════════════════════════════════
