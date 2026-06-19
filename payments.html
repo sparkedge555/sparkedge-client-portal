@@ -424,9 +424,40 @@ function attachTeamListener(){
         idx>=0?merged[idx]=fm:merged.push(fm);
       });
       window._teamCache=merged;
+      refreshMyPermissions();
       if(currentSection==='teammgmt')renderSection('teammgmt');
     },err=>console.warn('pay_team listener:',err.message));
   }catch(e){console.warn('Could not attach pay_team listener:',e.message);}
+}
+
+function refreshMyPermissions(){
+  const u=window.PORTAL_USER;
+  if(!u||u.isOwner||!u.memberId)return;
+  const me=getMembers().find(m=>m.id===u.memberId);
+  if(!me)return;
+
+  // Owner suspended this member while they were logged in -> kick them out
+  if(me.status&&me.status!=='active'){
+    showToast('⛔ Your access was suspended by the owner.');
+    setTimeout(()=>doLogout(),1500);
+    return;
+  }
+
+  const newPerms=me.permissions||[];
+  const oldPerms=u.permissions||[];
+  const changed=JSON.stringify([...newPerms].sort())!==JSON.stringify([...oldPerms].sort());
+  if(changed){
+    u.permissions=newPerms;
+    u.role=me.role||u.role;
+    sessionStorage.setItem('se_pay_session',JSON.stringify(u));
+    const addBtn=document.getElementById('addPayBtn');
+    if(addBtn){
+      const canAdd=u.isOwner||has('addpay')||has('addany');
+      addBtn.style.display=canAdd?'inline-flex':'none';
+    }
+    renderSection(currentSection);
+    showToast('🔄 Your permissions were just updated by the owner.');
+  }
 }
 
 function getMembers(){return window._teamCache||[...HARDCODED_MEMBERS];}
