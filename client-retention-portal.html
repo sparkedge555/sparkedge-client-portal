@@ -884,13 +884,19 @@ function attachSendLogListener(){
       localStorage.setItem(SEND_LOG_KEY, JSON.stringify(sendLog));
       updateSidebarBadges();
       if(['sendlog','newsletter','dashboard'].includes(currentSection)) renderSection(currentSection);
-    }, err=>console.warn('SendLog listener:', err.message));
+    }, err=>{
+      console.warn('SendLog listener:', err.message);
+      showToast('⚠️ Could not load send log from cloud: '+err.message);
+    });
   }catch(e){console.warn('Could not attach sendlog listener:', e.message);}
 }
 
 async function pushSendLogToFirestore(entry){
   try{ await getDb().collection('ret_sendlog').doc(entry.id).set(entry); }
-  catch(e){ console.warn('SendLog Firestore push:', e.message); }
+  catch(e){
+    console.warn('SendLog Firestore push:', e.message);
+    showToast('⚠️ Send log could not sync to cloud.');
+  }
 }
 
 window._clientListenerAttached = false;
@@ -898,7 +904,7 @@ function attachClientListener(){
   if(window._clientListenerAttached) return;
   window._clientListenerAttached = true;
   try{
-    getDb().collection('ret_clients').onSnapshot(snap=>{
+   getDb().collection('ret_clients').onSnapshot(snap=>{
       const fsClients=[];
       snap.forEach(d=>fsClients.push({id:d.id,...d.data()}));
       fsClients.forEach(fc=>{
@@ -908,13 +914,19 @@ function attachClientListener(){
       });
       saveData();
       renderSection(currentSection);
-    }, err=>console.warn('Client listener error:', err.message));
+    }, err=>{
+      console.warn('Client listener error:', err.message);
+      showToast('⚠️ Could not load client data from cloud: '+err.message);
+    });
   }catch(e){console.warn('Could not attach client listener:', e.message);}
 }
 
 async function pushClientToFirestore(client){
   try{await getDb().collection('ret_clients').doc(client.id).set(client);}
-  catch(e){console.warn('Firestore push:',e.message);}
+  catch(e){
+    console.warn('Firestore push:',e.message);
+    showToast('⚠️ Could not sync to cloud — check internet/Firestore rules.');
+  }
 }
 
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2);}
@@ -2158,12 +2170,14 @@ async function clearSendLog(){
   sendLog=[];saveData();
   showToast('🗑 Send log cleared.');
   renderSection('sendlog');
-  try{
+try{
     const db=getDb();const batch=db.batch();
     old.forEach(l=>batch.delete(db.collection('ret_sendlog').doc(l.id)));
     await batch.commit();
-  }catch(e){console.warn('Firestore sendlog clear failed:', e.message);}
-}
+  }catch(e){
+    console.warn('Firestore sendlog clear failed:', e.message);
+    showToast('⚠️ Cleared locally, but cloud delete failed.');
+  }
 
 /* ════════════════════════════════════
    TEMPLATES PAGE
