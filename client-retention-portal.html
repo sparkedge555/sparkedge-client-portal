@@ -7,6 +7,7 @@
 <link rel="icon" type="image/x-icon" href="./favicons/favicon.ico">
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
 <style>
 :root{
@@ -385,6 +386,14 @@ tbody td .td-sub{font-size:10px;color:var(--text-dim);margin-top:2px}
   .container{padding:14px}
 }
 
+
+
+/* ── LUCIDE ICONS ── */
+.l-icon{display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;vertical-align:middle}
+.l-icon svg{stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.s-icon .l-icon svg{width:16px;height:16px}
+
+
 /* ══ TOAST ══ */
 #toast{position:fixed;bottom:24px;right:24px;background:var(--bg-card);border:1px solid rgba(34,197,94,.4);color:var(--success);
   border-radius:12px;padding:12px 20px;font-size:13px;font-weight:600;z-index:9999;display:none;box-shadow:0 8px 30px rgba(0,0,0,.4);max-width:320px}
@@ -399,7 +408,7 @@ tbody td .td-sub{font-size:10px;color:var(--text-dim);margin-top:2px}
   <div class="login-orb orb1"></div>
   <div class="login-orb orb2"></div>
   <div class="login-card">
-    <div class="login-logo">🔁</div>
+    <div class="login-logo"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="url(#lg)" stroke-width="1.8" stroke-linecap="round"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/><defs><linearGradient id="lg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#FF6B35"/><stop offset="100%" style="stop-color:#FF3CAC"/></linearGradient></defs></svg></div>
     <div class="login-brand">SparkEdge Retention</div>
     <div class="login-sub">Client Vault &amp; Renewal Management · Internal Access</div>
     <div id="loginErr" class="login-err">⚠ Incorrect password. Please try again.</div>
@@ -419,13 +428,13 @@ tbody td .td-sub{font-size:10px;color:var(--text-dim);margin-top:2px}
 <!-- NAVBAR -->
 <nav>
   <div style="display:flex;align-items:center;gap:10px">
-    <button class="hamburger" onclick="toggleSidebar()">☰</button>
-    <div class="nav-brand"><span class="n-icon">🔁</span>SparkEdge Retention</div>
+    <button class="hamburger" onclick="toggleSidebar()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+    <div class="nav-brand"><span class="n-icon" style="-webkit-text-fill-color:initial"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="url(#nb)" stroke-width="2" stroke-linecap="round"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/><defs><linearGradient id="nb" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#FF6B35"/><stop offset="100%" style="stop-color:#FF3CAC"/></linearGradient></defs></svg></span>SparkEdge Retention</div>
   </div>
   <div class="nav-right">
-    <button class="btn btn-success btn-sm" onclick="exportData()">⬇ Export</button>
-    <button class="btn btn-info btn-sm" onclick="openImportModal()">⬆ Import</button>
-    <button class="btn btn-primary btn-sm" onclick="openAddClient()">＋ Add Client</button>
+    <button class="btn btn-success btn-sm" onclick="exportData()" style="display:inline-flex;align-items:center;gap:5px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Export</button>
+<button class="btn btn-info btn-sm" onclick="openImportModal()" style="display:inline-flex;align-items:center;gap:5px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Import</button>
+<button class="btn btn-primary btn-sm" onclick="openAddClient()" style="display:inline-flex;align-items:center;gap:5px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add Client</button>
   </div>
 </nav>
 
@@ -441,37 +450,37 @@ tbody td .td-sub{font-size:10px;color:var(--text-dim);margin-top:2px}
   </div>
 
   <div class="sb-label">Main</div>
-  <button class="sb-link active" onclick="navTo('dashboard')"><span class="s-icon">📊</span>Dashboard</button>
-  <button class="sb-link" onclick="navTo('renewals')"><span class="s-icon">⏰</span>Renewals <span class="sb-badge danger" id="sbRenewalBadge">0</span></button>
-  <button class="sb-link" onclick="navTo('vault')"><span class="s-icon">🔐</span>Client Vault</button>
+  <button class="sb-link active" onclick="navTo('dashboard')"><span class="s-icon"><span class="l-icon"><svg width="16" height="16" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span></span>Dashboard</button>
+  <button class="sb-link" onclick="navTo('renewals')"><span class="s-icon"><span class="l-icon"><svg width="16" height="16" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></span></span>Renewals <span class="sb-badge danger" id="sbRenewalBadge">0</span></button>
+  <button class="sb-link" onclick="navTo('vault')"><span class="s-icon"><span class="l-icon"><svg width="16" height="16" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/><circle cx="12" cy="16" r="1" fill="currentColor"/></svg></span></span>Client Vault</button>
 
   <div class="sb-divider"></div>
   <div class="sb-label">Clients</div>
-  <button class="sb-link" onclick="navTo('clients')"><span class="s-icon">👥</span>All Clients</button>
-  <button class="sb-link" onclick="navTo('vip')"><span class="s-icon">⭐</span>VIP Clients</button>
-  <button class="sb-link" onclick="navTo('inactive')"><span class="s-icon">💤</span>Inactive</button>
+ <button class="sb-link" onclick="navTo('clients')"><span class="s-icon"><span class="l-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span></span>All Clients</button>
+  <button class="sb-link" onclick="navTo('vip')"><span class="s-icon"><span class="l-icon"><svg width="16" height="16" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span></span>VIP Clients</button>
+  <button class="sb-link" onclick="navTo('inactive')"><span class="s-icon"><span class="l-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path d="M17 7h2a2 2 0 0 1 0 4h-2"/><path d="M7 7H5a2 2 0 0 0 0 4h2"/><line x1="7" y1="9" x2="17" y2="9"/><path d="M8 16s.7 2 4 2 4-2 4-2"/><path d="M8 12h.01M16 12h.01"/></svg></span></span>Inactive</button>
 
   <div class="sb-divider"></div>
   <div class="sb-label">Communication</div>
-  <button class="sb-link" onclick="navTo('newsletter')"><span class="s-icon">📧</span>Newsletter &amp; Messages</button>
-  <button class="sb-link" onclick="navTo('sendlog')"><span class="s-icon">📬</span>Send Log</button>
-  <button class="sb-link" onclick="navTo('templates')"><span class="s-icon">💬</span>Message Templates</button>
+  <button class="sb-link" onclick="navTo('newsletter')"><span class="s-icon"><span class="l-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></span></span>Newsletter &amp; Messages</button>
+  <button class="sb-link" onclick="navTo('sendlog')"><span class="s-icon"><span class="l-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2.12h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.91"/><line x1="2" y1="2" x2="22" y2="22"/></svg></span></span>Send Log</button>
+<button class="sb-link" onclick="navTo('templates')"><span class="s-icon"><span class="l-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span></span>Message Templates</button>
 
   <div class="sb-divider"></div>
   <div class="sb-label">Reports</div>
-  <button class="sb-link" onclick="navTo('analytics')"><span class="s-icon">📈</span>Analytics</button>
-  <button class="sb-link" onclick="navTo('table')"><span class="s-icon">📋</span>Sheet View</button>
+ <button class="sb-link" onclick="navTo('analytics')"><span class="s-icon"><span class="l-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 16l4-4 4 4 4-6"/></svg></span></span>Analytics</button>
+<button class="sb-link" onclick="navTo('table')"><span class="s-icon"><span class="l-icon"><svg width="16" height="16" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/></svg></span></span>Sheet View</button>
 
   <div class="sb-divider"></div>
   <div class="sb-label">Tools</div>
-  <button class="sb-link" id="sbTeamLink" onclick="navTo('team')" style="display:none"><span class="s-icon">🧑‍💻</span>Team</button>
-  <button class="sb-link" onclick="window.open('admin.html','_blank')"><span class="s-icon">⚙️</span>Admin Panel ↗</button>
-  <button class="sb-link" onclick="window.open('crm.html','_blank')"><span class="s-icon">🎯</span>Lead CRM ↗</button>
+  <button class="sb-link" id="sbTeamLink" onclick="navTo('team')" style="display:none"><span class="s-icon"><span class="l-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span></span>Team</button>
+ <button class="sb-link" onclick="window.open('admin.html','_blank')" style="color:var(--accent)"><span class="s-icon"><span class="l-icon"><svg width="16" height="16" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg></span></span>Admin Panel ↗</button>
+<button class="sb-link" onclick="window.open('crm.html','_blank')" style="color:var(--info)"><span class="s-icon"><span class="l-icon"><svg width="16" height="16" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2" fill="currentColor"/></svg></span></span>Lead CRM ↗</button>
 
   <div style="flex:1"></div>
   <div class="sb-divider"></div>
   <!-- Logout — always visible after login -->
-<button class="sb-link" id="sbLogoutBtn" onclick="doLogout()" style="color:var(--danger);display:none"><span class="s-icon">🚪</span>Logout</button>
+<button class="sb-link" id="sbLogoutBtn" onclick="doLogout()" style="color:var(--danger);display:none"><span class="s-icon"><span class="l-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></span></span>Logout</button>
 
 <div class="sb-credit">Crafted by <strong>Raunak Karn</strong></div>
 </aside>
@@ -486,9 +495,9 @@ tbody td .td-sub{font-size:10px;color:var(--text-dim);margin-top:2px}
     <a href="mailto:sparkedge555@gmail.com">sparkedge555@gmail.com</a>
     <a href="tel:+919142450715">+91 91424 50715</a>
     <a href="https://wa.me/919142450715" target="_blank">WhatsApp</a>
-    <a onclick="exportData()">⬇ Download My Data</a>
-    <a onclick="navTo('newsletter')">💬 Quick Replies</a>
-    <a onclick="navTo('workflow')">🗺 Workflow Guide</a>
+ <a onclick="exportData()" style="display:inline-flex;align-items:center;gap:5px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Download My Data</a>
+<a onclick="navTo('newsletter')" style="display:inline-flex;align-items:center;gap:5px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> Quick Replies</a>
+<a onclick="navTo('workflow')" style="display:inline-flex;align-items:center;gap:5px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6l6-3 6 3 6-3v15l-6 3-6-3-6 3V6z"/><path d="M9 3v15M15 6v15"/></svg> Workflow Guide</a>
   </div>
   <div class="footer-copy">© 2026 SparkEdge · Client Retention Portal · Synced live via Firestore</div>
   <div class="footer-credit">Built &amp; maintained by <strong>Raunak Karn</strong></div>
@@ -2423,6 +2432,12 @@ document.querySelectorAll('.modal-overlay').forEach(el=>{
 // Init
 loadData();
 updateSidebarBadges();
+
+
+// Initialize Lucide icons
+setTimeout(()=>{ if(typeof lucide!=='undefined') lucide.createIcons(); }, 100);
 </script>
+
+
 </body>
 </html>
