@@ -344,6 +344,7 @@ tbody td .td-main{font-weight:600;color:var(--text);font-size:13px}
           <label style="display:flex;gap:7px;font-size:12px;color:var(--text-muted);cursor:pointer"><input type="checkbox" id="tp_addpay" style="accent-color:var(--accent)"/> Add Own Pending Requests</label>
           <label style="display:flex;gap:7px;font-size:12px;color:var(--text-muted);cursor:pointer"><input type="checkbox" id="tp_partners" style="accent-color:var(--accent)"/> Manage Partners</label>
           <label style="display:flex;gap:7px;font-size:12px;color:var(--text-muted);cursor:pointer"><input type="checkbox" id="tp_viewall" style="accent-color:var(--accent)"/> View All Payments</label>
+          <label style="display:flex;gap:7px;font-size:12px;color:var(--text-muted);cursor:pointer"><input type="checkbox" id="tp_addany" style="accent-color:var(--accent)"/> Add Entry For Anyone</label>
         </div>
       </div>
       <div class="form-actions">
@@ -528,7 +529,7 @@ function unlockUI(){
   document.getElementById('sbTeamMgmtLink').style.display=isOwner?'flex':'none';
   const addBtn=document.getElementById('addPayBtn');
   if(addBtn){
-   const canAdd=isOwner||has('viewall')||has('addpay');
+  const canAdd=isOwner||has('addpay')||has('addany');
     addBtn.style.display=canAdd?'inline-flex':'none';
   }
   const logoutBtn=document.getElementById('sbLogoutBtn');
@@ -829,14 +830,26 @@ function renderWorkflow(){
     <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:var(--purple);margin-bottom:12px">🛡 Permissions Reference</div>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px">
       ${[['claim','🎫 Claim Tickets','Can claim ticket ownership'],
-         ['addpay','➕ Add Own Pending','Can add payment requests for themselves'],
+         ['addpay','➕ Add Own Pending','Can add payment requests ONLY for themselves (locked to self, status locked to Pending)'],
          ['partners','🤝 Manage Partners','Can add and edit referral partners'],
-         ['viewall','👁 View All Payments','Can see full Payment Ledger'],
+         ['viewall','👁 View All Payments','Can SEE full Payment Ledger & Dashboard of everyone — view only, cannot add/edit anything for others'],
+         ['addany','🧾 Add Entry For Anyone','Can add a payment entry for ANY team member or partner, with any status (Paid/Pending) — same as owner\'s Add Entry power. Give this only to a trusted manager/accountant'],
       ].map(([p,label,desc])=>`<div style="background:var(--bg-raised);border:1px solid var(--border);border-radius:9px;padding:12px">
         <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:4px">${label}</div>
         <div style="font-size:11px;color:var(--text-muted);line-height:1.6">${desc}</div>
         <div style="margin-top:6px;font-size:10px;color:var(--purple);background:rgba(155,127,212,.1);border:1px solid rgba(155,127,212,.2);border-radius:4px;padding:2px 7px;display:inline-block">key: "${p}"</div>
       </div>`).join('')}
+    </div>
+ </div>`:'';
+  const comboGuide=isOwner?`
+  <div style="background:rgba(255,179,71,.06);border:1px solid rgba(255,179,71,.25);border-radius:14px;padding:20px;margin-bottom:20px">
+    <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:var(--gold);margin-bottom:12px">💡 Kis Member Ko Kaunsa Permission Dena Hai (Owner Cheat-Sheet)</div>
+    <div style="display:flex;flex-direction:column;gap:10px;font-size:12px;color:var(--text-muted);line-height:1.8">
+      <div><strong style="color:var(--text)">🧑‍💻 Normal Sales Person</strong> — sirf <code>claim</code> + <code>addpay</code> do. Wo apne clients claim karega aur apne liye hi pending request bhanga sakta hai. Apne se zyada/kisi aur ka data ya entry nahi chhede sakta.</div>
+      <div><strong style="color:var(--text)">👁 Manager (sirf monitoring ke liye)</strong> — sirf <code>viewall</code> do. Wo sabka Dashboard/Ledger dekh payega, par koi bhi entry add/edit/delete nahi kar sakta.</div>
+      <div><strong style="color:var(--text)">🧾 Accountant / Trusted Manager (poora payment kaam)</strong> — <code>viewall</code> + <code>addany</code> do. Wo sabka data dekh ke kisi ke bhi naam par entry add kar payega (jaise tum karte ho), but edit/delete/markpaid ka access still sirf owner ke paas rahega.</div>
+      <div><strong style="color:var(--text)">🤝 Partner Manager</strong> — <code>partners</code> permission alag se do, jaruri nahi ki dusre permissions ke saath ho.</div>
+      <div style="color:var(--danger)">⚠️ Kabhi bhi normal sales person ko <code>viewall</code> ya <code>addany</code> mat do — warna wo sabki salary/commission dekh/edit kar payega.</div>
     </div>
   </div>`:'';
   return `
@@ -846,6 +859,7 @@ function renderWorkflow(){
   ${isOwner?ownerGuide:''}
   ${memberGuide}
   ${permRef}
+  ${comboGuide}
   <div style="background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.2);border-radius:14px;padding:18px">
     <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--success);margin-bottom:10px">☁️ How Data Syncs</div>
     <div style="font-size:12px;color:var(--text-muted);line-height:1.9">
@@ -986,12 +1000,12 @@ function openTeamModal(id){
     document.getElementById('tm_bankAcc').value=pd.bankAcc||'';
     document.getElementById('tm_ifsc').value=pd.ifsc||'';
     document.getElementById('tm_walletNum').value=pd.walletNum||'';
-    ['claim','addpay','partners','viewall'].forEach(p=>{const el=document.getElementById('tp_'+p);if(el)el.checked=(m.permissions||[]).includes(p);});
+    ['claim','addpay','partners','viewall','addany'].forEach(p=>{const el=document.getElementById('tp_'+p);if(el)el.checked=(m.permissions||[]).includes(p);});
   }else{
    ['tm_name','tm_role','tm_wa','tm_email','tm_pwd','tm_salary','tm_upi','tm_bankHolder','tm_bankName','tm_bankAcc','tm_ifsc','tm_walletNum'].forEach(id=>document.getElementById(id).value='');
     document.getElementById('tm_payMethod').value='upi';
     document.getElementById('tm_payType').value='commission';
-    ['claim','addpay','partners','viewall'].forEach(p=>{const el=document.getElementById('tp_'+p);if(el)el.checked=false;});
+    ['claim','addpay','partners','viewall','addany'].forEach(p=>{const el=document.getElementById('tp_'+p);if(el)el.checked=false;});
   }
   document.getElementById('teamModal').classList.add('open');
 }
@@ -1001,7 +1015,7 @@ async function saveTeamMember(){
   if(!name){alert('Name required!');return;}
   if(!pwd||pwd.length<6){alert('Password must be ≥6 chars!');return;}
   if(pwd==='RAUNAK@1'){alert('Cannot use owner password!');return;}
-  const perms=['claim','addpay','partners','viewall'].filter(p=>document.getElementById('tp_'+p)?.checked);
+  const perms=['claim','addpay','partners','viewall','addany'].filter(p=>document.getElementById('tp_'+p)?.checked);
   const members=getMembers();
   const editId=editTeamId;
   const isDup=members.some(m=>m.password===pwd&&m.id!==editId);
@@ -1151,8 +1165,8 @@ function openLedgerModal(id){
 }
 function onEarnerTypeChange(){populateEarnerSelect();}
 function populateEarnerSelect(){
-  const isOwner=window.PORTAL_USER.isOwner;
-  const canPickAnyone=isOwner||has('viewall');
+ const isOwner=window.PORTAL_USER.isOwner;
+  const canPickAnyone=isOwner||has('addany');
   const typeSel=document.getElementById('lf_earnerType');
   const sel=document.getElementById('lf_earnerId');
   const statusSel=document.getElementById('lf_status');
