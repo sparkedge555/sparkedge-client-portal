@@ -740,7 +740,6 @@ function attachTeamListener(){
         idx>=0?merged[idx]=fm:merged.push(fm);
       });
       window._teamCache=merged;
-      localStorage.setItem('se_ret_members',JSON.stringify(merged));
       if(currentSection==='team') renderSection('team');
     },err=>console.warn('Team listener:',err.message));
   }catch(e){console.warn('Team listener setup:',e.message)}
@@ -748,13 +747,10 @@ function attachTeamListener(){
 
 function getMembers(){return window._teamCache||[...HARDCODED_MEMBERS]}
 async function saveMembers(arr){
-  localStorage.setItem('se_ret_members',JSON.stringify(arr));
-  window._teamCache=arr;
-  try{
-    const db=getDb();const batch=db.batch();
-    arr.forEach(m=>{if(!m.id)m.id='mem_'+Date.now();batch.set(db.collection('team').doc(m.id),m)});
-    await batch.commit();showToast('✅ Team synced!');
-  }catch(e){showToast('⚠️ Saved locally only.');}
+  const db=getDb();const batch=db.batch();
+  arr.forEach(m=>{if(!m.id)m.id='mem_'+Date.now();batch.set(db.collection('team').doc(m.id),m)});
+  await batch.commit();
+  showToast('✅ Team synced to cloud!');
 }
 
 /* ── SESSION CHECK ── */
@@ -854,18 +850,15 @@ function doLogout(){sessionStorage.removeItem('se_ret_session');window.PORTAL_US
 /* ════════════════════════════════════
    DATA LAYER
 ════════════════════════════════════ */
-const STORE_KEY='se_ret_clients';
-const SEND_LOG_KEY='se_ret_sendlog';
 let clients=[];
 let sendLog=[];
 
 function loadData(){
-  try{clients=JSON.parse(localStorage.getItem(STORE_KEY)||'[]');}catch{clients=[];}
-  try{sendLog=JSON.parse(localStorage.getItem(SEND_LOG_KEY)||'[]');}catch{sendLog=[];}
+  // Firestore is now the only source of truth — nothing to load locally.
+  // clients/sendLog get populated by attachClientListener() / attachSendLogListener()
 }
 function saveData(){
-  localStorage.setItem(STORE_KEY,JSON.stringify(clients));
-  localStorage.setItem(SEND_LOG_KEY,JSON.stringify(sendLog));
+  // No localStorage write — Firestore listeners keep `clients`/`sendLog` in sync.
   updateSidebarBadges();
 }
 loadData();
@@ -878,10 +871,7 @@ function attachSendLogListener(){
     getDb().collection('ret_sendlog').onSnapshot(snap=>{
       const fsLog=[];
       snap.forEach(d=>fsLog.push({id:d.id,...d.data()}));
-      fsLog.forEach(fl=>{
-        if(!sendLog.find(l=>l.id===fl.id)) sendLog.push(fl);
-      });
-      localStorage.setItem(SEND_LOG_KEY, JSON.stringify(sendLog));
+      sendLog = fsLog; // Firestore is the single source of truth — full replace, not merge
       updateSidebarBadges();
       if(['sendlog','newsletter','dashboard'].includes(currentSection)) renderSection(currentSection);
     }, err=>{
@@ -892,11 +882,7 @@ function attachSendLogListener(){
 }
 
 async function pushSendLogToFirestore(entry){
-  try{ await getDb().collection('ret_sendlog').doc(entry.id).set(entry); }
-  catch(e){
-    console.warn('SendLog Firestore push:', e.message);
-    showToast('⚠️ Send log could not sync to cloud.');
-  }
+  await getDb().collection('ret_sendlog').doc(entry.id).set(entry);
 }
 
 window._clientListenerAttached = false;
@@ -907,12 +893,8 @@ function attachClientListener(){
    getDb().collection('ret_clients').onSnapshot(snap=>{
       const fsClients=[];
       snap.forEach(d=>fsClients.push({id:d.id,...d.data()}));
-      fsClients.forEach(fc=>{
-        const idx=clients.findIndex(c=>c.id===fc.id);
-        if(idx>=0) clients[idx]={...clients[idx],...fc};
-        else clients.push(fc);
-      });
-      saveData();
+      clients = fsClients; // Firestore is the single source of truth — full replace, not merge
+      updateSidebarBadges();
       renderSection(currentSection);
     }, err=>{
       console.warn('Client listener error:', err.message);
@@ -922,11 +904,7 @@ function attachClientListener(){
 }
 
 async function pushClientToFirestore(client){
-  try{await getDb().collection('ret_clients').doc(client.id).set(client);}
-  catch(e){
-    console.warn('Firestore push:',e.message);
-    showToast('⚠️ Could not sync to cloud — check internet/Firestore rules.');
-  }
+  await getDb().collection('ret_clients').doc(client.id).set(client);
 }
 
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2);}
@@ -1582,26 +1560,29 @@ async function saveClient(){
     updatedAt:Date.now()
   };
 
-  if(editClientId){
-    const idx=clients.findIndex(x=>x.id===editClientId);
-    if(idx>=0)clients[idx]=data;
-  }else{clients.push(data);}
-
-  saveData();
   closeModal('clientModal');
-  showToast('✅ Client saved!');
-  await pushClientToFirestore(data);
-  renderSection(currentSection);
+
+  try{
+    await pushClientToFirestore(data);
+    showToast('✅ Client saved & synced to cloud!');
+    // No manual array update needed — the Firestore listener will
+    // receive this change and re-render automatically.
+  }catch(e){
+    showToast('❌ Save FAILED — not synced: '+e.message);
+    alert('Save failed! Your client was NOT saved.\n\nError: '+e.message+'\n\nCheck your internet connection or Firestore rules.');
+  }
 }
 
 async function deleteClient(id){
   if(!confirm('Delete this client permanently? This cannot be undone.'))return;
-  clients=clients.filter(x=>x.id!==id);
-  saveData();
-  try{ await getDb().collection('ret_clients').doc(id).delete(); }
-  catch(e){ console.warn('Firestore delete failed:', e.message); }
-  showToast('🗑 Client deleted.');
-  renderSection(currentSection);
+  try{
+    await getDb().collection('ret_clients').doc(id).delete();
+    showToast('🗑 Client deleted everywhere.');
+    // Listener will auto-update the UI on all devices.
+  }catch(e){
+    showToast('❌ Delete FAILED: '+e.message);
+    alert('Delete failed!\n\nError: '+e.message);
+  }
 }
 
 /* ════════════════════════════════════
@@ -2056,14 +2037,15 @@ function logAndSendOne(cid,cname){
   const tplName=MSG_TEMPLATES.find(t=>t.id===tplId)?.name||'Custom Message';
   const msg=(document.getElementById('sendOneMsg')?.value||'').replace(/\[Name\]/g,c.name).replace(/\[DOMAIN\]/g,c.domain||'').replace(/\[Business\]/g,c.biz||'');
   if(!msg.trim()){showToast('⚠️ Enter a message first!');return;}
-  const num=(c.wa||c.phone||'').replace(/[^0-9]/g,'');
+const num=(c.wa||c.phone||'').replace(/[^0-9]/g,'');
   const _entry2={id:uid(),clientId:cid,clientName:cname,templateId:tplId,templateName:tplName,channel:'WhatsApp',sentAt:Date.now(),sentBy:window.PORTAL_USER?.name||'Admin',note:''};
-sendLog.push(_entry2);
-saveData();
-pushSendLogToFirestore(_entry2);
   closeModal('sendModal');
   window.open(`https://wa.me/91${num}?text=${encodeURIComponent(msg)}`,'_blank');
-  showToast(`✅ Message sent to ${cname} & logged!`);
+  pushSendLogToFirestore(_entry2).then(()=>{
+    showToast(`✅ Message sent to ${cname} & logged!`);
+  }).catch(e=>{
+    showToast(`⚠️ Sent but log FAILED to sync: ${e.message}`);
+  });
 }
 
 function selectAllSend(){document.querySelectorAll('.send-check').forEach(cb=>cb.checked=true);}
@@ -2077,13 +2059,11 @@ function executeSend(tplId,tplName){
   const selected=[...document.querySelectorAll('.send-check:checked')].map(cb=>cb.value);
   if(!selected.length){showToast('⚠️ Select at least one client!');return;}
 
- selected.forEach(cid=>{
+selected.forEach(cid=>{
   const c=clients.find(x=>x.id===cid);if(!c)return;
   const _entry3={id:uid(),clientId:cid,clientName:c.name,templateId:tplId,templateName:tplName,channel:'WhatsApp',sentAt:Date.now(),sentBy:window.PORTAL_USER?.name||'Admin',note};
-  sendLog.push(_entry3);
-  pushSendLogToFirestore(_entry3);
+  pushSendLogToFirestore(_entry3).catch(e=>showToast('⚠️ Log sync failed for '+c.name+': '+e.message));
 });
-saveData();
 
   // Open WA for each (with delay)
   const selectedClients=selected.map(id=>clients.find(c=>c.id===id)).filter(Boolean);
@@ -2117,12 +2097,13 @@ function sendReminderQuick(clientId, type){
   if(!tpl)return;
   let msg=tpl.body.replace(/\[Name\]/g,c.name).replace(/\[DOMAIN\]/g,c.domain||'yourdomain.com').replace(/\[Business\]/g,c.biz||'').replace(/\[EXPIRY_DATE\]/g,fmtDate(c.domainExpiry||c.hostingExpiry||c.sslExpiry||'')).replace(/\[DAYS\]/g,daysUntil(c.domainExpiry||c.hostingExpiry||c.sslExpiry||'')?.toString()||'');
   const num=(c.wa||c.phone||'').replace(/[^0-9]/g,'');
- const _entry1={id:uid(),clientId,clientName:c.name,templateId:tpl.id,templateName:tpl.name+' (Quick)',channel:'WhatsApp',sentAt:Date.now(),sentBy:window.PORTAL_USER?.name||'Admin',note:type+' reminder'};
-sendLog.push(_entry1);
-saveData();
-pushSendLogToFirestore(_entry1);
+const _entry1={id:uid(),clientId,clientName:c.name,templateId:tpl.id,templateName:tpl.name+' (Quick)',channel:'WhatsApp',sentAt:Date.now(),sentBy:window.PORTAL_USER?.name||'Admin',note:type+' reminder'};
   window.open(`https://wa.me/91${num}?text=${encodeURIComponent(msg)}`,'_blank');
-  showToast(`📲 WhatsApp opened for ${c.name}!`);
+  pushSendLogToFirestore(_entry1).then(()=>{
+    showToast(`📲 WhatsApp opened & logged for ${c.name}!`);
+  }).catch(e=>{
+    showToast(`⚠️ WhatsApp opened but log FAILED to sync: ${e.message}`);
+  });
 }
 
 /* ════════════════════════════════════
@@ -2166,17 +2147,15 @@ function renderSendLog(){
 
 async function clearSendLog(){
   if(!confirm('Clear all send log entries? This deletes from Firestore on ALL devices.'))return;
-  const old=[...sendLog];
-  sendLog=[];saveData();
-  showToast('🗑 Send log cleared.');
-  renderSection('sendlog');
   try{
     const db=getDb();const batch=db.batch();
-    old.forEach(l=>batch.delete(db.collection('ret_sendlog').doc(l.id)));
+    sendLog.forEach(l=>batch.delete(db.collection('ret_sendlog').doc(l.id)));
     await batch.commit();
+    showToast('🗑 Send log cleared everywhere.');
+    // Listener auto-updates the UI on all devices.
   }catch(e){
-    console.warn('Firestore sendlog clear failed:', e.message);
-    showToast('⚠️ Cleared locally, but cloud delete failed.');
+    showToast('❌ Clear FAILED: '+e.message);
+    alert('Could not clear send log.\n\nError: '+e.message);
   }
 }
 
@@ -2449,25 +2428,30 @@ function openImportModal(){
   document.getElementById('importModal').classList.add('open');
 }
 
-function importData(){
+async function importData(){
   const raw=document.getElementById('importText').value.trim();
   if(!raw){alert('Paste JSON data!');return;}
   try{
     const data=JSON.parse(raw);
-    let added=0,updated=0;
     const importedClients=Array.isArray(data)?data:(data.clients||[]);
     const importedLog=Array.isArray(data)?[]:(data.sendLog||[]);
+
+    const db=getDb();
+    const batch=db.batch();
     importedClients.forEach(ic=>{
-      const idx=clients.findIndex(c=>c.id===ic.id);
-      if(idx>=0){clients[idx]={...clients[idx],...ic};updated++;}
-      else{clients.push(ic);added++;}
+      if(!ic.id) ic.id=uid();
+      batch.set(db.collection('ret_clients').doc(ic.id), ic, {merge:true});
     });
-    importedLog.forEach(il=>{if(!sendLog.find(l=>l.id===il.id))sendLog.push(il);});
-    saveData();
+    importedLog.forEach(il=>{
+      if(!il.id) il.id=uid();
+      batch.set(db.collection('ret_sendlog').doc(il.id), il, {merge:true});
+    });
+    await batch.commit();
+
     closeModal('importModal');
-    showToast(`✅ Imported: ${added} new, ${updated} updated.`);
-    renderSection(currentSection);
-  }catch(e){alert('Error: '+e.message);}
+    showToast(`✅ Imported ${importedClients.length} clients & ${importedLog.length} log entries to cloud.`);
+    // Listener auto-updates the UI on all devices.
+  }catch(e){alert('Import error: '+e.message);}
 }
 
 /* ════════════════════════════════════
