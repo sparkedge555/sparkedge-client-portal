@@ -232,7 +232,7 @@ tbody td .td-main{font-weight:600;color:var(--text);font-size:13px}
     <div class="login-field">
       <label>Password</label>
       <input class="login-input" type="password" id="loginPwd" placeholder="Enter your password" onkeydown="if(event.key==='Enter')doLogin()"/>
-      <button class="login-eye" onclick="toggleEye()" id="eyeBtn">👁</button>
+      <button class="login-eye" onclick="toggleEye()" id="eyeBtn"><i data-lucide="eye" id="eyeIcon" style="width:16px;height:16px;stroke:rgba(136,136,168,.5);fill:none;pointer-events:none;"></i></button>
     </div>
     <button class="login-btn" onclick="doLogin()">Unlock Payments Portal →</button>
 <div class="login-credit">Owned by <strong>Raunak Karn</strong><br><span style="font-size:8px;opacity:.6;">Built &amp; maintained by Raunak Karn</span></div>
@@ -336,8 +336,8 @@ tbody td .td-main{font-weight:600;color:var(--text);font-size:13px}
       <input type="hidden" id="lf_editId" value=""/>
       <div class="fg full"><label>Who Is This Payment For? *</label>
         <select id="lf_earnerType" onchange="onEarnerTypeChange()">
-          <option value="team">🧑‍💻 Team Member</option>
-          <option value="partner">🤝 Referral Partner (Outsider)</option>
+         <option value="team">Team Member</option>
+          <option value="partner">Referral Partner (Outsider)</option>
         </select>
       </div>
       <div class="fg full" id="lf_earnerSelWrap">
@@ -372,8 +372,8 @@ tbody td .td-main{font-weight:600;color:var(--text);font-size:13px}
       <div class="fg"><label>Amount (₹) *</label><input id="lf_amount" type="number" placeholder="1500"/></div>
       <div class="fg"><label>Status *</label>
         <select id="lf_status">
-          <option value="pending">⏳ Pending</option>
-          <option value="paid">✅ Paid</option>
+          <option value="pending">Pending</option>
+          <option value="paid">Paid</option>
         </select>
       </div>
       <div class="fg"><label>Date</label><input type="date" id="lf_date"/></div>
@@ -484,7 +484,7 @@ tbody td .td-main{font-weight:600;color:var(--text);font-size:13px}
 <div class="modal-overlay" id="waModal">
   <div class="modal sm">
     <div class="modal-header">
-      <div class="modal-title">📲 WhatsApp Message Ready</div>
+<div class="modal-title"><i data-lucide="message-circle" style="width:16px;height:16px;stroke:var(--accent);fill:none;vertical-align:-3px;margin-right:6px;"></i>WhatsApp Message Ready</div>
       <button class="modal-close" onclick="closeModal('waModal')">
         <i data-lucide="x" style="width:14px;height:14px;stroke:currentColor;fill:none;"></i>
       </button>
@@ -690,7 +690,13 @@ function unlockUI(){
   setTimeout(()=>lucide&&lucide.createIcons&&lucide.createIcons(),100);
   renderSection('dashboard');
 }
-function toggleEye(){const i=document.getElementById('loginPwd');const b=document.getElementById('eyeBtn');i.type=i.type==='password'?'text':'password';b.textContent=i.type==='password'?'👁':'🙈';}
+function toggleEye(){
+  const i=document.getElementById('loginPwd');
+  i.type=i.type==='password'?'text':'password';
+  const icon=document.getElementById('eyeIcon');
+  icon.setAttribute('data-lucide',i.type==='password'?'eye':'eye-off');
+  lucide.createIcons();
+}
 function doLogout(){sessionStorage.removeItem('se_pay_session');window.PORTAL_USER=null;location.reload();}
 
 function has(p){
@@ -766,7 +772,7 @@ function renderDashboard(){
     ledger.forEach(l=>{const k=l.earnerName||'Unknown';byMember[k]=byMember[k]||{paid:0,pending:0};byMember[k][l.status==='paid'?'paid':'pending']+=Number(l.amount||0);});
     ownerExtra=`
     <div class="card">
-      <div class="card-title">👥 Breakdown by Person (Owner View)</div>
+      <div class="card-title"><i data-lucide="users" style="width:13px;height:13px;stroke:currentColor;fill:none;vertical-align:-2px;margin-right:5px;"></i> Breakdown by Person (Owner View)</div>
       <div class="table-wrap"><table><thead><tr><th>Name</th><th>Paid</th><th>Pending</th><th>Total</th></tr></thead><tbody>
         ${Object.entries(byMember).sort((a,b)=>(b[1].paid+b[1].pending)-(a[1].paid+a[1].pending)).map(([name,v])=>`
         <tr><td class="td-main">${name}</td><td style="color:var(--success);font-weight:700">${fmtMoney(v.paid)}</td><td style="color:var(--warning);font-weight:700">${fmtMoney(v.pending)}</td><td>${fmtMoney(v.paid+v.pending)}</td></tr>`).join('')||'<tr><td colspan=4 style="text-align:center;color:var(--text-dim);padding:20px">No data yet</td></tr>'}
@@ -779,7 +785,7 @@ function renderDashboard(){
   }
 
   return `
-  <div class="page-eyebrow">💰 Payments Overview</div>
+  <div class="page-eyebrow"><i data-lucide="wallet" style="width:11px;height:11px;stroke:var(--accent);fill:none;display:inline;vertical-align:-1px;"></i> Payments Overview</div>
   <div class="page-title">${canViewAll?'Team Dashboard':'My Dashboard'}</div>
   <div class="page-sub">${canViewAll?'Full visibility into every rupee paid or owed — team & partners':'Your personal earnings — fully transparent'}</div>
 
@@ -793,7 +799,7 @@ function renderDashboard(){
   ${ownerExtra}
 
   <div class="card">
-    <div class="card-title">🕒 Recent Activity</div>
+    <div class="card-title"><i data-lucide="clock" style="width:13px;height:13px;stroke:currentColor;fill:none;vertical-align:-2px;margin-right:5px;"></i> Recent Activity</div>
    ${visible.slice(0,8).map(l=>ledgerRowHTML(l,canViewAll)).join('')||'<div class="empty"><div class="empty-icon">📭</div><p>No payment entries yet.</p></div>'}
   </div>`;
 }
@@ -807,7 +813,7 @@ function ledgerRowHTML(l,showWho){
       <div class="ledger-meta">${l.clientName?l.clientName+' · ':''}${fmtDate(l.date)} ${l.note?'· '+l.note:''}</div>
     </div>
     <div class="ledger-amt" style="color:${l.status==='paid'?'var(--success)':'var(--warning)'}">${fmtMoney(l.amount)}</div>
-    <span class="pill ${l.status==='paid'?'pill-active':'pill-inactive'}">${l.status==='paid'?'✅ Paid':'⏳ Pending'}</span>
+    <span class="pill ${l.status==='paid'?'pill-active':'pill-inactive'}" style="display:inline-flex;align-items:center;gap:4px"><i data-lucide="${l.status==='paid'?'check-circle':'clock'}" style="width:10px;height:10px;stroke:currentColor;fill:none;"></i>${l.status==='paid'?'Paid':'Pending'}</span>
   </div>`;
 }
 
@@ -820,7 +826,7 @@ function renderLedger(){
   const canViewAll=isOwner||has('viewall');
   const all=canViewAll?getLedger():getLedger().filter(l=>l.earnerId===window.PORTAL_USER.memberId);
    return `
-  <div class="page-eyebrow">📒 Payment Ledger</div>
+  <div class="page-eyebrow"><i data-lucide="book-open" style="width:11px;height:11px;stroke:var(--accent);fill:none;display:inline;vertical-align:-1px;"></i> Payment Ledger</div>
   <div class="page-title">All Payment Records</div>
   <div class="page-sub">${canViewAll?'Every commission, salary & bonus entry — team and partners':'Your own payment history'}</div>
 
@@ -839,7 +845,8 @@ function refreshLedgerTable(){
   const isOwner=window.PORTAL_USER.isOwner;
   const canViewAll=isOwner||has('viewall');
   const all=canViewAll?getLedger():getLedger().filter(l=>l.earnerId===window.PORTAL_USER.memberId);
-    document.getElementById('ledgerTableWrap').innerHTML=renderLedgerTable(all);
+  document.getElementById('ledgerTableWrap').innerHTML=renderLedgerTable(all);
+  setTimeout(()=>lucide&&lucide.createIcons&&lucide.createIcons(),50);
 }
 function renderLedgerTable(arr){
   let r=[...arr];
@@ -853,17 +860,17 @@ function renderLedgerTable(arr){
   </tr></thead><tbody>
   ${r.map(l=>`<tr>
     <td>${fmtDate(l.date)}</td>
-    ${isOwner?`<td><div class="td-main">${l.earnerName}</div><div style="font-size:10px;color:var(--text-dim)">${l.earnerType==='partner'?'🤝 Partner':'🧑‍💻 Team'}</div></td><td><span class="tbl-pill ${l.type==='commission'?'tbl-info':l.type==='salary'?'tbl-purple':'tbl-warn'}">${l.type}</span></td>`:`<td><span class="tbl-pill ${l.type==='commission'?'tbl-info':l.type==='salary'?'tbl-purple':'tbl-warn'}">${l.type}</span></td>`}
+    ${isOwner?`<td><div class="td-main">${l.earnerName}</div><div style="font-size:10px;color:var(--text-dim)">${l.earnerType==='partner'?'Partner':'Team'}</div></td><td><span class="tbl-pill ${l.type==='commission'?'tbl-info':l.type==='salary'?'tbl-purple':'tbl-warn'}">${l.type}</span></td>`:`<td><span class="tbl-pill ${l.type==='commission'?'tbl-info':l.type==='salary'?'tbl-purple':'tbl-warn'}">${l.type}</span></td>`}
     <td>${l.ticketId||'—'}</td>
     <td>${l.clientName||'—'}</td>
     <td style="font-weight:700;color:${l.status==='paid'?'var(--success)':'var(--warning)'}">${fmtMoney(l.amount)}</td>
-    <td><span class="tbl-pill ${l.status==='paid'?'tbl-safe':'tbl-warn'}">${l.status==='paid'?'✅ Paid':'⏳ Pending'}</span></td>
+    <td><span class="tbl-pill ${l.status==='paid'?'tbl-safe':'tbl-warn'}">${l.status==='paid'?'Paid':'Pending'}</span></td>
     <td style="font-size:11px;max-width:200px">${l.note||'—'}</td>
     <td>
       ${(window.PORTAL_USER.isOwner)?`
       ${l.status==='pending'?`<button class="btn btn-success btn-sm" onclick="markPaid('${l.id}')">Mark Paid</button>`:''}
-      <button class="btn btn-secondary btn-sm" onclick="openLedgerModal('${l.id}')">✏️</button>
-      <button class="btn btn-danger btn-sm" onclick="deleteLedgerEntry('${l.id}')">🗑</button>`:'—'}
+      <button class="btn btn-secondary btn-sm" onclick="openLedgerModal('${l.id}')"><i data-lucide="pencil" style="width:12px;height:12px;stroke:currentColor;fill:none;"></i></button>
+     <button class="btn btn-danger btn-sm" onclick="deleteLedgerEntry('${l.id}')"><i data-lucide="trash-2" style="width:12px;height:12px;stroke:currentColor;fill:none;"></i></button>`:'—'}
     </td>
   </tr>`).join('')}
   </tbody></table></div>`;
@@ -891,7 +898,7 @@ async function deleteLedgerEntry(id){
 ════════════════════════════════════ */
 function renderMyEarnings(){
   const u=window.PORTAL_USER;
-  if(u.isOwner) return `<div class="empty"><div class="empty-icon">👑</div><p>Owner view — see Dashboard for full revenue. This page is for team members' personal earnings.</p></div>`;
+ if(u.isOwner) return `<div class="empty"><div class="empty-icon"><i data-lucide="crown" style="width:42px;height:42px;stroke:var(--text-dim);fill:none;opacity:.4;"></i></div><p>Owner view — see Dashboard for full revenue. This page is for team members' personal earnings.</p></div>`;
   const mine=getLedger().filter(l=>l.earnerId===u.memberId);
   const paid=mine.filter(l=>l.status==='paid').reduce((a,l)=>a+Number(l.amount||0),0);
   const pending=mine.filter(l=>l.status==='pending').reduce((a,l)=>a+Number(l.amount||0),0);
@@ -899,7 +906,7 @@ function renderMyEarnings(){
   const myMember = getMembers().find(m=>m.id===u.memberId) || {};
   const pd = myMember.paymentDetails || {};
   return `
-  <div class="page-eyebrow">💼 My Earnings</div>
+  <div class="page-eyebrow"><i data-lucide="briefcase" style="width:11px;height:11px;stroke:var(--accent);fill:none;display:inline;vertical-align:-1px;"></i> My Earnings</div>
   <div class="page-title">Your Personal Payment Record</div>
   <div class="page-sub">100% transparent — exactly what you've been paid, and what's still owed</div>
   <div class="stats-row">
@@ -908,17 +915,17 @@ function renderMyEarnings(){
     <div class="stat-card blue"><div class="stat-label">Tickets Claimed</div><div class="stat-value" style="color:var(--info)">${myClaims.length}</div></div>
   </div>
   <div class="card">
-    <div class="card-title">📜 Full History</div>
+    <div class="card-title"><i data-lucide="scroll-text" style="width:13px;height:13px;stroke:currentColor;fill:none;vertical-align:-2px;margin-right:5px;"></i> Full History</div>
     ${mine.length?mine.map(l=>ledgerRowHTML(l,false)).join(''):'<div class="empty"><div class="empty-icon">📭</div><p>No payments recorded yet.</p></div>'}
   </div>
   <div class="card">
-    <div class="card-title">🎫 Tickets You've Claimed</div>
+   <div class="card-title"><i data-lucide="ticket" style="width:13px;height:13px;stroke:currentColor;fill:none;vertical-align:-2px;margin-right:5px;"></i> Tickets You've Claimed</div>
     ${myClaims.length?`<div class="table-wrap"><table><thead><tr><th>Ticket</th><th>Claimed On</th><th>Note</th></tr></thead><tbody>
       ${myClaims.map(c=>`<tr><td class="td-main">${c.ticketId}</td><td>${fmtDate(c.claimedAt)}</td><td style="font-size:11px">${c.note||'—'}</td></tr>`).join('')}
     </tbody></table></div>`:'<div style="color:var(--text-dim);font-size:12px">No tickets claimed yet. Go to Ticket Ownership to claim a client.</div>'}
   </div>
   <div class="card">
-    <div class="card-title">💳 My Payment Details</div>
+   <div class="card-title"><i data-lucide="credit-card" style="width:13px;height:13px;stroke:currentColor;fill:none;vertical-align:-2px;margin-right:5px;"></i> My Payment Details</div>
     <div style="font-size:12px;color:var(--text-muted);margin-bottom:14px">This is where the owner sends your money. Keep it updated — only you can edit this.</div>
     <div class="form-grid">
       <div class="fg full"><label>Payment Method</label>
@@ -934,7 +941,7 @@ function renderMyEarnings(){
       <div class="fg"><label>Account Number</label><input id="me_bankAcc" value="${pd.bankAcc||''}"/></div>
       <div class="fg"><label>IFSC Code</label><input id="me_ifsc" value="${pd.ifsc||''}"/></div>
       <div class="fg full"><label>Mobile Wallet Number</label><input id="me_walletNum" value="${pd.walletNum||''}"/></div>
-      <div class="form-actions"><button class="btn btn-primary" onclick="saveMyPaymentDetails()">💾 Save My Payment Details</button></div>
+      <div class="form-actions"><button class="btn btn-primary" onclick="saveMyPaymentDetails()"><i data-lucide="save" style="width:13px;height:13px;stroke:#fff;fill:none;"></i> Save My Payment Details</button></div>
     </div>
   </div>`;
 }
@@ -964,16 +971,20 @@ function renderWorkflow(){
   const isOwner=window.PORTAL_USER?.isOwner;
   const ownerGuide=`
   <div style="background:rgba(255,107,53,.06);border:1px solid rgba(255,107,53,.2);border-radius:14px;padding:20px;margin-bottom:20px">
-    <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:800;color:var(--accent);margin-bottom:14px">👑 Owner Workflow</div>
+    <div style="display:flex;align-items:center;gap:8px;font-family:'Syne',sans-serif;font-size:15px;font-weight:800;color:var(--accent);margin-bottom:14px">
+      <i data-lucide="crown" style="width:18px;height:18px;stroke:var(--accent);fill:none;"></i> Owner Workflow
+    </div>
     <div style="display:flex;flex-direction:column;gap:14px">
       ${[['1','Add Team Members','Go to Manage Access → + Add Team Member. Set their password, role, pay type, and permissions.'],
-         ['2','Add Referral Partners','Go to Referral Partners → + Add Partner. Set their default commission (flat ₹ or %).'],
+         ['2','Add Referral Partners','Go to Referral Partners → + Add Partner. Set their default commission (flat ₹ or %) and WhatsApp number.'],
          ['3','Client Gets a Ticket','When a new client is onboarded via admin.html, note their Ticket ID (e.g. SE-005).'],
          ['4','Team Member Claims Ticket','Ask team member to go to Ticket Ownership → enter Ticket ID → Claim.'],
-         ['5','Add Commission / Payment Entry','Go to Payment Ledger → + Add Entry. Set amount, type, status (Pending when owed, Paid when transferred).'],
-         ['6','Mark as Paid','When you transfer money → Payment Ledger → Mark Paid. Team member sees update instantly.'],
-         ['7','Monitor Everything','Dashboard shows full breakdown by person — paid vs pending.'],
-         ['8','Monthly Salary','Add a Salary entry each month → Pending → transfer → Mark Paid.'],
+         ['5','Add Payment Entry','Use the 💰 Pay button on a Partner card, a Claimed Ticket row, or + Add Entry. Choose "🎫 Ticket-Based" for client work, or "🛠️ Service Work" for non-ticket tasks (e.g. landing page, design edit). Set amount & status.'],
+         ['6','Mark as Paid','Payment Ledger → Mark Paid once money is transferred. Team member sees it instantly. For Partners, a copyable WhatsApp message card pops up automatically.'],
+         ['7','Send Partner Updates','Copy the message from the WhatsApp card and paste it to the partner on any device — no WhatsApp Web needed.'],
+         ['8','Monitor & Filter','Dashboard shows full breakdown by person. Ticket Ownership has filters for This Month / Last Month and Paid / Pending / No Payment.'],
+         ['9','Clean Up Mistaken Claims','Made a wrong ticket claim? Delete it from Ticket Ownership with the 🗑 button (only removes the claim, not any payment already logged).'],
+         ['10','Monthly Salary','Add a Salary entry each month → Pending → transfer → Mark Paid.'],
       ].map(([n,title,desc])=>`<div style="display:flex;gap:14px">
         <div style="width:32px;height:32px;border-radius:9px;background:var(--grad);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:#fff;flex-shrink:0">${n}</div>
         <div><div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:700;margin-bottom:3px">${title}</div>
@@ -983,12 +994,14 @@ function renderWorkflow(){
   </div>`;
   const memberGuide=`
   <div style="background:rgba(59,130,246,.06);border:1px solid rgba(59,130,246,.2);border-radius:14px;padding:20px;margin-bottom:20px">
-    <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:800;color:var(--info);margin-bottom:14px">🧑‍💻 Team Member Workflow</div>
+    <div style="display:flex;align-items:center;gap:8px;font-family:'Syne',sans-serif;font-size:15px;font-weight:800;color:var(--info);margin-bottom:14px">
+<i data-lucide="user-round-cog" style="width:18px;height:18px;stroke:var(--info);fill:none;"></i> Team Member Workflow
+    </div>
     <div style="display:flex;flex-direction:column;gap:14px">
       ${[['1','Login','Use the password given by Raunak. You see only your data unless View All Payments permission is granted.'],
-         ['2','Claim Your Tickets','Go to Ticket Ownership → enter the Ticket ID of every client you closed → Claim.'],
-         ['3','View My Earnings','Go to My Earnings — see every payment: commissions, salary, bonuses. Green=paid, Amber=pending.'],
-         ['4','Request a Payment','If addpay permission: Payment Ledger → + Add Entry → select yourself → status: Pending.'],
+         ['2','Claim Your Tickets','Go to Ticket Ownership → enter the Ticket ID of every client you closed → Claim. Use the filters to check This Month / Last Month or Paid / Pending status.'],
+         ['3','View My Earnings','Go to My Earnings — see every payment: commissions, salary, bonuses, and non-ticket service work. Green=paid, Amber=pending.'],
+         ['4','Request a Payment','If you have addpay permission: + Add Entry → toggle "🎫 Ticket-Based" or "🛠️ Service Work" depending on the work → fill details → status stays Pending automatically.'],
          ['5','Check Pending Balance','My Earnings shows total received and total owed. Message Raunak if something looks wrong.'],
          ['6','View Partners','Only visible if you have Manage Partners permission.'],
       ].map(([n,title,desc])=>`<div style="display:flex;gap:14px">
@@ -998,17 +1011,40 @@ function renderWorkflow(){
       </div>`).join('')}
     </div>
   </div>`;
+  const featureGuide=`
+  <div style="background:rgba(6,182,212,.06);border:1px solid rgba(6,182,212,.2);border-radius:14px;padding:20px;margin-bottom:20px">
+    <div style="display:flex;align-items:center;gap:8px;font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:#06B6D4;margin-bottom:12px">
+      <i data-lucide="sparkles" style="width:16px;height:16px;stroke:#06B6D4;fill:none;"></i> What's New In This Portal
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px">
+     ${[['toggle-right','Ticket / Service Toggle','When adding a payment, pick "Ticket-Based" or "Service Work" — Ticket ID becomes required for the first, Work Description becomes required for the second.'],
+         ['message-circle','Copyable WhatsApp Message','Whenever a Partner gets paid or logged, a card pops up with a ready-made message and a Copy button — paste it on any device, no WhatsApp Web needed.'],
+         ['trash-2','Delete Wrong Claims','Owner can remove a mistaken ticket claim from Ticket Ownership without touching any payment history.'],
+         ['filter','Smart Filters','Ticket Ownership now filters by This Month / Last Month and by Paid / Pending / No Payment Logged, alongside search.'],
+         ['wallet','Pay Buttons Everywhere','Quick 💰 Pay buttons live on Partner cards and Claimed Ticket rows — no need to hunt for + Add Entry and re-select the person.'],
+      ].map(([icon,label,desc])=>`<div style="background:var(--bg-raised);border:1px solid var(--border);border-radius:9px;padding:12px">
+        <div style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--text);margin-bottom:4px">
+          <i data-lucide="${icon}" style="width:13px;height:13px;stroke:#06B6D4;fill:none;flex-shrink:0;"></i> ${label}
+        </div>
+        <div style="font-size:11px;color:var(--text-muted);line-height:1.6">${desc}</div>
+      </div>`).join('')}
+    </div>
+  </div>`;
   const permRef=isOwner?`
   <div style="background:rgba(155,127,212,.06);border:1px solid rgba(155,127,212,.2);border-radius:14px;padding:20px;margin-bottom:20px">
-    <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:var(--purple);margin-bottom:12px">🛡 Permissions Reference</div>
+    <div style="display:flex;align-items:center;gap:8px;font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:var(--purple);margin-bottom:12px">
+      <i data-lucide="shield-check" style="width:16px;height:16px;stroke:var(--purple);fill:none;"></i> Permissions Reference
+    </div>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px">
-      ${[['claim','🎫 Claim Tickets','Can claim ticket ownership'],
-         ['addpay','➕ Add Own Pending','Can add payment requests ONLY for themselves (locked to self, status locked to Pending)'],
-         ['partners','🤝 Manage Partners','Can add and edit referral partners'],
-         ['viewall','👁 View All Payments','Can SEE full Payment Ledger & Dashboard of everyone — view only, cannot add/edit anything for others'],
-         ['addany','🧾 Add Entry For Anyone','Can add a payment entry for ANY team member or partner, with any status (Paid/Pending) — same as owner\'s Add Entry power. Give this only to a trusted manager/accountant'],
-      ].map(([p,label,desc])=>`<div style="background:var(--bg-raised);border:1px solid var(--border);border-radius:9px;padding:12px">
-        <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:4px">${label}</div>
+      ${[['ticket','claim','Claim Tickets','Can claim ticket ownership'],
+         ['plus-circle','addpay','Add Own Pending','Can add payment requests (ticket or service) ONLY for themselves (locked to self, status locked to Pending)'],
+         ['handshake','partners','Manage Partners','Can add and edit referral partners'],
+         ['eye','viewall','View All Payments','Can SEE full Payment Ledger & Dashboard of everyone — view only, cannot add/edit anything for others'],
+       ['file-plus','addany','Add Entry For Anyone','Can add a payment entry for ANY team member or partner, with any status (Paid/Pending) — same as owner\'s Add Entry power. Give this only to a trusted manager/accountant'],
+      ].map(([icon,p,label,desc])=>`<div style="background:var(--bg-raised);border:1px solid var(--border);border-radius:9px;padding:12px">
+        <div style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--text);margin-bottom:4px">
+          <i data-lucide="${icon}" style="width:13px;height:13px;stroke:var(--purple);fill:none;flex-shrink:0;"></i> ${label}
+        </div>
         <div style="font-size:11px;color:var(--text-muted);line-height:1.6">${desc}</div>
         <div style="margin-top:6px;font-size:10px;color:var(--purple);background:rgba(155,127,212,.1);border:1px solid rgba(155,127,212,.2);border-radius:4px;padding:2px 7px;display:inline-block">key: "${p}"</div>
       </div>`).join('')}
@@ -1016,30 +1052,35 @@ function renderWorkflow(){
  </div>`:'';
   const comboGuide=isOwner?`
   <div style="background:rgba(255,179,71,.06);border:1px solid rgba(255,179,71,.25);border-radius:14px;padding:20px;margin-bottom:20px">
-    <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:var(--gold);margin-bottom:12px">💡 Kis Member Ko Kaunsa Permission Dena Hai (Owner Cheat-Sheet)</div>
+    <div style="display:flex;align-items:center;gap:8px;font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:var(--gold);margin-bottom:12px">
+      <i data-lucide="lightbulb" style="width:16px;height:16px;stroke:var(--gold);fill:none;"></i> Kis Member Ko Kaunsa Permission Dena Hai (Owner Cheat-Sheet)
+    </div>
     <div style="display:flex;flex-direction:column;gap:10px;font-size:12px;color:var(--text-muted);line-height:1.8">
-      <div><strong style="color:var(--text)">🧑‍💻 Normal Sales Person</strong> — sirf <code>claim</code> + <code>addpay</code> do. Wo apne clients claim karega aur apne liye hi pending request bhanga sakta hai. Apne se zyada/kisi aur ka data ya entry nahi chhede sakta.</div>
+      <div><strong style="color:var(--text)">🧑‍💻 Normal Sales Person</strong> — sirf <code>claim</code> + <code>addpay</code> do. Wo apne clients claim karega aur apne liye hi pending request bhanga sakta hai (ticket ya service dono). Apne se zyada/kisi aur ka data ya entry nahi chhede sakta.</div>
       <div><strong style="color:var(--text)">👁 Manager (sirf monitoring ke liye)</strong> — sirf <code>viewall</code> do. Wo sabka Dashboard/Ledger dekh payega, par koi bhi entry add/edit/delete nahi kar sakta.</div>
-      <div><strong style="color:var(--text)">🧾 Accountant / Trusted Manager (poora payment kaam)</strong> — <code>viewall</code> + <code>addany</code> do. Wo sabka data dekh ke kisi ke bhi naam par entry add kar payega (jaise tum karte ho), but edit/delete/markpaid ka access still sirf owner ke paas rahega.</div>
+      <div><strong style="color:var(--text)">🧾 Accountant / Trusted Manager (poora payment kaam)</strong> — <code>viewall</code> + <code>addany</code> do. Wo sabka data dekh ke kisi ke bhi naam par entry add kar payega (jaise tum karte ho), but edit/delete/markpaid/claim-delete ka access still sirf owner ke paas rahega.</div>
       <div><strong style="color:var(--text)">🤝 Partner Manager</strong> — <code>partners</code> permission alag se do, jaruri nahi ki dusre permissions ke saath ho.</div>
       <div style="color:var(--danger)">⚠️ Kabhi bhi normal sales person ko <code>viewall</code> ya <code>addany</code> mat do — warna wo sabki salary/commission dekh/edit kar payega.</div>
     </div>
   </div>`:'';
   return `
-  <div class="page-eyebrow">📋 Workflow Guide</div>
+  <div class="page-eyebrow"><i data-lucide="clipboard-list" style="width:11px;height:11px;stroke:var(--accent);fill:none;display:inline;vertical-align:-1px;"></i> Workflow Guide</div>
   <div class="page-title">How Payments Portal Works</div>
   <div class="page-sub">Step-by-step guide — read this before you start</div>
+  ${featureGuide}
   ${isOwner?ownerGuide:''}
   ${memberGuide}
   ${permRef}
   ${comboGuide}
   <div style="background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.2);border-radius:14px;padding:18px">
-    <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--success);margin-bottom:10px">☁️ How Data Syncs</div>
+    <div style="display:flex;align-items:center;gap:8px;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--success);margin-bottom:10px">
+      <i data-lucide="cloud" style="width:15px;height:15px;stroke:var(--success);fill:none;"></i> How Data Syncs
+    </div>
     <div style="font-size:12px;color:var(--text-muted);line-height:1.9">
       • Team Members — live Firestore listener on pay_team. Add/edit → reflects everywhere in seconds.<br>
-      • Payment Ledger — live listener on pay_ledger. Every entry is real-time.<br>
+      • Payment Ledger — live listener on pay_ledger, including ticket-based and service-based entries.<br>
       • Partners — live listener on pay_partners.<br>
-      • Ticket Claims — live listener on pay_claims.<br>
+      • Ticket Claims — live listener on pay_claims, including deletions.<br>
       • No localStorage used — Firestore is the only data source.
     </div>
   </div>`;
@@ -1052,23 +1093,23 @@ function renderClaims(){
   const claims=getClaims();
   const canClaim=has('claim')||window.PORTAL_USER.isOwner;
   return `
-  <div class="page-eyebrow">🎫 Ticket Ownership</div>
+  <div class="page-eyebrow"><i data-lucide="ticket" style="width:11px;height:11px;stroke:var(--accent);fill:none;display:inline;vertical-align:-1px;"></i> Ticket Ownership</div>
   <div class="page-title">Who Owns Which Client/Ticket</div>
   <div class="page-sub">Claim a ticket as "your client" so commission tracking stays clear. Duplicate claims are flagged.</div>
 
   ${canClaim?`
   <div class="card">
-    <div class="card-title">➕ Claim a New Ticket</div>
+    <div class="card-title"><i data-lucide="plus-circle" style="width:13px;height:13px;stroke:currentColor;fill:none;vertical-align:-2px;margin-right:5px;"></i> Claim a New Ticket</div>
     <div class="form-grid">
       <div class="fg"><label>Ticket ID *</label><input id="cl_ticketId" placeholder="SE-005" oninput="this.value=this.value.toUpperCase()"/></div>
       <div class="fg"><label>Client Name</label><input id="cl_clientName" placeholder="Client name"/></div>
       <div class="fg full"><label>Note</label><input id="cl_note" placeholder="e.g. Met at networking event, closed personally"/></div>
-      <div class="form-actions"><button class="btn btn-primary" onclick="claimTicket()">🎫 Claim This Ticket</button></div>
+      <div class="form-actions"><button class="btn btn-primary" onclick="claimTicket()"><i data-lucide="ticket" style="width:13px;height:13px;stroke:#fff;fill:none;"></i> Claim This Ticket</button></div>
     </div>
   </div>`:''}
 
   <div class="card">
-    <div class="card-title">📋 All Claimed Tickets</div>
+   <div class="card-title"><i data-lucide="list" style="width:13px;height:13px;stroke:currentColor;fill:none;vertical-align:-2px;margin-right:5px;"></i> All Claimed Tickets</div>
     <div class="toolbar">
       <div class="search-wrap"><span class="search-icon">🔍</span><input placeholder="Search ticket, client, name..." oninput="_clf=this.value;refreshClaimsTable()"/></div>
       <select class="fsel" onchange="_cldate=this.value;refreshClaimsTable()">
@@ -1088,6 +1129,7 @@ function renderClaims(){
 }
 function refreshClaimsTable(){
   document.getElementById('claimsTableWrap').innerHTML=renderClaimsTable(getClaims());
+  setTimeout(()=>lucide&&lucide.createIcons&&lucide.createIcons(),50);
 }
 function renderClaimsTable(arr){
   let r=[...arr];
@@ -1099,7 +1141,7 @@ function renderClaimsTable(arr){
   return `<div class="table-wrap"><table><thead><tr><th>Ticket</th><th>Client</th><th>Claimed By</th><th>Date</th><th>Payment</th><th>Note</th><th>Actions</th></tr></thead><tbody>
   ${r.map(c=>{
     const pay=getTicketPayStatus(c.ticketId);
-    const payLabel=pay==='paid'?'<span class="tbl-pill tbl-safe">✅ Paid</span>':pay==='pending'?'<span class="tbl-pill tbl-warn">⏳ Pending</span>':'<span class="tbl-pill tbl-info" style="opacity:.6">🚫 None</span>';
+   const payLabel=pay==='paid'?'<span class="tbl-pill tbl-safe">Paid</span>':pay==='pending'?'<span class="tbl-pill tbl-warn">Pending</span>':'<span class="tbl-pill tbl-info" style="opacity:.6">None</span>';
     return `<tr>
       <td class="td-main">${c.ticketId}</td>
       <td>${c.clientName||'—'}</td>
@@ -1108,8 +1150,8 @@ function renderClaimsTable(arr){
       <td>${payLabel}</td>
       <td style="font-size:11px">${c.note||'—'}</td>
     <td style="display:flex;gap:6px">
-        ${isOwner?`${c.claimedBy!=='owner'?`<button class="btn btn-success btn-sm" onclick='openLedgerModal(null,{type:"team",id:"${c.claimedBy}",ticketId:"${c.ticketId}",clientName:"${(c.clientName||'').replace(/'/g,"")}"})'>💰 Pay</button>`:''}
-        <button class="btn btn-danger btn-sm" onclick="deleteClaim('${c.docId}','${c.ticketId}')">🗑</button>`:'—'}
+        ${isOwner?`${c.claimedBy!=='owner'?`<button class="btn btn-success btn-sm" onclick='openLedgerModal(null,{type:"team",id:"${c.claimedBy}",ticketId:"${c.ticketId}",clientName:"${(c.clientName||'').replace(/'/g,"")}"})'><i data-lucide="indian-rupee" style="width:11px;height:11px;stroke:currentColor;fill:none;"></i> Pay</button>`:''}
+        <button class="btn btn-danger btn-sm" onclick="deleteClaim('${c.docId}','${c.ticketId}')"><i data-lucide="trash-2" style="width:12px;height:12px;stroke:currentColor;fill:none;"></i></button>`:'—'}
       </td>
     </tr>`;
   }).join('')}
@@ -1191,10 +1233,10 @@ function inMonthRange(ts,range){
 function renderTeam(){
   const members=getMembers();
   return `
-  <div class="page-eyebrow">🧑‍💻 Team</div>
+  <div class="page-eyebrow"><i data-lucide="users" style="width:11px;height:11px;stroke:var(--accent);fill:none;display:inline;vertical-align:-1px;"></i> Team</div>
   <div class="page-title">Team Members</div>
   <div class="page-sub">Everyone with access to this payments portal</div>
-  ${window.PORTAL_USER.isOwner?`<div style="margin-bottom:14px"><button class="btn btn-primary" onclick="openTeamModal()">＋ Add Team Member</button></div>`:''}
+  ${window.PORTAL_USER.isOwner?`<div style="margin-bottom:14px"><button class="btn btn-primary" onclick="openTeamModal()"><i data-lucide="user-plus" style="width:13px;height:13px;stroke:#fff;fill:none;"></i> Add Team Member</button></div>`:''}
   ${members.length?members.map(m=>`
   <div class="card" style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
     <div style="width:42px;height:42px;border-radius:11px;background:var(--grad);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;color:#fff">${initials(m.name)}</div>
@@ -1204,13 +1246,13 @@ function renderTeam(){
       ${m.salary?`<div style="font-size:11px;color:var(--text-muted);margin-top:2px">Fixed Salary: ${fmtMoney(m.salary)}/month</div>`:''}
      ${(window.PORTAL_USER.isOwner) && m.paymentDetails && (m.paymentDetails.upi||m.paymentDetails.bankAcc||m.paymentDetails.walletNum) ? `
       <div style="font-size:11px;color:var(--purple);margin-top:4px">
-        💳 ${m.paymentDetails.method==='upi'?'UPI: '+(m.paymentDetails.upi||'—'):
+                <i data-lucide="credit-card" style="width:11px;height:11px;stroke:var(--purple);fill:none;vertical-align:-2px;margin-right:3px;"></i>${m.paymentDetails.method==='upi'?'UPI: '+(m.paymentDetails.upi||'—'):
             m.paymentDetails.method==='bank'?'Bank: '+(m.paymentDetails.bankAcc||'—')+' ('+(m.paymentDetails.ifsc||'—')+')':
             'Wallet: '+(m.paymentDetails.walletNum||'—')}
       </div>`:''}
       </div>
     <span class="pill ${m.status==='active'?'pill-active':'pill-inactive'}">${m.status==='active'?'Active':'Suspended'}</span>
-    ${window.PORTAL_USER.isOwner?`<div style="display:flex;gap:6px"><button class="btn btn-secondary btn-sm" onclick="openTeamModal('${m.id}')">✏️</button><button class="btn btn-danger btn-sm" onclick="deleteTeamMember('${m.id}')">🗑</button></div>`:''}
+    ${window.PORTAL_USER.isOwner?`<div style="display:flex;gap:6px"><button class="btn btn-secondary btn-sm" onclick="openTeamModal('${m.id}')"><i data-lucide="pencil" style="width:12px;height:12px;stroke:currentColor;fill:none;"></i></button><button class="btn btn-danger btn-sm" onclick="deleteTeamMember('${m.id}')"><i data-lucide="trash-2" style="width:12px;height:12px;stroke:currentColor;fill:none;"></i></button></div>`:''}
   </div>`).join(''):`<div class="empty"><div class="empty-icon">👥</div><p>No team members added yet.</p></div>`}`;
 }
 function renderTeamMgmt(){ return renderTeam(); }
@@ -1302,10 +1344,10 @@ function renderPartners(){
   const partners=getPartners();
   const canManage=window.PORTAL_USER.isOwner||has('partners');
   return `
-  <div class="page-eyebrow">🤝 Referral Partners</div>
+<div class="page-eyebrow"><i data-lucide="handshake" style="width:11px;height:11px;stroke:var(--accent);fill:none;display:inline;vertical-align:-1px;"></i> Referral Partners</div>
   <div class="page-title">Outside People Who Bring Clients</div>
   <div class="page-sub">Anyone (not a team member) who refers a client to you on a commission basis</div>
-  ${canManage?`<div style="margin-bottom:14px"><button class="btn btn-primary" onclick="openPartnerModal()">＋ Add Partner</button></div>`:''}
+  ${canManage?`<div style="margin-bottom:14px"><button class="btn btn-primary" onclick="openPartnerModal()"><i data-lucide="user-plus" style="width:13px;height:13px;stroke:#fff;fill:none;"></i> Add Partner</button></div>`:''}
   ${partners.length?partners.map(p=>{
     const ledger=getLedger().filter(l=>l.earnerId===p.id);
     const paid=ledger.filter(l=>l.status==='paid').reduce((a,l)=>a+Number(l.amount||0),0);
@@ -1319,7 +1361,7 @@ function renderPartners(){
           <div style="font-size:11px;color:var(--text-muted);margin-top:2px">${p.phone||''} ${p.email?'· '+p.email:''}</div>
           <div style="font-size:11px;color:var(--purple);margin-top:2px">Default: ${p.commType==='percent'?p.commValue+'% of project value':fmtMoney(p.commValue)+' per client'}</div>
         </div>
-      ${canManage?`<div style="display:flex;gap:6px"><button class="btn btn-success btn-sm" onclick='openLedgerModal(null,{type:"partner",id:"${p.id}",name:"${p.name}"})'>💰 Pay</button><button class="btn btn-secondary btn-sm" onclick="openPartnerModal('${p.id}')">✏️</button><button class="btn btn-danger btn-sm" onclick="deletePartner('${p.id}')">🗑</button></div>`:''}
+      ${canManage?`<div style="display:flex;gap:6px"><button class="btn btn-success btn-sm" onclick='openLedgerModal(null,{type:"partner",id:"${p.id}",name:"${p.name}"})'><i data-lucide="indian-rupee" style="width:11px;height:11px;stroke:currentColor;fill:none;"></i> Pay</button><button class="btn btn-secondary btn-sm" onclick="openPartnerModal('${p.id}')"><i data-lucide="pencil" style="width:12px;height:12px;stroke:currentColor;fill:none;"></i></button><button class="btn btn-danger btn-sm" onclick="deletePartner('${p.id}')"><i data-lucide="trash-2" style="width:12px;height:12px;stroke:currentColor;fill:none;"></i></button></div>`:''}
       </div>
       <div style="display:flex;gap:20px;flex-wrap:wrap;font-size:12px">
         <div>Paid: <strong style="color:var(--success)">${fmtMoney(paid)}</strong></div>
@@ -1400,7 +1442,7 @@ if(id){
     document.getElementById('lf_clientName').value=(prefill&&prefill.clientName)?prefill.clientName:'';
     document.getElementById('lf_workDesc').value='';
     setLinkType((prefill&&prefill.ticketId)?'ticket':'ticket');
-    document.getElementById('lf_type').value=(prefill&&prefill.type==='partner')?'commission':'commission';
+    document.getElementById('lf_type').value='commission';
     document.getElementById('lf_amount').value='';
     document.getElementById('lf_status').value='pending';
     document.getElementById('lf_date').value=new Date().toISOString().slice(0,10);
@@ -1476,8 +1518,7 @@ async function saveLedgerEntry(){
 document.querySelectorAll('.modal-overlay').forEach(el=>{
   el.addEventListener('click',function(e){if(e.target===this)this.classList.remove('open');});
 });
-setTimeout(()=>{ if(typeof lucide!=='undefined') lucide.createIcons(); }, 100);
-setTimeout(()=>{ if(typeof lucide!=='undefined') lucide.createIcons(); }, 600);
+setTimeout(()=>{ if(typeof lucide!=='undefined') lucide.createIcons(); }, 200);
 
 // 
 
@@ -1486,14 +1527,15 @@ function setLinkType(t){
   const tb=document.getElementById('lf_linkBtn_ticket');
   const sb=document.getElementById('lf_linkBtn_service');
   const ticketWrap=document.getElementById('lf_ticketWrap');
+  const clientWrap=document.getElementById('lf_clientWrap');
   const workWrap=document.getElementById('lf_workWrap');
   if(t==='ticket'){
     tb.className='btn btn-primary btn-sm';sb.className='btn btn-secondary btn-sm';
-    ticketWrap.style.display='';workWrap.style.display='none';
+    ticketWrap.style.display='';clientWrap.style.display='';workWrap.style.display='none';
     document.getElementById('lf_workDesc').value='';
   }else{
     tb.className='btn btn-secondary btn-sm';sb.className='btn btn-primary btn-sm';
-    ticketWrap.style.display='none';workWrap.style.display='';
+    ticketWrap.style.display='none';clientWrap.style.display='';workWrap.style.display='';
     document.getElementById('lf_ticketId').value='';
     document.getElementById('dupWarnBox').innerHTML='';
   }
