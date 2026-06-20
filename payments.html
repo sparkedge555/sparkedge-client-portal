@@ -344,13 +344,21 @@ tbody td .td-main{font-weight:600;color:var(--text);font-size:13px}
         <label>Select Person *</label>
         <select id="lf_earnerId"></select>
       </div>
-      <div class="section-divider">
-  <i data-lucide="ticket" style="width:12px;height:12px;stroke:currentColor;fill:none;"></i> Linked To (Ticket OR Service Work)
+     <div class="section-divider">
+  <i data-lucide="ticket" style="width:12px;height:12px;stroke:currentColor;fill:none;"></i> Linked To
 </div>
-      <div class="fg"><label>Ticket ID (optional)</label><input id="lf_ticketId" placeholder="SE-001" oninput="this.value=this.value.toUpperCase();checkTicketOwnership()"/></div>
-      <div class="fg"><label>Client Name (optional)</label><input id="lf_clientName" placeholder="Client name"/></div>
-      <div class="fg full"><label>Work / Service Description (fill this if there's no ticket)</label><input id="lf_workDesc" placeholder="e.g. Built new landing page, edited promo video, fixed bug"/></div>
-      <div class="section-divider">
+      <div class="fg full">
+        <label>Payment Type *</label>
+        <div style="display:flex;gap:8px;margin-top:4px">
+          <button type="button" id="lf_linkBtn_ticket" onclick="setLinkType('ticket')" class="btn btn-primary btn-sm" style="flex:1;justify-content:center">🎫 Ticket-Based</button>
+          <button type="button" id="lf_linkBtn_service" onclick="setLinkType('service')" class="btn btn-secondary btn-sm" style="flex:1;justify-content:center">🛠️ Service Work</button>
+        </div>
+        <input type="hidden" id="lf_linkType" value="ticket"/>
+      </div>
+      <div class="fg" id="lf_ticketWrap"><label id="lf_ticketLabel">Ticket ID *</label><input id="lf_ticketId" placeholder="SE-001" oninput="this.value=this.value.toUpperCase();checkTicketOwnership()"/></div>
+      <div class="fg" id="lf_clientWrap"><label>Client Name (optional)</label><input id="lf_clientName" placeholder="Client name"/></div>
+      <div class="fg full" id="lf_workWrap" style="display:none"><label>Work / Service Description *</label><input id="lf_workDesc" placeholder="e.g. Built new landing page, edited promo video, fixed bug"/></div>
+        <div class="section-divider">
   <i data-lucide="wallet" style="width:12px;height:12px;stroke:currentColor;fill:none;"></i> Payment Details
 </div>
       <div class="fg"><label>Type *</label>
@@ -572,7 +580,7 @@ function refreshMyPermissions(){
   }
 }
 
-function getMembers(){return window._teamCache||[...HARDCODED_MEMBERS];}
+
 
 async function saveMembers(arr){
   const db=getDb();
@@ -1099,8 +1107,8 @@ function renderClaimsTable(arr){
       <td>${fmtDate(c.claimedAt)}</td>
       <td>${payLabel}</td>
       <td style="font-size:11px">${c.note||'—'}</td>
-      <td style="display:flex;gap:6px">
-        ${isOwner?`<button class="btn btn-success btn-sm" onclick='openLedgerModal(null,{type:"team",id:"${c.claimedBy}",ticketId:"${c.ticketId}",clientName:"${(c.clientName||'').replace(/'/g,"")}"})'>💰 Pay</button>
+    <td style="display:flex;gap:6px">
+        ${isOwner?`${c.claimedBy!=='owner'?`<button class="btn btn-success btn-sm" onclick='openLedgerModal(null,{type:"team",id:"${c.claimedBy}",ticketId:"${c.ticketId}",clientName:"${(c.clientName||'').replace(/'/g,"")}"})'>💰 Pay</button>`:''}
         <button class="btn btn-danger btn-sm" onclick="deleteClaim('${c.docId}','${c.ticketId}')">🗑</button>`:'—'}
       </td>
     </tr>`;
@@ -1370,14 +1378,15 @@ function openLedgerModal(id,prefill){
   document.getElementById('ledgerModalTitle').textContent=id?'Edit Payment Entry':'Add Payment Entry';
   document.getElementById('dupWarnBox').innerHTML='';
   populateEarnerSelect();
-  if(id){
+if(id){
     const l=getLedger().find(x=>x.id===id);if(!l)return;
     document.getElementById('lf_earnerType').value=l.earnerType;
     populateEarnerSelect();
     document.getElementById('lf_earnerId').value=l.earnerId;
-   document.getElementById('lf_ticketId').value=l.ticketId||'';
+    document.getElementById('lf_ticketId').value=l.ticketId||'';
     document.getElementById('lf_clientName').value=l.clientName||'';
     document.getElementById('lf_workDesc').value=l.workDesc||'';
+    setLinkType(l.ticketId?'ticket':'service');
     document.getElementById('lf_type').value=l.type;
     document.getElementById('lf_amount').value=l.amount;
     document.getElementById('lf_status').value=l.status;
@@ -1387,8 +1396,10 @@ function openLedgerModal(id,prefill){
     document.getElementById('lf_earnerType').value=(prefill&&prefill.type)?prefill.type:'team';
     populateEarnerSelect();
     if(prefill&&prefill.id){document.getElementById('lf_earnerId').value=prefill.id;}
-    document.getElementById('lf_ticketId').value='';document.getElementById('lf_clientName').value='';document.getElementById('lf_workDesc').value='';
+    document.getElementById('lf_ticketId').value=(prefill&&prefill.ticketId)?prefill.ticketId.toUpperCase():'';
     document.getElementById('lf_clientName').value=(prefill&&prefill.clientName)?prefill.clientName:'';
+    document.getElementById('lf_workDesc').value='';
+    setLinkType((prefill&&prefill.ticketId)?'ticket':'ticket');
     document.getElementById('lf_type').value=(prefill&&prefill.type==='partner')?'commission':'commission';
     document.getElementById('lf_amount').value='';
     document.getElementById('lf_status').value='pending';
@@ -1428,12 +1439,14 @@ async function saveLedgerEntry(){
   const earnerId=sel.value;
   const earnerName=sel.selectedOptions[0]?.dataset.name||'';
   const amount=parseFloat(document.getElementById('lf_amount').value);
-  const ticketId=document.getElementById('lf_ticketId').value.trim().toUpperCase();
+ const ticketId=document.getElementById('lf_ticketId').value.trim().toUpperCase();
   const workDesc=document.getElementById('lf_workDesc').value.trim();
+  const linkType=document.getElementById('lf_linkType').value;
   if(!earnerId){alert('Select a person!');return;}
   if(!amount||amount<=0){alert('Enter a valid amount!');return;}
-  if(!ticketId&&!workDesc){alert('Enter a Ticket ID, OR describe the work in "Work / Service Description"!');return;}
-  const data={
+  if(linkType==='ticket'&&!ticketId){alert('Enter a Ticket ID!');return;}
+  if(linkType==='service'&&!workDesc){alert('Describe the work / service!');return;}
+   const data={
     id:editLedgerId||uid(),
     earnerType,earnerId,earnerName,
     ticketId,workDesc,
@@ -1465,6 +1478,26 @@ document.querySelectorAll('.modal-overlay').forEach(el=>{
 });
 setTimeout(()=>{ if(typeof lucide!=='undefined') lucide.createIcons(); }, 100);
 setTimeout(()=>{ if(typeof lucide!=='undefined') lucide.createIcons(); }, 600);
+
+// 
+
+function setLinkType(t){
+  document.getElementById('lf_linkType').value=t;
+  const tb=document.getElementById('lf_linkBtn_ticket');
+  const sb=document.getElementById('lf_linkBtn_service');
+  const ticketWrap=document.getElementById('lf_ticketWrap');
+  const workWrap=document.getElementById('lf_workWrap');
+  if(t==='ticket'){
+    tb.className='btn btn-primary btn-sm';sb.className='btn btn-secondary btn-sm';
+    ticketWrap.style.display='';workWrap.style.display='none';
+    document.getElementById('lf_workDesc').value='';
+  }else{
+    tb.className='btn btn-secondary btn-sm';sb.className='btn btn-primary btn-sm';
+    ticketWrap.style.display='none';workWrap.style.display='';
+    document.getElementById('lf_ticketId').value='';
+    document.getElementById('dupWarnBox').innerHTML='';
+  }
+}
 </script>
 </body>
 </html>
