@@ -1,1 +1,3210 @@
- 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>SparkEdge — Lead Management CRM</title>
+<!-- =========================
+     FAVICONS & APP ICONS
+========================= -->
+
+<!-- Standard Favicon -->
+<link rel="icon" type="image/x-icon" href="./favicons/favicon.ico">
+
+<!-- PNG Favicons -->
+<link rel="icon" type="image/png" sizes="16x16" href="./favicons/favicon-16x16.png">
+
+<link rel="icon" type="image/png" sizes="32x32" href="./favicons/favicon-32x32.png">
+
+<link rel="icon" type="image/png" sizes="48x48" href="./favicons/favicon-48x48.png">
+
+<!-- Android Chrome -->
+<link rel="icon" type="image/png" sizes="192x192" href="./favicons/android-chrome-192x192.png">
+
+<link rel="icon" type="image/png" sizes="512x512" href="./favicons/android-chrome-512x512.png">
+
+<!-- Apple Touch Icon -->
+<link rel="apple-touch-icon" sizes="180x180" href="./favicons/apple-touch-icon-180x180.png">
+
+<!-- Web App Manifest -->
+<link rel="manifest" href="./favicons/manifest.webmanifest">
+
+<!-- Safari Pinned Tab -->
+<link rel="mask-icon" href="./favicons/safari-pinned-tab.svg" color="#ff6a00">
+
+<!-- Theme Colors -->
+<meta name="theme-color" content="#000000">
+<meta name="msapplication-TileColor" content="#000000">
+
+<!-- Mobile Web App -->
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+<!-- App Name -->
+<meta name="application-name" content="SparkEdge">
+<meta name="apple-mobile-web-app-title" content="SparkEdge">
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<!-- -- Google Fonts --> 
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --bg:#0A0A0F;--bg-card:#111118;--bg-raised:#16161F;--border:rgba(255,255,255,0.07);
+  --accent:#FF6B35;--accent-2:#FF3CAC;--gold:#FFB347;
+  --text:#F0F0F8;--text-muted:#8888A8;--text-dim:#55556A;
+  --grad:linear-gradient(135deg,#FF6B35,#FF3CAC);
+  --success:#2ECC71;--warning:#F39C12;--danger:#E74C3C;--info:#3498DB;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh}
+
+/* ══════════ LOGIN — PREMIUM ══════════ */
+#loginScreen{
+  position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(ellipse at 30% 50%, rgba(255,107,53,.07) 0%, transparent 60%),
+             radial-gradient(ellipse at 70% 30%, rgba(255,60,172,.06) 0%, transparent 55%),
+             #080810;
+  overflow:hidden;
+}
+/* Animated grid */
+#loginScreen::before{
+  content:'';position:absolute;inset:0;
+  background-image:
+    linear-gradient(rgba(255,107,53,.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,107,53,.04) 1px, transparent 1px);
+  background-size:60px 60px;
+  animation:gridMove 20s linear infinite;
+}
+@keyframes gridMove{0%{transform:translateY(0)}100%{transform:translateY(60px)}}
+
+/* Floating orbs */
+.login-orb{position:absolute;border-radius:50%;filter:blur(80px);pointer-events:none;animation:orbFloat 8s ease-in-out infinite}
+.login-orb-1{width:380px;height:380px;background:rgba(255,107,53,.12);top:-100px;left:-80px;animation-delay:0s}
+.login-orb-2{width:280px;height:280px;background:rgba(255,60,172,.1);bottom:-60px;right:-60px;animation-delay:-3s}
+.login-orb-3{width:200px;height:200px;background:rgba(59,130,246,.08);top:40%;left:60%;animation-delay:-6s}
+@keyframes orbFloat{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-30px) scale(1.05)}}
+
+/* Login card */
+.login-card{
+  position:relative;z-index:2;
+  background:rgba(17,17,24,.85);
+  backdrop-filter:blur(40px);-webkit-backdrop-filter:blur(40px);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:28px;
+  padding:52px 44px 44px;
+  width:400px;max-width:calc(100vw - 32px);
+  text-align:center;
+  box-shadow:0 40px 120px rgba(0,0,0,.6), 0 0 0 1px rgba(255,107,53,.05), inset 0 1px 0 rgba(255,255,255,.05);
+}
+/* Top glow line */
+.login-card::before{
+  content:'';position:absolute;top:0;left:15%;right:15%;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(255,107,53,.6),rgba(255,60,172,.4),transparent);
+  border-radius:50%;
+}
+/* Logo mark */
+.login-logo-wrap{position:relative;display:inline-flex;align-items:center;justify-content:center;margin-bottom:24px}
+.login-logo-ring{
+  width:72px;height:72px;border-radius:20px;
+  background:linear-gradient(135deg,rgba(255,107,53,.15),rgba(255,60,172,.1));
+  border:1px solid rgba(255,107,53,.25);
+  display:flex;align-items:center;justify-content:center;
+  font-size:32px;position:relative;
+  box-shadow:0 0 0 8px rgba(255,107,53,.04), 0 8px 32px rgba(255,107,53,.15);
+}
+.login-logo-ring::after{
+  content:'';position:absolute;inset:-8px;border-radius:24px;
+  border:1px solid rgba(255,107,53,.08);
+  animation:ringPulse 3s ease-in-out infinite;
+}
+@keyframes ringPulse{0%,100%{transform:scale(1);opacity:.6}50%{transform:scale(1.04);opacity:1}}
+
+/* Headings */
+.login-brand{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;letter-spacing:-.5px;margin-bottom:6px;
+  background:linear-gradient(135deg,#fff 0%,rgba(255,255,255,.75) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.login-sub{font-size:13px;color:rgba(136,136,168,.7);margin-bottom:32px;letter-spacing:.2px}
+
+/* Input */
+.login-field{position:relative;margin-bottom:16px;text-align:left}
+.login-field label{display:block;font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:rgba(136,136,168,.6);margin-bottom:6px;font-weight:600}
+.login-input{
+  width:100%;background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.09);border-radius:12px;
+  padding:13px 48px 13px 16px;
+  color:#F0F0F8;font-family:'DM Sans',sans-serif;font-size:14px;outline:none;
+  transition:border-color .2s,box-shadow .2s,background .2s;
+  letter-spacing:.3px;
+}
+.login-input:focus{
+  border-color:rgba(255,107,53,.5);
+  box-shadow:0 0 0 3px rgba(255,107,53,.1), 0 2px 12px rgba(255,107,53,.08);
+  background:rgba(255,107,53,.03);
+}
+.login-input::placeholder{color:rgba(136,136,168,.4)}
+.login-eye{
+  position:absolute;right:14px;bottom:13px;
+  background:none;border:none;color:rgba(136,136,168,.5);
+  cursor:pointer;font-size:17px;padding:0;transition:.2s;line-height:1;
+}
+.login-eye:hover{color:rgba(255,107,53,.8)}
+
+/* Button */
+.login-btn{
+  width:100%;margin-top:4px;
+  background:linear-gradient(135deg,#FF6B35 0%,#FF3CAC 100%);
+  border:none;border-radius:12px;padding:14px;
+  color:#fff;font-family:'Syne',sans-serif;font-weight:700;font-size:15px;
+  cursor:pointer;transition:all .25s;letter-spacing:.3px;
+  box-shadow:0 8px 32px rgba(255,107,53,.3);
+  position:relative;overflow:hidden;
+}
+.login-btn::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(255,255,255,.12),transparent);
+  opacity:0;transition:.25s;
+}
+.login-btn:hover{transform:translateY(-2px);box-shadow:0 14px 40px rgba(255,107,53,.4)}
+.login-btn:hover::before{opacity:1}
+.login-btn:active{transform:translateY(0)}
+
+/* Error */
+.login-err-msg{
+  display:none;margin-top:14px;padding:10px 14px;
+  background:rgba(231,76,60,.08);border:1px solid rgba(231,76,60,.2);
+  border-radius:9px;font-size:12px;font-weight:600;color:#E74C3C;
+  animation:errShake .4s ease;
+}
+@keyframes errShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+
+/* Footer note */
+.login-footer-note{
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  margin-top:28px;padding-top:20px;
+  border-top:1px solid rgba(255,255,255,.05);
+  font-size:11px;color:rgba(136,136,168,.35);
+}
+.login-footer-note span{width:6px;height:6px;border-radius:50%;background:rgba(46,204,113,.5);display:inline-block;animation:pulse 2s ease infinite}
+@keyframes pulse{0%,100%{opacity:.5}50%{opacity:1}}
+.login-credit{
+  margin-top:10px;
+  font-size:9px;
+  color:rgba(136,136,168,.28);
+  letter-spacing:.3px;
+  font-weight:500;
+}
+.login-credit strong{
+  color:rgba(255,107,53,.38);
+  font-weight:600;
+}
+
+/* NAVBAR */
+nav{position:sticky;top:0;z-index:200;background:rgba(10,10,15,.95);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:0 20px;height:60px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.nav-brand{display:flex;align-items:center;gap:8px;font-family:'Syne',sans-serif;font-weight:800;font-size:17px;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;white-space:nowrap}
+.nav-brand span{font-size:22px;-webkit-text-fill-color:initial}
+.nav-right{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.btn-add{background:var(--grad);border:none;border-radius:9px;padding:8px 16px;color:#fff;font-family:'DM Sans',sans-serif;font-weight:600;font-size:13px;cursor:pointer;transition:.2s;white-space:nowrap;display:flex;align-items:center;gap:6px}
+.btn-add:hover{opacity:.85}
+.btn-dl{border-radius:9px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;transition:.2s;white-space:nowrap;display:flex;align-items:center;gap:6px;background:rgba(46,204,113,.1);border:1px solid rgba(46,204,113,.3);color:var(--success)}
+.btn-dl:hover{background:rgba(46,204,113,.2)}
+.btn-import{background:rgba(52,152,219,.1);border:1px solid rgba(52,152,219,.3);color:var(--info)}
+.btn-import:hover{background:rgba(52,152,219,.2)}
+.hamburger{display:none;background:none;border:1px solid var(--border);border-radius:8px;padding:7px 9px;cursor:pointer;color:var(--text-muted);font-size:18px;line-height:1}
+.hamburger:hover{border-color:var(--accent);color:var(--accent)}
+
+/* SIDEBAR */
+.sidebar{position:fixed;top:60px;left:0;width:220px;height:calc(100vh - 60px);background:var(--bg-card);border-right:1px solid var(--border);z-index:150;display:flex;flex-direction:column;padding:16px 10px;overflow-y:auto;transition:transform .3s ease}
+.sidebar-section-label{font-size:9px;text-transform:uppercase;letter-spacing:2px;color:var(--text-dim);padding:8px 10px 4px;margin-top:6px}
+.sidebar-link{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;font-size:13px;font-weight:500;color:var(--text-muted);cursor:pointer;border:none;background:none;width:100%;text-align:left;transition:.2s;margin-bottom:2px}
+.sidebar-link:hover{background:rgba(255,107,53,.08);color:var(--text)}
+.sidebar-link.active{background:rgba(255,107,53,.13);color:var(--accent);font-weight:600}
+.sidebar-link .s-icon{font-size:17px;flex-shrink:0;width:22px;text-align:center}
+.sidebar-link .s-name{flex:1}
+.sidebar-divider{height:1px;background:var(--border);margin:8px 10px}
+.sidebar-overlay{display:none;position:fixed;inset:0;top:60px;background:rgba(0,0,0,.5);z-index:140}
+.sb-credit{
+  text-align:center;
+  font-size:8.5px;
+  color:rgba(136,136,168,.3);
+  padding:6px 10px 10px;
+  letter-spacing:.3px;
+  font-weight:500;
+}
+.sb-credit strong{
+  color:rgba(255,107,53,.4);
+  font-weight:600;
+}
+
+
+/* LAYOUT */
+#app{display:none}
+.app-body{display:flex;min-height:calc(100vh - 60px)}
+.main-area{margin-left:220px;flex:1;min-width:0;transition:margin-left .3s ease}
+.container{max-width:1400px;margin:0 auto;padding:24px 20px}
+
+/* RESPONSIVE */
+@media(max-width:900px){
+  .sidebar{transform:translateX(-100%)}
+  .sidebar.open{transform:translateX(0)}
+  .sidebar-overlay.open{display:block}
+  .main-area{margin-left:0}
+  .hamburger{display:flex;align-items:center;justify-content:center}
+}
+
+/* TABS */
+.tabs{display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap}
+.tab{padding:7px 16px;border-radius:9px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid var(--border);background:var(--bg-card);color:var(--text-muted);transition:.2s}
+.tab.active{background:rgba(255,107,53,.12);border-color:var(--accent);color:var(--accent)}
+.tab:hover{color:var(--text)}
+
+/* STAT CARDS */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:24px}
+.stat-card{background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:18px;position:relative;overflow:hidden}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--grad)}
+.stat-label{font-size:10px;text-transform:uppercase;letter-spacing:2px;color:var(--text-dim);margin-bottom:8px}
+.stat-value{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.stat-sub{font-size:11px;color:var(--text-muted);margin-top:4px}
+
+/* PIPELINE */
+.pipeline-wrap{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:28px;overflow-x:auto}
+.pipeline-col{background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:14px;min-width:200px}
+.pipeline-col-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border)}
+.pipeline-col-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px}
+.pipeline-count{background:rgba(255,107,53,.15);color:var(--accent);border-radius:20px;padding:2px 8px;font-size:11px;font-weight:700}
+.pipe-card{background:var(--bg-raised);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:8px;cursor:pointer;transition:.2s}
+.pipe-card:hover{border-color:rgba(255,107,53,.3);transform:translateX(2px)}
+.pipe-card-name{font-size:13px;font-weight:600;margin-bottom:4px}
+.pipe-card-biz{font-size:11px;color:var(--text-muted)}
+.pipe-card-meta{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}
+.pipe-tag{font-size:10px;padding:2px 7px;border-radius:5px;background:rgba(255,107,53,.08);color:var(--accent);border:1px solid rgba(255,107,53,.12)}
+
+/* TOOLBAR */
+.toolbar{display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap;align-items:center}
+.search-wrap{flex:1;min-width:200px;position:relative}
+.search-wrap input{width:100%;background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:9px 14px 9px 38px;color:var(--text);font-size:13px;outline:none;transition:.2s}
+.search-wrap input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(255,107,53,.1)}
+.search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text-dim);font-size:15px}
+select.filter-sel{background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:9px 12px;color:var(--text-muted);font-size:12px;outline:none;cursor:pointer}
+select.filter-sel:focus{border-color:var(--accent)}
+
+/* CARDS */
+.clients-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:16px}
+.client-card{background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:18px;transition:.2s;cursor:pointer;position:relative}
+.client-card:hover{border-color:rgba(255,107,53,.3);transform:translateY(-2px)}
+.client-card.high-potential{border-color:rgba(255,179,71,.4)}
+.client-card.high-potential::after{content:'⭐ HIGH POTENTIAL';position:absolute;top:12px;right:12px;background:rgba(255,179,71,.12);color:var(--gold);font-size:9px;font-weight:700;letter-spacing:1.5px;padding:3px 8px;border-radius:6px;border:1px solid rgba(255,179,71,.3)}
+.card-header{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.avatar{width:42px;height:42px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:#fff;flex-shrink:0;background:var(--grad)}
+.client-name{font-family:'Syne',sans-serif;font-size:14px;font-weight:700}
+.client-biz{font-size:11px;color:var(--text-muted)}
+.status-pill{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:10px;font-weight:600;margin-top:4px}
+.pill-pending{background:rgba(243,156,18,.1);color:#F39C12;border:1px solid rgba(243,156,18,.2)}
+.pill-contacted{background:rgba(52,152,219,.1);color:#3498DB;border:1px solid rgba(52,152,219,.2)}
+.pill-follow{background:rgba(255,107,53,.1);color:var(--accent);border:1px solid rgba(255,107,53,.2)}
+.pill-closed-won{background:rgba(46,204,113,.1);color:var(--success);border:1px solid rgba(46,204,113,.2)}
+.pill-closed-lost{background:rgba(231,76,60,.1);color:var(--danger);border:1px solid rgba(231,76,60,.2)}
+.card-info{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:12px}
+.info-item{font-size:11px}
+.info-label{color:var(--text-dim);font-size:9px;text-transform:uppercase;letter-spacing:1px;margin-bottom:2px}
+.info-val{color:var(--text-muted)}
+.card-actions{display:flex;gap:6px;flex-wrap:wrap}
+.btn-sm{padding:5px 10px;border-radius:7px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--bg-raised);color:var(--text-muted);transition:.2s;text-decoration:none;display:inline-flex;align-items:center;gap:4px}
+.btn-sm:hover{background:rgba(255,107,53,.1);border-color:var(--accent);color:var(--accent)}
+.btn-sm.whatsapp{background:rgba(37,211,102,.1);border-color:rgba(37,211,102,.3);color:#25D366}
+.btn-sm.whatsapp:hover{background:rgba(37,211,102,.2)}
+.btn-sm.danger{background:rgba(231,76,60,.1);border-color:rgba(231,76,60,.3);color:var(--danger)}
+.btn-sm.success{background:rgba(46,204,113,.1);border-color:rgba(46,204,113,.3);color:var(--success)}
+.service-tag{display:inline-block;padding:2px 7px;border-radius:5px;font-size:9px;font-weight:600;background:rgba(255,107,53,.08);color:var(--accent);border:1px solid rgba(255,107,53,.15);margin-right:4px;margin-top:3px}
+.source-tag{display:inline-block;padding:2px 7px;border-radius:5px;font-size:9px;font-weight:600;background:rgba(136,136,168,.08);color:var(--text-muted);border:1px solid var(--border);margin-right:4px;margin-top:3px}
+
+/* SECTION HEADING */
+.section-eyebrow{display:inline-flex;align-items:center;gap:6px;background:rgba(255,107,53,.1);border:1px solid rgba(255,107,53,.2);border-radius:20px;padding:4px 12px;font-size:10px;font-weight:600;color:var(--accent);letter-spacing:.5px;margin-bottom:10px}
+.section-title{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:4px}
+.section-label{font-size:10px;text-transform:uppercase;letter-spacing:2px;color:var(--text-dim);margin-bottom:16px}
+
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:500;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.open{display:flex}
+.modal{background:var(--bg-card);border:1px solid var(--border);border-radius:20px;width:100%;max-width:700px;max-height:92vh;overflow-y:auto;padding:28px}
+.modal h3{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:20px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-full{grid-column:1/-1}
+.form-group label{display:block;font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--text-dim);margin-bottom:5px}
+.form-group input,.form-group select,.form-group textarea{width:100%;background:var(--bg-raised);border:1px solid var(--border);border-radius:9px;padding:9px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;transition:.2s}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(255,107,53,.1)}
+.form-group select option{background:var(--bg-raised)}
+.form-group textarea{resize:vertical;min-height:65px}
+.modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:20px}
+.btn-cancel{background:transparent;border:1px solid var(--border);border-radius:9px;padding:9px 18px;color:var(--text-muted);font-size:13px;cursor:pointer;transition:.2s}
+.btn-cancel:hover{border-color:var(--danger);color:var(--danger)}
+.btn-save{background:var(--grad);border:none;border-radius:9px;padding:9px 22px;color:#fff;font-family:'Syne',sans-serif;font-weight:700;font-size:13px;cursor:pointer;transition:.2s}
+.btn-save:hover{opacity:.85}
+.checkbox-row{display:flex;align-items:center;gap:8px;margin-top:5px}
+.checkbox-row input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent)}
+.checkbox-row label{font-size:13px;color:var(--text-muted);text-transform:none;letter-spacing:0}
+
+/* EXCEL TABLE */
+.table-wrap{overflow-x:auto;border-radius:14px;border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:12px}
+thead{background:var(--bg-raised);position:sticky;top:0;z-index:2}
+thead th{padding:12px 14px;text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--text-dim);white-space:nowrap;border-bottom:1px solid var(--border);font-weight:600}
+thead th.sortable{cursor:pointer;user-select:none}
+thead th.sortable:hover{color:var(--accent)}
+tbody tr{border-bottom:1px solid rgba(255,255,255,.04);transition:.15s}
+tbody tr:hover{background:rgba(255,107,53,.04)}
+tbody tr:last-child{border-bottom:none}
+tbody td{padding:10px 14px;color:var(--text-muted);white-space:nowrap;vertical-align:middle}
+tbody td .td-name{font-weight:600;color:var(--text);font-size:13px}
+tbody td .td-biz{font-size:11px;color:var(--text-dim)}
+.tbl-status{display:inline-block;padding:2px 8px;border-radius:5px;font-size:10px;font-weight:600}
+.tbl-won{background:rgba(46,204,113,.1);color:var(--success)}
+.tbl-lost{background:rgba(231,76,60,.1);color:var(--danger)}
+.tbl-pending{background:rgba(243,156,18,.1);color:var(--warning)}
+.tbl-contacted{background:rgba(52,152,219,.1);color:var(--info)}
+.tbl-follow{background:rgba(255,107,53,.1);color:var(--accent)}
+
+/* SUMMARY */
+.summary-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+.summary-card{background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:18px}
+.summary-card h4{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;margin-bottom:12px;color:var(--text)}
+.summary-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border);font-size:12px}
+.summary-row:last-child{border-bottom:none}
+.summary-row span:last-child{font-weight:600;color:var(--accent)}
+
+/* TIMELINE */
+.timeline{display:flex;flex-direction:column;gap:12px}
+.timeline-item{display:flex;gap:10px;align-items:flex-start}
+.tl-dot{width:9px;height:9px;border-radius:50%;background:var(--accent);flex-shrink:0;margin-top:4px;box-shadow:0 0 6px var(--accent)}
+.tl-content{background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:10px 14px;flex:1}
+.tl-date{font-size:9px;color:var(--text-dim);margin-bottom:3px;text-transform:uppercase;letter-spacing:1px}
+.tl-text{font-size:12px;color:var(--text-muted)}
+
+/* EMPTY */
+.empty{text-align:center;padding:50px 20px;color:var(--text-dim)}
+.empty-icon{font-size:44px;margin-bottom:10px;opacity:.4}
+.empty p{font-size:13px}
+
+/* GUIDE */
+.guide-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:16px}
+.guide-card{background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:20px}
+.guide-num{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:6px}
+.guide-title{font-size:14px;font-weight:600;margin-bottom:6px}
+.guide-desc{font-size:12px;color:var(--text-muted);line-height:1.6;margin-bottom:10px}
+.guide-steps{padding-left:14px}
+.guide-steps li{font-size:11px;color:var(--text-dim);margin-bottom:4px;line-height:1.5}
+
+/* WORKFLOW */
+.flow-wrap{display:flex;flex-direction:column;gap:8px;margin-bottom:24px}
+.flow-step{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:14px 18px;display:flex;align-items:flex-start;gap:14px}
+.flow-num{width:32px;height:32px;border-radius:50%;background:var(--grad);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:13px;color:#fff;flex-shrink:0}
+.flow-title{font-size:13px;font-weight:600;margin-bottom:3px}
+.flow-desc{font-size:11px;color:var(--text-muted);line-height:1.5}
+.flow-arrow{text-align:center;color:var(--accent);font-size:18px;margin:0 auto}
+.cloud-box{background:rgba(46,204,113,.06);border:1px solid rgba(46,204,113,.2);border-radius:14px;padding:20px;margin-bottom:20px}
+.cloud-box h4{color:var(--success);font-family:'Syne',sans-serif;font-size:14px;font-weight:700;margin-bottom:10px}
+.cloud-step{display:flex;gap:10px;align-items:flex-start;margin-bottom:8px}
+.cloud-icon{font-size:16px;flex-shrink:0;margin-top:2px}
+.cloud-text{font-size:12px;color:var(--text-muted);line-height:1.5}
+.warn-box{background:rgba(231,76,60,.06);border:1px solid rgba(231,76,60,.2);border-radius:14px;padding:20px;margin-bottom:20px}
+.warn-box h4{color:var(--danger);font-family:'Syne',sans-serif;font-size:14px;font-weight:700;margin-bottom:10px}
+.tip-box{background:rgba(52,152,219,.06);border:1px solid rgba(52,152,219,.2);border-radius:14px;padding:16px;margin-bottom:14px}
+.tip-box strong{color:var(--info);font-size:12px}
+.tip-box p{font-size:12px;color:var(--text-muted);margin-top:5px;line-height:1.5}
+code{background:var(--bg-raised);padding:3px 8px;border-radius:5px;font-size:11px;color:var(--accent);font-family:monospace;border:1px solid var(--border)}
+
+/* DETAIL VIEW */
+.detail-header{display:flex;align-items:flex-start;gap:18px;margin-bottom:24px;flex-wrap:wrap}
+.detail-avatar{width:66px;height:66px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:#fff;background:var(--grad);flex-shrink:0}
+.detail-meta h2{font-family:'Syne',sans-serif;font-size:22px;font-weight:800}
+.detail-meta p{color:var(--text-muted);font-size:13px;margin-top:4px}
+.detail-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-bottom:20px}
+.detail-field{background:var(--bg-raised);border:1px solid var(--border);border-radius:10px;padding:12px}
+.detail-field-label{font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:var(--text-dim);margin-bottom:4px}
+.detail-field-val{font-size:13px;color:var(--text)}
+.back-btn{background:transparent;border:1px solid var(--border);border-radius:9px;padding:7px 14px;color:var(--text-muted);font-size:12px;cursor:pointer;margin-bottom:18px;transition:.2s;display:inline-flex;align-items:center;gap:6px}
+.back-btn:hover{border-color:var(--accent);color:var(--accent)}
+
+/* BADGE */
+.badge{display:inline-block;padding:2px 8px;border-radius:6px;font-size:10px;font-weight:700;letter-spacing:.5px}
+.badge-gold{background:rgba(255,179,71,.12);color:var(--gold);border:1px solid rgba(255,179,71,.3)}
+.badge-orange{background:rgba(255,107,53,.1);color:var(--accent);border:1px solid rgba(255,107,53,.2)}
+.badge-green{background:rgba(46,204,113,.1);color:var(--success);border:1px solid rgba(46,204,113,.2)}
+.badge-red{background:rgba(231,76,60,.1);color:var(--danger);border:1px solid rgba(231,76,60,.2)}
+
+/* WON/LOST TABS */
+.sub-tabs{display:flex;gap:8px;margin-bottom:20px}
+.sub-tab{padding:6px 16px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--bg-card);color:var(--text-muted);transition:.2s}
+.sub-tab.active-won{background:rgba(46,204,113,.12);border-color:var(--success);color:var(--success)}
+.sub-tab.active-lost{background:rgba(231,76,60,.12);border-color:var(--danger);color:var(--danger)}
+.sub-tab:hover{color:var(--text)}
+
+/* IMPORT BOX */
+.import-box{background:var(--bg-card);border:2px dashed var(--border);border-radius:14px;padding:24px;text-align:center;margin-bottom:20px}
+.import-box p{color:var(--text-muted);font-size:12px;margin-top:8px}
+
+/* FOOTER */
+footer{border-top:1px solid var(--border);padding:24px 20px;text-align:center;margin-top:50px;margin-left:220px;transition:margin-left .3s ease}
+@media(max-width:900px){footer{margin-left:0}}
+footer .footer-links{display:flex;justify-content:center;gap:16px;margin-bottom:10px;flex-wrap:wrap}
+footer a{color:var(--text-muted);text-decoration:none;font-size:12px;transition:.2s}
+footer a:hover{color:var(--accent)}
+footer .footer-copy{font-size:11px;color:var(--text-dim)}
+footer .footer-credit{
+  font-size:9px;
+  color:rgba(136,136,168,.32);
+  margin-top:6px;
+  letter-spacing:.3px;
+  font-weight:500;
+}
+footer .footer-credit strong{
+  color:rgba(255,107,53,.4);
+  font-weight:600;
+}
+
+/* TOAST */
+#toast{position:fixed;bottom:24px;right:24px;background:var(--bg-card);border:1px solid rgba(46,204,113,.4);color:var(--success);border-radius:12px;padding:12px 20px;font-size:13px;font-weight:600;z-index:9999;display:none;box-shadow:0 8px 30px rgba(0,0,0,.4)}
+
+@media(max-width:640px){
+  .form-grid{grid-template-columns:1fr}
+  .clients-grid{grid-template-columns:1fr}
+  .stats-grid{grid-template-columns:1fr 1fr}
+  nav{padding:0 12px}
+  .pipeline-wrap{grid-template-columns:1fr}
+  .btn-add span,.btn-dl span{display:none}
+}
+
+/* scroll bar */
+/* ══════════ PREMIUM SCROLLBAR — THEME MATCHED ══════════ */
+
+/* Firefox */
+*{
+  scrollbar-width: thin;
+  scrollbar-color: #FF6B35 rgba(255,255,255,.04);
+}
+
+/* Chrome / Edge / Safari — global */
+::-webkit-scrollbar{
+  width: 9px;
+  height: 9px;
+}
+::-webkit-scrollbar-track{
+  background: rgba(255,255,255,.03);
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb{
+  background: linear-gradient(180deg, #FF6B35, #FF3CAC);
+  border-radius: 10px;
+  border: 2px solid var(--bg);
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover{
+  background: linear-gradient(180deg, #FF8255, #FF5CC0);
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-corner{
+  background: transparent;
+}
+
+/* Sidebar — slightly slimmer + glowing thumb on hover */
+.sidebar::-webkit-scrollbar{
+  width: 6px;
+}
+.sidebar::-webkit-scrollbar-track{
+  background: transparent;
+}
+.sidebar::-webkit-scrollbar-thumb{
+  background: linear-gradient(180deg, rgba(255,107,53,.55), rgba(255,60,172,.55));
+  border-radius: 10px;
+  border: none;
+}
+.sidebar::-webkit-scrollbar-thumb:hover{
+  background: linear-gradient(180deg, #FF6B35, #FF3CAC);
+  box-shadow: 0 0 8px rgba(255,107,53,.5);
+}
+.sidebar{
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,107,53,.55) transparent;
+}
+
+/* Table-wrap and modal scroll areas — match too */
+.table-wrap::-webkit-scrollbar,
+.modal::-webkit-scrollbar,
+.pipeline-wrap::-webkit-scrollbar{
+  height: 8px;
+  width: 8px;
+}
+
+/* ── LUCIDE ICON SYSTEM ── */
+.l-icon{display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;vertical-align:middle}
+.l-icon svg{stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.s-icon .l-icon svg{width:17px;height:17px}
+.nav-icon-sm svg{width:14px;height:14px}
+</style>
+</head>
+<body>
+
+<div id="toast"></div>
+
+<!-- ══════════ LOGIN SCREEN — PREMIUM ══════════ -->
+<div id="loginScreen">
+  <!-- Ambient orbs -->
+  <div class="login-orb login-orb-1"></div>
+  <div class="login-orb login-orb-2"></div>
+  <div class="login-orb login-orb-3"></div>
+
+  <div class="login-card">
+    <!-- Logo -->
+    <div class="login-logo-wrap">
+      <div class="login-logo-ring"><svg width="36" height="36" viewBox="0 0 28 28" fill="none"><path d="M16 3L6 16H14L12 25L22 12H14L16 3Z" fill="url(#lg)"/><defs><linearGradient id="lg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#FF6B35"/><stop offset="100%" style="stop-color:#FF3CAC"/></linearGradient></defs></svg></div>
+    </div>
+
+    <div class="login-brand">SparkEdge CRM</div>
+    <div class="login-sub">Lead Management Portal &nbsp;·&nbsp; Internal Access Only</div>
+
+    <!-- Password field -->
+    <div class="login-field">
+      <label>Access Password</label>
+      <input class="login-input" type="password" id="pwdInput"
+        placeholder="Enter your password"
+        onkeydown="if(event.key==='Enter')doLogin()"/>
+      <button class="login-eye" onclick="toggleCrmEye()" id="crmEyeBtn" tabindex="-1">👁</button>
+    </div>
+
+    <button class="login-btn" onclick="doLogin()">
+      Unlock Portal &nbsp;→
+    </button>
+
+    <div class="login-err-msg" id="loginErr">⚠ Incorrect password. Please try again.</div>
+
+    <div class="login-footer-note">
+      <span></span> SparkEdge Internal &nbsp;·&nbsp; Secured Access &nbsp;·&nbsp; v2.0
+    </div>
+    <div class="login-credit">Owned by <strong>Raunak Karn</strong></div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+
+<!-- NAVBAR -->
+<nav>
+  <div style="display:flex;align-items:center;gap:10px">
+    <button class="hamburger" onclick="toggleSidebar()" id="hamburgerBtn"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+    <div class="nav-brand"><span style="-webkit-text-fill-color:initial"><svg width="20" height="20" viewBox="0 0 28 28" fill="none"><path d="M16 3L6 16H14L12 25L22 12H14L16 3Z" fill="url(#nb)"/><defs><linearGradient id="nb" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#FF6B35"/><stop offset="100%" style="stop-color:#FF3CAC"/></linearGradient></defs></svg></span> SparkEdge CRM</div>
+  </div>
+  <div class="nav-right">
+    <span style="display:flex;align-items:center;gap:6px;background:rgba(46,204,113,.1);border:1px solid rgba(46,204,113,.3);border-radius:9px;padding:7px 12px;font-size:11px;font-weight:600;color:var(--success);">🟢 Synced to Cloud</span>
+<button id="crmExportBtn" class="btn-dl" onclick="downloadData()" title="Optional manual backup">⬇ Backup</button>
+    <button id="crmAddLeadBtn" class="btn-add" onclick="openModal()">＋ Add Lead</button>
+  </div>
+</nav>
+
+<!-- SIDEBAR OVERLAY (mobile) -->
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <!-- User info badge -->
+  <div id="sidebarUserBox" style="margin:6px 8px 4px;padding:12px 14px;background:rgba(255,107,53,.07);border:1px solid rgba(255,107,53,.15);border-radius:12px;">
+    <div style="font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:var(--text-dim);margin-bottom:4px;">Logged in as</div>
+    <div id="sidebarUserName" style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:1px;">—</div>
+    <div id="sidebarUserRole" style="font-size:10px;color:var(--accent);letter-spacing:.3px;"></div>
+  </div>
+
+  <div class="sidebar-section-label">Main</div>
+  <button class="sidebar-link active" onclick="navTo('dashboard')"><span class="s-icon"><span class="l-icon"><svg width="17" height="17" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span></span><span class="s-name">Dashboard</span></button>
+  <button class="sidebar-link" onclick="navTo('pipeline')"><span class="s-icon"><span class="l-icon"><svg width="17" height="17" viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"/><circle cx="7" cy="6" r="2" fill="currentColor"/><circle cx="17" cy="12" r="2" fill="currentColor"/><circle cx="7" cy="18" r="2" fill="currentColor"/></svg></span></span><span class="s-name">Pipeline Board</span></button>
+
+  <div class="sidebar-divider"></div>
+  <div class="sidebar-section-label">Leads</div>
+  <button class="sidebar-link" onclick="navTo('leads')"><span class="s-icon"><span class="l-icon"><svg width="17" height="17" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2" fill="currentColor"/></svg></span></span><span class="s-name">All Active Leads</span></button>
+  <button class="sidebar-link" onclick="navTo('won')"><span class="s-icon"><span class="l-icon"><svg width="17" height="17" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></span></span><span class="s-name">Won Clients</span></button>
+  <button class="sidebar-link" onclick="navTo('lost')"><span class="s-icon"><span class="l-icon"><svg width="17" height="17" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg></span></span><span class="s-name">Lost Leads</span></button>
+  <button class="sidebar-link" onclick="navTo('followups')"><span class="s-icon"><span class="l-icon"><svg width="17" height="17" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></span></span><span class="s-name">Follow-ups</span></button>
+
+  <div class="sidebar-divider"></div>
+  <div class="sidebar-section-label">Reports & Tools</div>
+  <button class="sidebar-link" onclick="navTo('table')"><span class="s-icon"><span class="l-icon"><svg width="17" height="17" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/></svg></span></span><span class="s-name">Sheet View</span></button>
+  <button class="sidebar-link" onclick="navTo('summary')"><span class="s-icon"><span class="l-icon"><svg width="17" height="17" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 16l4-4 4 4 4-6"/></svg></span></span><span class="s-name">Analytics</span></button>
+  <button class="sidebar-link" id="sidebarRepliesLink" onclick="navTo('quickreplies')"><span class="s-icon"><span class="l-icon"><svg width="17" height="17" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span></span><span class="s-name">Quick Replies</span></button>
+
+  <div class="sidebar-divider"></div>
+  <div class="sidebar-section-label">Help</div>
+  <button class="sidebar-link" onclick="navTo('workflow')"><span class="s-icon"><span class="l-icon"><svg width="17" height="17" viewBox="0 0 24 24"><path d="M3 6l6-3 6 3 6-3v15l-6 3-6-3-6 3V6z"/><path d="M9 3v15M15 6v15"/></svg></span></span><span class="s-name">Workflow Guide</span></button>
+
+  <!-- Team (owner only) -->
+ <button class="sidebar-link" id="sidebarTeamLink" onclick="navTo('team')" style="display:none"><span class="s-icon"><span class="l-icon"><svg width="17" height="17" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span></span><span class="s-name">Team & Members</span></button>
+
+  <div class="sidebar-divider"></div>
+  <div class="sidebar-section-label">Open Tools</div>
+  <button class="sidebar-link" onclick="window.open('admin.html','_blank')" style="color:var(--accent)"><span class="s-icon"><span class="l-icon"><svg width="17" height="17" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2"/></svg></span></span><span class="s-name">Admin Panel ↗</span></button>
+  <button class="sidebar-link" onclick="window.open('docs.html','_blank')" style="color:var(--info)"><span class="s-icon"><span class="l-icon"><svg width="17" height="17" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></span></span><span class="s-name">Doc Generator ↗</span></button>
+  <button class="sidebar-link" onclick="window.open('index.html','_blank')" style="color:var(--success)"><span class="s-icon"><span class="l-icon"><svg width="17" height="17" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></span></span><span class="s-name">Client Portal ↗</span></button>
+
+  <!-- Spacer pushes logout to bottom -->
+  <div style="flex:1;min-height:16px"></div>
+  <div class="sidebar-divider"></div>
+
+  <hr>
+  <!-- Settings — owner only -->
+  <button class="sidebar-link" id="sidebarSettingsBtn" onclick="navTo('team')" style="display:none;color:var(--gold)"><span class="s-icon"><span class="l-icon"><svg width="17" height="17" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg></span></span><span class="s-name">Settings & Team</span></button>
+
+  <!-- Logout — always visible after login -->
+<button class="sidebar-link" id="sidebarLogoutBtn" onclick="crmLogout()" style="color:var(--danger);display:none"><span class="s-icon"><span class="l-icon"><svg width="17" height="17" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></span></span><span class="s-name">Logout</span></button>
+
+<div class="sb-credit">Owned by <strong>Raunak Karn</strong></div>
+
+</aside>
+
+<!-- MAIN AREA -->
+<div class="app-body">
+  <div class="main-area">
+    <div class="container" id="mainContent"></div>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-links">
+    <a href="mailto:sparkedge555@gmail.com">sparkedge555@gmail.com</a>
+    <a href="tel:+919142450715">+91 91424 50715</a>
+    <a href="https://wa.me/919142450715" target="_blank">WhatsApp</a>
+<a onclick="downloadData()" style="cursor:pointer;color:var(--success);display:inline-flex;align-items:center;gap:5px" title="Emergency backup only — not required for normal use"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Emergency Backup</a>
+<a onclick="navTo('quickreplies')" style="cursor:pointer;color:var(--accent);display:inline-flex;align-items:center;gap:5px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> Quick Replies</a>
+<a onclick="navTo('workflow')" style="cursor:pointer;color:var(--info);display:inline-flex;align-items:center;gap:5px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6l6-3 6 3 6-3v15l-6 3-6-3-6 3V6z"/><path d="M9 3v15M15 6v15"/></svg> Workflow Guide</a>
+  </div>
+  <div class="footer-copy">© 2026 SparkEdge · Lead Management CRM · Synced live via Firestore</div>
+  <div class="footer-credit">Built &amp; maintained by <strong>Raunak Karn</strong></div>
+</footer>
+
+</div><!-- /app -->
+
+<!-- ADD/EDIT MODAL -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <h3 id="modalTitle">Add New Lead</h3>
+    <div class="form-grid">
+      <div class="form-group"><label>Full Name *</label><input id="f_name" placeholder="e.g. Raunak Sharma"/></div>
+      <div class="form-group"><label>Business / Institute Name</label><input id="f_biz" placeholder="e.g. Bright Future Coaching"/></div>
+      <div class="form-group"><label>Phone Number *</label><input id="f_phone" placeholder="+91 XXXXX XXXXX"/></div>
+      <div class="form-group"><label>WhatsApp Number</label><input id="f_wa" placeholder="Same as phone? leave blank"/></div>
+      <div class="form-group"><label>Email</label><input id="f_email" placeholder="client@email.com"/></div>
+      <div class="form-group"><label>Website</label><input id="f_website" placeholder="https://..."/></div>
+      <div class="form-group"><label>Instagram Handle</label><input id="f_insta" placeholder="@handle"/></div>
+      <div class="form-group"><label>Facebook / Other Social</label><input id="f_social" placeholder="FB page or other"/></div>
+      <div class="form-group"><label>City / Location</label><input id="f_city" placeholder="e.g. Patna, Bihar"/></div>
+      <div class="form-group"><label>Lead Added Date</label><input type="date" id="f_addDate"/></div>
+      <div class="form-group"><label>Source</label>
+        <select id="f_source">
+          <option value="">— Select Source —</option>
+          <option>Google Maps</option><option>Instagram</option><option>IndiaMart</option>
+          <option>JustDial</option><option>Referral</option><option>Facebook</option>
+          <option>LinkedIn</option><option>Cold Call</option><option>Walk-in</option><option>Other</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Service Interested In</label>
+        <select id="f_service">
+          <option value="">— Select Service —</option>
+          <option>Billing System</option><option>Website</option><option>Social Media Management</option>
+          <option>Logo & Branding</option><option>ERP / Management Portal</option>
+          <option>Admission Software</option><option>Digital Marketing</option><option>Other</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Pipeline Stage / Status</label>
+        <select id="f_status" onchange="onStatusChange(this.value)">
+          <option value="pending">🔴 Baat Karni Baki (Not Contacted)</option>
+          <option value="contacted">🔵 Baat Ho Gayi (Contacted)</option>
+          <option value="follow">🟠 Follow-up Pending</option>
+          <option value="closed-won">🟢 WON — Converted to Client ✅</option>
+          <option value="closed-lost">⚫ LOST — Deal Lost ❌</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Contact Date</label><input type="date" id="f_contactDate"/></div>
+      <div class="form-group"><label>Follow-up Date</label><input type="date" id="f_followDate"/></div>
+      <div class="form-group"><label>Quoted Amount (₹)</label><input id="f_amount" placeholder="e.g. 15000"/></div>
+      <div class="form-group" id="paidGroup"><label>Payment Received (₹)</label><input id="f_paid" placeholder="e.g. 5000"/></div>
+      <div class="form-group" id="lostReasonGroup" style="display:none"><label>Reason Lost</label>
+        <select id="f_lostReason">
+          <option value="">— Why did you lose this? —</option>
+          <option>Price too high</option><option>Went with competitor</option><option>Not interested anymore</option>
+          <option>No budget right now</option><option>Not reachable / ghosted</option><option>Other</option>
+        </select>
+      </div>
+      <div class="form-group form-full"><label>Cold Call / DM Message Used</label><textarea id="f_msg" placeholder="Paste the message/script you sent..."></textarea></div>
+      <div class="form-group form-full"><label>Remark / Notes</label><textarea id="f_remark" placeholder="Any extra notes, client behaviour, objections..."></textarea></div>
+      <div class="form-group form-full">
+        <div class="checkbox-row">
+          <input type="checkbox" id="f_high"/>
+          <label for="f_high">⭐ Mark as High Potential Lead</label>
+        </div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-save" onclick="saveLead()">💾 Save Lead</button>
+    </div>
+  </div>
+</div>
+
+<!-- IMPORT MODAL -->
+<div class="modal-overlay" id="importOverlay">
+  <div class="modal" style="max-width:480px">
+    <h3>⬆ Import Data</h3>
+    <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px">Paste the exported JSON data below to restore or sync data from another device/person.</p>
+    <div class="form-group form-full">
+      <label>Paste JSON Data</label>
+      <textarea id="importText" style="min-height:160px;font-family:monospace;font-size:11px" placeholder='[{"id":"...","name":"..."}]'></textarea>
+    </div>
+    <p style="font-size:11px;color:var(--danger);margin-top:8px">⚠️ This will MERGE with your existing data (won't delete). Duplicate IDs will be updated.</p>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeImport()">Cancel</button>
+      <button class="btn-save" onclick="importData()">Import & Merge</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════
+   SPARKEDGE CRM — MULTI-USER AUTH SYSTEM
+   Owner  : RAUNAK@1   (full access — all permissions)
+   Members: Listed in HARDCODED_MEMBERS below + localStorage
+            Works on ANY device / any browser worldwide.
+
+   HOW TEAM CROSS-DEVICE LOGIN WORKS:
+   Members are in HARDCODED_MEMBERS array below.
+   Owner adds a member via Team page → clicks "Export Team Config"
+   → pastes the snippet here (replaces the array) → re-shares file.
+   Member opens the file on their device → their password works. ✅
+═══════════════════════════════════════════════════════════ */
+const CRM_AUTH_KEY   = 'se_crm_members';
+const CRM_SESS_KEY   = 'se_crm_session';
+
+// ── HARDCODED MEMBERS ──────────────────────────────────────
+// Paste exported team config between the [ ] brackets below.
+// These work on ALL devices without needing same localStorage.
+// ▼▼▼ START MEMBER CONFIG ▼▼▼
+const HARDCODED_MEMBERS = [
+  {
+    "id": "mem_1778838014185",
+    "name": "Pinkesh Kr Prabhakar",
+    "role": "Marketing Manager",
+    "email": "pinkeshkumarprabhakar9@gmail.com",
+    "wa": "9693717475",
+    "password": "Pinkesh@1",
+    "permissions": ["view_leads","edit_leads","view_analytics","export","quick_replies"],
+    "status": "active",
+    "addedAt": "15/5/2026"
+  }
+];
+// ▲▲▲ END MEMBER CONFIG ▲▲▲
+
+// ── PERMISSION DEFINITIONS ────────────────────────────────
+const CRM_PERMS = {
+  view_leads:    'View all leads & pipeline',
+  edit_leads:    'Add / edit / delete leads',
+  view_analytics:'View analytics & reports',
+  export:        'Export & import data',
+  quick_replies: 'Access quick reply scripts',
+  manage_team:   'Add / remove team members (Owner only)'
+};
+
+// ── Firebase init for CRM ──
+window._crmFbInit = false;
+window._crmTeamCache = [...HARDCODED_MEMBERS];
+window._crmListenerAttached = false;
+
+function getCrmDb(){
+  if(!window._crmFbInit){
+    const cfg = {
+      apiKey:"AIzaSyA0rufGe1NcKnsalr7VFnIuRLwfjPyD0QE",
+      authDomain:"sparkedge-client-portal.firebaseapp.com",
+      projectId:"sparkedge-client-portal",
+      storageBucket:"sparkedge-client-portal.firebasestorage.app",
+      messagingSenderId:"848868473172",
+      appId:"1:848868473172:web:2111dd537b9bc7549370c1"
+    };
+    if(!firebase.apps.length) firebase.initializeApp(cfg);
+    window._crmFbInit = true;
+  }
+  return firebase.firestore();
+}
+
+function attachCrmTeamListener(){
+  if(window._crmListenerAttached) return;
+  window._crmListenerAttached = true;
+  try{
+    getCrmDb().collection('team').onSnapshot(snapshot => {
+      const fsMembers = [];
+      snapshot.forEach(doc => fsMembers.push({id:doc.id, ...doc.data()}));
+      const merged = [...HARDCODED_MEMBERS];
+      fsMembers.forEach(fm => {
+        const idx = merged.findIndex(hm => hm.id === fm.id);
+        if(idx >= 0) merged[idx] = fm; else merged.push(fm);
+      });
+      window._crmTeamCache = merged;
+       if(typeof currentSection !== 'undefined' && currentSection === 'team') renderSection('team');
+    }, err => {
+      console.warn('CRM team listener error:', err.message);
+    });
+  }catch(e){ console.warn('Could not attach CRM team listener:', e.message); }
+}
+
+
+window._crmLeadsListenerAttached = false;
+
+function attachLeadsListener(){
+  if(window._crmLeadsListenerAttached) return;
+  window._crmLeadsListenerAttached = true;
+  try{
+    const db = getCrmDb();
+    db.collection('leads').onSnapshot(snapshot => {
+      const fsLeads = [];
+      snapshot.forEach(doc => fsLeads.push({ id: doc.id, ...doc.data() }));
+      console.log('[SparkEdge] Leads received from Firestore:', fsLeads.length, fsLeads);
+      leads = fsLeads;
+      renderSection(currentSection || 'dashboard');
+    }, err => {
+      console.error('[SparkEdge] Leads listener ERROR:', err.code, err.message);
+      showToast('⚠️ Sync error: ' + err.message);
+    });
+  }catch(e){
+    console.error('[SparkEdge] Could not attach leads listener:', e.message);
+    showToast('⚠️ Could not connect to cloud: ' + e.message);
+  }
+}
+
+async function pushLeadToFirestore(lead){
+  await getCrmDb().collection('leads').doc(lead.id).set(lead);
+}
+async function deleteLeadFromFirestore(id){
+  await getCrmDb().collection('leads').doc(id).delete();
+}
+
+function crmGetMembers(){
+  return window._crmTeamCache || [...HARDCODED_MEMBERS];
+}
+
+async function crmSaveMembers(m){
+  const db = getCrmDb();
+  const batch = db.batch();
+  m.forEach(member => {
+    if(!member.id) member.id = 'mem_' + Date.now();
+    batch.set(db.collection('team').doc(member.id), member);
+  });
+  await batch.commit();
+  window._crmTeamCache = m;
+  showToast('✅ Team synced to Firestore!');
+}
+
+async function crmDeleteMemberFromFirestore(memberId){
+  try{ await getCrmDb().collection('team').doc(memberId).delete(); }catch(e){}
+}
+
+// Current logged-in user
+window.CRM_USER = null;
+
+(function initCrmAuth(){
+  // Check existing session
+  try{
+    const sess = sessionStorage.getItem(CRM_SESS_KEY);
+    if(sess){
+      window.CRM_USER = JSON.parse(sess);
+      hideCrmLogin();
+      return;
+    }
+  }catch{}
+  // Show login
+  document.getElementById('loginScreen').style.display = 'flex';
+})();
+
+async function doLogin(){
+  const val = document.getElementById('pwdInput').value;
+  const err = document.getElementById('loginErr');
+  err.style.display = 'none';
+
+  // Owner
+  if(val === 'RAUNAK@1'){
+    window.CRM_USER = {
+      name:'Raunak (Owner)', role:'Owner', isOwner:true,
+      permissions:Object.keys(CRM_PERMS)
+    };
+    sessionStorage.setItem(CRM_SESS_KEY, JSON.stringify(window.CRM_USER));
+    hideCrmLogin();
+    return;
+  }
+
+  // Member — try cache first
+  let members = crmGetMembers();
+  let member = members.find(m => m.password === val && m.status === 'active');
+
+  // Fallback: try Firestore directly (catches members added on other devices)
+  if(!member){
+    try{
+      const snapshot = await getCrmDb().collection('team').get();
+      const fsMembers = [];
+      snapshot.forEach(doc => fsMembers.push({id:doc.id, ...doc.data()}));
+      const merged = [...HARDCODED_MEMBERS];
+      fsMembers.forEach(fm => {
+        const idx = merged.findIndex(hm => hm.id === fm.id);
+        if(idx >= 0) merged[idx] = fm; else merged.push(fm);
+      });
+      window._crmTeamCache = merged;
+      member = merged.find(m => m.password === val && m.status === 'active');
+    }catch(e){ console.warn('CRM Firestore login fallback failed:', e.message); }
+  }
+
+  if(member){
+    window.CRM_USER = {
+      name: member.name, role: member.role, isOwner: false,
+      permissions: member.permissions || [], memberId: member.id
+    };
+    sessionStorage.setItem(CRM_SESS_KEY, JSON.stringify(window.CRM_USER));
+    hideCrmLogin();
+    return;
+  }
+
+  // Fail
+  err.style.display = 'block';
+  err.style.animation = 'none';
+  requestAnimationFrame(()=>{ err.style.animation=''; });
+  document.getElementById('pwdInput').value = '';
+}
+
+async function hideCrmLogin(){
+  const s = document.getElementById('loginScreen');
+  s.style.opacity = '0'; s.style.transition = 'opacity .3s';
+  setTimeout(()=>{ s.style.display='none'; }, 300);
+  document.getElementById('app').style.display = 'block';
+  updateCrmUserUI();
+  applyCrmPermissions();
+  attachLeadsListener();      // attach FIRST
+  attachCrmTeamListener();
+  renderSection('dashboard');  // initial render with whatever leads[] currently has
+}
+
+function updateCrmUserUI(){
+  const u = window.CRM_USER;
+  if(!u) return;
+  // Sidebar user info
+  const sn = document.getElementById('sidebarUserName'); if(sn) sn.textContent = u.name;
+  const sr = document.getElementById('sidebarUserRole'); if(sr) sr.textContent = u.role;
+  // Sidebar logout — always visible once logged in
+  const lb = document.getElementById('sidebarLogoutBtn');
+  if(lb) lb.style.display = 'flex';
+  // Sidebar settings — owner only
+  const sb = document.getElementById('sidebarSettingsBtn');
+  if(sb) sb.style.display = u.isOwner ? 'flex' : 'none';
+  // Sidebar team link — owner only
+  const tl = document.getElementById('sidebarTeamLink');
+  if(tl) tl.style.display = u.isOwner ? 'flex' : 'none';
+}
+
+function applyCrmPermissions(){
+  const u = window.CRM_USER;
+  if(!u || u.isOwner) return;
+  const has = p => u.permissions.includes(p);
+  // Export/Import
+  if(!has('export')){
+    ['crmExportBtn','crmImportBtn'].forEach(id=>{ const el=document.getElementById(id); if(el) el.style.display='none'; });
+  }
+  // Add lead button
+  if(!has('edit_leads')){
+    const el = document.getElementById('crmAddLeadBtn'); if(el) el.style.display='none';
+  }
+  // Quick replies
+  if(!has('quick_replies')){
+    const el = document.getElementById('sidebarRepliesLink'); if(el) el.style.display='none';
+  }
+}
+
+function hasCrmPerm(p){
+  if(!window.CRM_USER) return false;
+  if(window.CRM_USER.isOwner) return true;
+  return (window.CRM_USER.permissions||[]).includes(p);
+}
+
+function toggleCrmEye(){
+  const inp = document.getElementById('pwdInput');
+  const btn = document.getElementById('crmEyeBtn');
+  inp.type = inp.type==='password' ? 'text' : 'password';
+  btn.textContent = inp.type==='password' ? '👁' : '🙈';
+}
+
+function crmLogout(){
+  sessionStorage.removeItem(CRM_SESS_KEY);
+  window.CRM_USER = null;
+  location.reload();
+}
+
+</script>
+
+<script>
+// ── DATA ──
+let leads = [];   // Firestore is the only source of truth — populated by attachLeadsListener()
+let editId = null;
+let currentSection = 'dashboard';
+let sortCol = 'addedAt', sortDir = -1;
+let closedSubTab = 'won';
+
+function save(){
+  // No localStorage write — the Firestore listener keeps `leads` in sync automatically.
+}
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2); }
+function initials(n){ return (n||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2)||'?'; }
+function today(){ return new Date().toISOString().slice(0,10); }
+function fmtDate(d){ if(!d) return '—'; try{ return new Date(d).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}); }catch{return d;} }
+function fmtMoney(v){ return v?'₹'+Number(v).toLocaleString('en-IN'):'—'; }
+
+// (removed — no longer needed since Firestore syncs automatically)
+
+// ── TOAST ──
+function showToast(msg, dur=2500){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.style.display='block';
+  setTimeout(()=>t.style.display='none',dur);
+}
+
+// ── SIDEBAR ──
+function toggleSidebar(){
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sidebarOverlay').classList.toggle('open');
+}
+function closeSidebar(){
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebarOverlay').classList.remove('open');
+}
+function navTo(s){
+  showSection(s);
+  closeSidebar(); // auto-close on mobile after nav
+}
+
+// ── SECTION ROUTING ──
+function showSection(s){
+  currentSection=s;
+  document.querySelectorAll('.sidebar-link').forEach(l=>{
+    const fn=l.getAttribute('onclick')||'';
+    l.classList.toggle('active', fn.includes("'"+s+"'"));
+  });
+  renderSection(s);
+}
+
+function renderSection(s){
+  const el=document.getElementById('mainContent');
+  if(s==='dashboard') el.innerHTML=renderDashboard();
+  else if(s==='pipeline') el.innerHTML=renderPipeline();
+  else if(s==='leads') el.innerHTML=renderList(leads.filter(c=>!c.status.startsWith('closed')),'All Active Leads','Every lead currently in your pipeline');
+  else if(s==='won') el.innerHTML=renderClosedSection('won');
+  else if(s==='lost') el.innerHTML=renderClosedSection('lost');
+  else if(s==='table') el.innerHTML=renderTable();
+  else if(s==='followups') el.innerHTML=renderFollowups();
+  else if(s==='summary') el.innerHTML=renderSummary();
+  else if(s==='workflow') el.innerHTML=renderWorkflow();
+  else if(s==='quickreplies') el.innerHTML=renderQuickReplies();
+  else if(s==='team') el.innerHTML=renderTeamPage();
+}
+
+// ── DASHBOARD ──
+function renderDashboard(){
+  const total=leads.length;
+  const active=leads.filter(c=>!c.status.startsWith('closed')).length;
+  const won=leads.filter(c=>c.status==='closed-won').length;
+  const lost=leads.filter(c=>c.status==='closed-lost').length;
+  const hp=leads.filter(c=>c.highPotential).length;
+  const totalRevenue=leads.reduce((a,c)=>a+(parseFloat(c.paid)||0),0);
+  const totalQuoted=leads.reduce((a,c)=>a+(parseFloat(c.amount)||0),0);
+  const dueToday=leads.filter(c=>c.followDate===today()).length;
+  const overdue=leads.filter(c=>c.followDate&&c.followDate<today()&&!c.status.startsWith('closed')).length;
+  const convRate=total?Math.round(won/total*100):0;
+  const recent=[...leads].sort((a,b)=>(b.addedAt||0)-(a.addedAt||0)).slice(0,6);
+
+  return `
+  <div class="section-eyebrow">⚡ SparkEdge Lead CRM</div>
+  <div class="section-title">Dashboard</div>
+  <div class="section-label">Real-time overview of your entire pipeline</div>
+
+  <div class="stats-grid">
+    <div class="stat-card"><div class="stat-label">Total Leads</div><div class="stat-value">${total}</div><div class="stat-sub">All time</div></div>
+    <div class="stat-card"><div class="stat-label">Active Pipeline</div><div class="stat-value">${active}</div><div class="stat-sub">In progress</div></div>
+    <div class="stat-card"><div class="stat-label">Won Clients</div><div class="stat-value">${won}</div><div class="stat-sub">Converted ✅</div></div>
+    <div class="stat-card"><div class="stat-label">Lost Deals</div><div class="stat-value">${lost}</div><div class="stat-sub">Closed lost ❌</div></div>
+    <div class="stat-card"><div class="stat-label">Conversion Rate</div><div class="stat-value">${convRate}%</div><div class="stat-sub">${won} of ${total} leads</div></div>
+    <div class="stat-card"><div class="stat-label">Follow-ups Today</div><div class="stat-value" style="${dueToday>0?'-webkit-text-fill-color:var(--warning)':''}">${dueToday}</div><div class="stat-sub">${overdue} overdue 🔴</div></div>
+    <div class="stat-card"><div class="stat-label">Revenue Collected</div><div class="stat-value">₹${totalRevenue.toLocaleString('en-IN')}</div><div class="stat-sub">of ₹${totalQuoted.toLocaleString('en-IN')} quoted</div></div>
+    <div class="stat-card"><div class="stat-label">High Potential</div><div class="stat-value">${hp}</div><div class="stat-sub">Priority leads ⭐</div></div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px">
+    <div class="summary-card">
+      <h4>📊 Pipeline Breakdown</h4>
+      ${[['🔴 Not Contacted','pending'],['🔵 Contacted','contacted'],['🟠 Follow-up Pending','follow'],['🟢 Won Clients','closed-won'],['⚫ Lost Deals','closed-lost']].map(([label,key])=>{
+        const cnt=leads.filter(c=>c.status===key).length;
+        const pct=total?Math.round(cnt/total*100):0;
+        return `<div class="summary-row"><span>${label}</span><span>${cnt} <span style="color:var(--text-dim);font-size:10px">(${pct}%)</span></span></div>`;
+      }).join('')}
+    </div>
+    <div class="summary-card">
+      <h4>📍 Top Lead Sources</h4>
+      ${topSources()}
+    </div>
+  </div>
+
+  ${overdue>0?`<div style="background:rgba(231,76,60,.07);border:1px solid rgba(231,76,60,.2);border-radius:12px;padding:14px 18px;margin-bottom:20px;display:flex;align-items:center;gap:12px;cursor:pointer" onclick="showSection('followups')">
+    <span style="font-size:20px">⚠️</span>
+    <div><div style="font-size:13px;font-weight:600;color:var(--danger)">${overdue} Overdue Follow-up${overdue>1?'s':''}</div><div style="font-size:11px;color:var(--text-muted)">Click to view and act on them now</div></div>
+    <span style="margin-left:auto;color:var(--danger)">→</span>
+  </div>`:''}
+
+  <div class="section-label" style="margin-bottom:10px">Recent Activity</div>
+  <div class="timeline">
+    ${recent.length ? recent.map(c=>`
+      <div class="timeline-item">
+        <div class="tl-dot" style="${c.status==='closed-won'?'background:var(--success);box-shadow:0 0 6px var(--success)':c.status==='closed-lost'?'background:var(--danger);box-shadow:0 0 6px var(--danger)':''}"></div>
+        <div class="tl-content">
+          <div class="tl-date">${fmtDate(c.addedAt||c.contactDate)} · Added ${c.addDate?fmtDate(c.addDate):''}</div>
+          <div class="tl-text"><strong>${c.name}</strong> — ${c.biz||'No business'} · ${statusLabel(c.status)} · ${c.service||'Service TBD'}${c.amount?' · ₹'+Number(c.amount).toLocaleString('en-IN'):''}</div>
+        </div>
+      </div>`).join('') : '<div class="empty"><div class="empty-icon">📭</div><p>No leads yet. Click "+ Add Lead" to begin.</p></div>'}
+  </div>
+  `;
+}
+
+function topSources(){
+  const map={};
+  leads.forEach(c=>{if(c.source)map[c.source]=(map[c.source]||0)+1});
+  const sorted=Object.entries(map).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  if(!sorted.length) return '<div class="summary-row"><span>No data yet</span><span>—</span></div>';
+  return sorted.map(([s,n])=>`<div class="summary-row"><span>${s}</span><span>${n}</span></div>`).join('');
+}
+
+// ── PIPELINE KANBAN ──
+function renderPipeline(){
+  const stages=[
+    {key:'pending',label:'Not Contacted',color:'#F39C12'},
+    {key:'contacted',label:'Contacted',color:'#3498DB'},
+    {key:'follow',label:'Follow-up',color:'#FF6B35'},
+    {key:'closed-won',label:'WON ✅',color:'#2ECC71'},
+    {key:'closed-lost',label:'LOST ❌',color:'#E74C3C'}
+  ];
+  return `
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:10px">
+    <div>
+      <div class="section-title">Lead Pipeline</div>
+      <div class="section-label">Drag status in cards to move leads through stages</div>
+    </div>
+    <button class="btn-add" onclick="openModal()">+ Add Lead</button>
+  </div>
+  <div class="pipeline-wrap">
+  ${stages.map(st=>{
+    const arr=leads.filter(c=>c.status===st.key).sort((a,b)=>(b.highPotential?1:0)-(a.highPotential?1:0));
+    return `
+    <div class="pipeline-col">
+      <div class="pipeline-col-header">
+        <div class="pipeline-col-title" style="color:${st.color}">${st.label}</div>
+        <div class="pipeline-count">${arr.length}</div>
+      </div>
+      ${arr.length?arr.map(c=>`
+        <div class="pipe-card" onclick="openDetail('${c.id}')">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+            <div style="width:28px;height:28px;border-radius:7px;background:var(--grad);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff;flex-shrink:0">${initials(c.name)}</div>
+            <div>
+              <div class="pipe-card-name">${c.name}${c.highPotential?' ⭐':''}</div>
+              <div class="pipe-card-biz">${c.biz||'—'}</div>
+            </div>
+          </div>
+          <div class="pipe-card-meta">
+            ${c.service?`<span class="pipe-tag">${c.service}</span>`:''}
+            ${c.amount?`<span class="pipe-tag" style="background:rgba(255,179,71,.08);color:var(--gold);border-color:rgba(255,179,71,.2)">₹${Number(c.amount).toLocaleString('en-IN')}</span>`:''}
+            ${c.followDate?`<span class="pipe-tag" style="background:rgba(52,152,219,.08);color:var(--info);border-color:rgba(52,152,219,.2)">📅 ${fmtDate(c.followDate)}</span>`:''}
+          </div>
+          <div style="display:flex;gap:6px;margin-top:8px" onclick="event.stopPropagation()">
+            <button class="btn-sm" onclick="quickStatus('${c.id}','next')" style="flex:1;justify-content:center">→ Move</button>
+            <button class="btn-sm" onclick="editClient('${c.id}')">✏️</button>
+          </div>
+        </div>`).join(''):`<div style="text-align:center;padding:20px 0;color:var(--text-dim);font-size:12px">Empty</div>`}
+    </div>`;
+  }).join('')}
+  </div>`;
+}
+
+async function quickStatus(id, dir){
+  const stageOrder=['pending','contacted','follow','closed-won','closed-lost'];
+  const c=leads.find(x=>x.id===id);
+  if(!c) return;
+  const idx=stageOrder.indexOf(c.status);
+  const updated={...c};
+  if(dir==='next'&&idx<stageOrder.length-1){ updated.status=stageOrder[idx+1]; }
+  else if(dir==='prev'&&idx>0){ updated.status=stageOrder[idx-1]; }
+  try{
+    await pushLeadToFirestore(updated);
+    showToast(`✅ Moved to: ${statusLabel(updated.status)}`);
+  }catch(e){
+    showToast('❌ Move FAILED: '+e.message);
+  }
+}
+
+// ── LIST VIEW ──
+let _filterVal='',_filterStatus='',_filterSource='',_filterService='',_filterMonth='';
+
+function renderList(arr,title,sub,showMonthFilter=true){
+  const months=[...new Set(leads.map(c=>{
+    const d=c.addDate||c.contactDate||(c.addedAt?new Date(c.addedAt).toISOString().slice(0,10):null);
+    return d?d.slice(0,7):null;
+  }).filter(Boolean))].sort().reverse();
+
+  return `
+  <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:18px">
+    <div>
+      <div class="section-title">${title}</div>
+      <div class="section-label">${sub}</div>
+    </div>
+    <button class="btn-add" onclick="openModal()">+ Add Lead</button>
+  </div>
+  <div class="toolbar">
+    <div class="search-wrap"><span class="search-icon">🔍</span><input placeholder="Search name, phone, city, business..." oninput="filterCards(this.value)" id="searchInput" value="${_filterVal}"/></div>
+    <select class="filter-sel" onchange="filterStatus(this.value)">
+      <option value="">All Stages</option>
+      <option value="pending" ${_filterStatus==='pending'?'selected':''}>Not Contacted</option>
+      <option value="contacted" ${_filterStatus==='contacted'?'selected':''}>Contacted</option>
+      <option value="follow" ${_filterStatus==='follow'?'selected':''}>Follow-up</option>
+      <option value="closed-won" ${_filterStatus==='closed-won'?'selected':''}>Won</option>
+      <option value="closed-lost" ${_filterStatus==='closed-lost'?'selected':''}>Lost</option>
+    </select>
+    <select class="filter-sel" onchange="filterSource(this.value)">
+      <option value="">All Sources</option>
+      ${['Google Maps','Instagram','IndiaMart','JustDial','Referral','Facebook','LinkedIn','Cold Call','Walk-in','Other'].map(s=>`<option ${_filterSource===s?'selected':''}>${s}</option>`).join('')}
+    </select>
+    <select class="filter-sel" onchange="filterService(this.value)">
+      <option value="">All Services</option>
+      ${['Billing System','Website','Social Media Management','Logo & Branding','ERP / Management Portal','Admission Software','Digital Marketing','Other'].map(s=>`<option ${_filterService===s?'selected':''}>${s}</option>`).join('')}
+    </select>
+    ${showMonthFilter?`<select class="filter-sel" onchange="filterMonth(this.value)">
+      <option value="">All Months</option>
+      ${months.map(m=>`<option value="${m}" ${_filterMonth===m?'selected':''}>${new Date(m+'-01').toLocaleDateString('en-IN',{month:'long',year:'numeric'})}</option>`).join('')}
+    </select>`:''}
+  </div>
+  <div class="clients-grid" id="cardsContainer">
+    ${renderCards(arr)}
+  </div>`;
+}
+
+function renderCards(arr){
+  const filtered=applyLocalFilters(arr);
+  return filtered.length?filtered.sort((a,b)=>(b.highPotential?1:0)-(a.highPotential?1:0)).map(cardHTML).join(''):'<div class="empty" style="grid-column:1/-1"><div class="empty-icon">🔍</div><p>No leads match your filters.</p></div>';
+}
+
+function applyLocalFilters(arr){
+  let r=[...arr];
+  if(_filterVal) r=r.filter(c=>(c.name+c.phone+c.city+c.biz+c.email).toLowerCase().includes(_filterVal.toLowerCase()));
+  if(_filterStatus) r=r.filter(c=>c.status===_filterStatus);
+  if(_filterSource) r=r.filter(c=>c.source===_filterSource);
+  if(_filterService) r=r.filter(c=>c.service===_filterService);
+  if(_filterMonth){
+    r=r.filter(c=>{
+      const d=c.addDate||c.contactDate||(c.addedAt?new Date(c.addedAt).toISOString().slice(0,10):null);
+      return d&&d.startsWith(_filterMonth);
+    });
+  }
+  return r;
+}
+
+function filterCards(v){_filterVal=v;refreshCards();}
+function filterStatus(v){_filterStatus=v;refreshCards();}
+function filterSource(v){_filterSource=v;refreshCards();}
+function filterService(v){_filterService=v;refreshCards();}
+function filterMonth(v){_filterMonth=v;refreshCards();}
+
+function refreshCards(){
+  const el=document.getElementById('cardsContainer');
+  if(!el) return;
+  const sec=currentSection;
+  let arr=sec==='leads'?leads.filter(c=>!c.status.startsWith('closed'))
+    :sec==='won'?leads.filter(c=>c.status==='closed-won')
+    :sec==='lost'?leads.filter(c=>c.status==='closed-lost')
+    :leads;
+  el.innerHTML=renderCards(arr);
+}
+
+function cardHTML(c){
+  const wa=c.wa||c.phone;
+  const waNum=(wa||'').replace(/[^0-9]/g,'');
+  const waLink=`https://wa.me/91${waNum}`;
+  const addDate=c.addDate||(c.addedAt?new Date(c.addedAt).toISOString().slice(0,10):null);
+  return `
+  <div class="client-card ${c.highPotential?'high-potential':''}" onclick="openDetail('${c.id}')">
+    <div class="card-header">
+      <div class="avatar">${initials(c.name)}</div>
+      <div>
+        <div class="client-name">${c.name}</div>
+        <div class="client-biz">${c.biz||'—'} ${c.city?'· '+c.city:''}</div>
+        <div class="status-pill ${pillClass(c.status)}">${statusDot(c.status)} ${statusLabel(c.status)}</div>
+      </div>
+    </div>
+    <div class="card-info">
+      <div class="info-item"><div class="info-label">Phone</div><div class="info-val">${c.phone||'—'}</div></div>
+      <div class="info-item"><div class="info-label">Added Date</div><div class="info-val">${fmtDate(addDate)}</div></div>
+      <div class="info-item"><div class="info-label">Follow-up</div><div class="info-val ${c.followDate&&c.followDate<today()&&!c.status.startsWith('closed')?'style="color:var(--danger)"':''}">${fmtDate(c.followDate)}</div></div>
+      <div class="info-item"><div class="info-label">Quoted</div><div class="info-val">${fmtMoney(c.amount)}</div></div>
+    </div>
+    <div style="margin-bottom:10px">
+      ${c.service?`<span class="service-tag">${c.service}</span>`:''}
+      ${c.source?`<span class="source-tag">${c.source}</span>`:''}
+      ${c.lostReason&&c.status==='closed-lost'?`<span class="source-tag" style="color:var(--danger);border-color:rgba(231,76,60,.3)">Lost: ${c.lostReason}</span>`:''}
+    </div>
+    <div class="card-actions" onclick="event.stopPropagation()">
+      ${c.phone?`<a class="btn-sm whatsapp" href="${waLink}" target="_blank">💬</a>`:''}
+      ${c.insta?`<a class="btn-sm" href="https://instagram.com/${c.insta.replace('@','')}" target="_blank">📸</a>`:''}
+      ${c.website?`<a class="btn-sm" href="${c.website}" target="_blank">🌐</a>`:''}
+      ${!c.status.startsWith('closed')?`<button class="btn-sm success" onclick="quickWon('${c.id}')">✅ Won</button><button class="btn-sm danger" onclick="quickLost('${c.id}')">❌ Lost</button>`:''}
+      <button class="btn-sm" onclick="editClient('${c.id}')">✏️ Edit</button>
+      <button class="btn-sm danger" onclick="deleteLead('${c.id}')">🗑</button>
+    </div>
+  </div>`;
+}
+
+async function quickWon(id){
+  const c=leads.find(x=>x.id===id);
+  if(!c) return;
+  const updated={...c, status:'closed-won', closedAt:Date.now()};
+  try{
+    await pushLeadToFirestore(updated);
+    showToast('🎉 Lead marked as WON! Moving to Clients.');
+  }catch(e){
+    showToast('❌ FAILED: '+e.message);
+  }
+}
+async function quickLost(id){
+  const reason=prompt('Why was this lead lost? (optional)','');
+  const c=leads.find(x=>x.id===id);
+  if(!c) return;
+  const updated={...c, status:'closed-lost', lostReason:reason||'', closedAt:Date.now()};
+  try{
+    await pushLeadToFirestore(updated);
+    showToast('❌ Lead marked as Lost.');
+  }catch(e){
+    showToast('❌ FAILED: '+e.message);
+  }
+}
+
+// ── CLOSED SECTIONS ──
+function renderClosedSection(type){
+  const isWon=type==='won';
+  const arr=leads.filter(c=>c.status===(isWon?'closed-won':'closed-lost'));
+  const totalRev=isWon?arr.reduce((a,c)=>a+(parseFloat(c.paid)||0),0):0;
+  const totalQ=isWon?arr.reduce((a,c)=>a+(parseFloat(c.amount)||0),0):0;
+  const lostReasons={};
+  if(!isWon) arr.forEach(c=>{if(c.lostReason)lostReasons[c.lostReason]=(lostReasons[c.lostReason]||0)+1;});
+
+  return `
+  <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:18px">
+    <div>
+      <div class="section-title">${isWon?'✅ Won Clients':'❌ Lost Leads'}</div>
+      <div class="section-label">${isWon?`${arr.length} deals closed and converted to clients`:`${arr.length} deals that didn't convert`}</div>
+    </div>
+  </div>
+
+  ${isWon?`
+  <div class="stats-grid" style="margin-bottom:20px">
+    <div class="stat-card"><div class="stat-label">Total Won</div><div class="stat-value">${arr.length}</div></div>
+    <div class="stat-card"><div class="stat-label">Revenue Collected</div><div class="stat-value">₹${totalRev.toLocaleString('en-IN')}</div></div>
+    <div class="stat-card"><div class="stat-label">Total Quoted</div><div class="stat-value">₹${totalQ.toLocaleString('en-IN')}</div></div>
+    <div class="stat-card"><div class="stat-label">Pending Payment</div><div class="stat-value">₹${(totalQ-totalRev).toLocaleString('en-IN')}</div></div>
+  </div>`:`
+  <div class="stats-grid" style="margin-bottom:20px">
+    <div class="stat-card"><div class="stat-label">Total Lost</div><div class="stat-value">${arr.length}</div></div>
+    <div class="stat-card"><div class="stat-label">Quoted Value Lost</div><div class="stat-value">₹${arr.reduce((a,c)=>a+(parseFloat(c.amount)||0),0).toLocaleString('en-IN')}</div></div>
+    ${Object.keys(lostReasons).length?`<div class="stat-card"><div class="stat-label">Top Reason Lost</div><div class="stat-value" style="font-size:14px;-webkit-text-fill-color:var(--danger)">${Object.entries(lostReasons).sort((a,b)=>b[1]-a[1])[0][0]}</div></div>`:''}
+  </div>`}
+
+  <div class="toolbar">
+    <div class="search-wrap"><span class="search-icon">🔍</span><input placeholder="Search..." oninput="filterCards(this.value)" id="searchInput" value="${_filterVal}"/></div>
+    <select class="filter-sel" onchange="filterSource(this.value)">
+      <option value="">All Sources</option>
+      ${['Google Maps','Instagram','IndiaMart','JustDial','Referral','Facebook','LinkedIn','Cold Call','Walk-in','Other'].map(s=>`<option ${_filterSource===s?'selected':''}>${s}</option>`).join('')}
+    </select>
+    <select class="filter-sel" onchange="filterService(this.value)">
+      <option value="">All Services</option>
+      ${['Billing System','Website','Social Media Management','Logo & Branding','ERP / Management Portal','Admission Software','Digital Marketing','Other'].map(s=>`<option ${_filterService===s?'selected':''}>${s}</option>`).join('')}
+    </select>
+  </div>
+
+  <div class="clients-grid" id="cardsContainer">
+    ${renderCards(arr)}
+  </div>`;
+}
+
+// ── TABLE / SHEET VIEW ──
+function renderTable(){
+  const months=[...new Set(leads.map(c=>{
+    const d=c.addDate||c.contactDate||(c.addedAt?new Date(c.addedAt).toISOString().slice(0,10):null);
+    return d?d.slice(0,7):null;
+  }).filter(Boolean))].sort().reverse();
+
+  return `
+  <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:18px">
+    <div>
+      <div class="section-title">📋 Sheet View — All Leads</div>
+      <div class="section-label">Excel-style overview. Click column headers to sort. Click Edit to update.</div>
+    </div>
+    <button class="btn-dl" onclick="downloadData()">⬇ Export CSV</button>
+  </div>
+  <div class="toolbar">
+    <div class="search-wrap"><span class="search-icon">🔍</span><input placeholder="Search any column..." oninput="filterTableSearch(this.value)" id="tblSearch"/></div>
+    <select class="filter-sel" onchange="filterTableStatus(this.value)" id="tblStatusFilter">
+      <option value="">All Stages</option>
+      <option value="pending">Not Contacted</option>
+      <option value="contacted">Contacted</option>
+      <option value="follow">Follow-up</option>
+      <option value="closed-won">Won ✅</option>
+      <option value="closed-lost">Lost ❌</option>
+    </select>
+    <select class="filter-sel" onchange="filterTableMonth(this.value)" id="tblMonthFilter">
+      <option value="">All Months</option>
+      ${months.map(m=>`<option value="${m}">${new Date(m+'-01').toLocaleDateString('en-IN',{month:'long',year:'numeric'})}</option>`).join('')}
+    </select>
+  </div>
+  <div class="table-wrap">
+    <table id="leadsTable">
+      <thead>
+        <tr>
+          <th class="sortable" onclick="sortTable('addDate')">Date Added ${sortCol==='addDate'?sortDir>0?'↑':'↓':''}</th>
+          <th class="sortable" onclick="sortTable('name')">Name ${sortCol==='name'?sortDir>0?'↑':'↓':''}</th>
+          <th>Business</th>
+          <th>City</th>
+          <th>Phone</th>
+          <th>Source</th>
+          <th>Service</th>
+          <th class="sortable" onclick="sortTable('status')">Stage ${sortCol==='status'?sortDir>0?'↑':'↓':''}</th>
+          <th>Follow-up</th>
+          <th class="sortable" onclick="sortTable('amount')">Quoted ${sortCol==='amount'?sortDir>0?'↑':'↓':''}</th>
+          <th>Paid</th>
+          <th>Balance</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="tblBody">
+        ${renderTableRows(leads)}
+      </tbody>
+    </table>
+  </div>`;
+}
+
+let _tblSearch='',_tblStatus='',_tblMonth='';
+function filterTableSearch(v){_tblSearch=v;refreshTable();}
+function filterTableStatus(v){_tblStatus=v;refreshTable();}
+function filterTableMonth(v){_tblMonth=v;refreshTable();}
+function refreshTable(){
+  let arr=[...leads];
+  if(_tblSearch) arr=arr.filter(c=>(c.name+c.phone+c.city+c.biz+c.email+c.source+c.service).toLowerCase().includes(_tblSearch.toLowerCase()));
+  if(_tblStatus) arr=arr.filter(c=>c.status===_tblStatus);
+  if(_tblMonth){
+    arr=arr.filter(c=>{
+      const d=c.addDate||c.contactDate||(c.addedAt?new Date(c.addedAt).toISOString().slice(0,10):null);
+      return d&&d.startsWith(_tblMonth);
+    });
+  }
+  const el=document.getElementById('tblBody');
+  if(el) el.innerHTML=renderTableRows(arr);
+}
+function sortTable(col){
+  if(sortCol===col) sortDir*=-1; else{sortCol=col;sortDir=-1;}
+  renderSection('table');
+}
+function renderTableRows(arr){
+  let sorted=[...arr].sort((a,b)=>{
+    const av=a[sortCol]||'';
+    const bv=b[sortCol]||'';
+    if(sortCol==='amount'||sortCol==='paid') return (parseFloat(bv||0)-parseFloat(av||0))*sortDir;
+    if(sortCol==='addDate'){
+      const ad=a.addDate||a.contactDate||(a.addedAt?new Date(a.addedAt).toISOString().slice(0,10):'');
+      const bd=b.addDate||b.contactDate||(b.addedAt?new Date(b.addedAt).toISOString().slice(0,10):'');
+      return (bd>ad?1:-1)*sortDir;
+    }
+    return (av>bv?1:-1)*sortDir;
+  });
+  if(!sorted.length) return `<tr><td colspan="13" style="text-align:center;padding:30px;color:var(--text-dim)">No leads match your filters</td></tr>`;
+  return sorted.map(c=>{
+    const addDate=c.addDate||c.contactDate||(c.addedAt?new Date(c.addedAt).toISOString().slice(0,10):'');
+    const bal=(parseFloat(c.amount||0)-parseFloat(c.paid||0));
+    const isOverdue=c.followDate&&c.followDate<today()&&!c.status.startsWith('closed');
+    return `<tr>
+      <td>${fmtDate(addDate)}</td>
+      <td><div class="td-name">${c.name}${c.highPotential?' ⭐':''}</div></td>
+      <td><div class="td-biz">${c.biz||'—'}</div></td>
+      <td>${c.city||'—'}</td>
+      <td>${c.phone||'—'}</td>
+      <td>${c.source||'—'}</td>
+      <td>${c.service||'—'}</td>
+      <td><span class="tbl-status ${tblStatusClass(c.status)}">${statusDot(c.status)} ${statusLabel(c.status).replace('Baat Karni Baki','Not Contacted').replace('Baat Ho Gayi','Contacted').replace('Follow-up Pending','Follow-up').replace('Closed — Won ✅','Won').replace('Closed — Lost ❌','Lost')}</span></td>
+      <td style="${isOverdue?'color:var(--danger);font-weight:600':''}"><span>${fmtDate(c.followDate)}${isOverdue?' 🔴':''}</span></td>
+      <td style="color:var(--gold);font-weight:600">${fmtMoney(c.amount)}</td>
+      <td style="color:var(--success)">${fmtMoney(c.paid)}</td>
+      <td style="color:${bal>0?'var(--danger)':'var(--text-muted)'}">${c.amount?fmtMoney(bal):'—'}</td>
+      <td onclick="event.stopPropagation()">
+        <div style="display:flex;gap:5px">
+          <button class="btn-sm" onclick="editClient('${c.id}')">✏️</button>
+          <button class="btn-sm" onclick="openDetail('${c.id}')">👁</button>
+          <button class="btn-sm danger" onclick="deleteLead('${c.id}')">🗑</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+function tblStatusClass(s){
+  return {pending:'tbl-pending',contacted:'tbl-contacted',follow:'tbl-follow','closed-won':'tbl-won','closed-lost':'tbl-lost'}[s]||'tbl-pending';
+}
+
+// ── FOLLOW-UPS ──
+function renderFollowups(){
+  const t=today();
+  const overdue=leads.filter(c=>c.followDate&&c.followDate<t&&!c.status.startsWith('closed'));
+  const todayDue=leads.filter(c=>c.followDate===t);
+  const upcoming=leads.filter(c=>c.followDate&&c.followDate>t&&!c.status.startsWith('closed'));
+  return `
+  <div class="section-title">⏰ Follow-up Tracker</div>
+  <div class="section-label">Never miss a follow-up. Overdue shown first.</div>
+
+  ${overdue.length?`<div class="section-eyebrow" style="background:rgba(231,76,60,.1);border-color:rgba(231,76,60,.3);color:var(--danger);margin-bottom:12px">🔴 Overdue (${overdue.length}) — Act Now!</div>
+  <div class="clients-grid" style="margin-bottom:24px">${overdue.sort((a,b)=>a.followDate>b.followDate?1:-1).map(cardHTML).join('')}</div>`:''}
+
+  <div class="section-eyebrow" style="margin-bottom:12px">🟠 Due Today (${todayDue.length})</div>
+  <div class="clients-grid" style="margin-bottom:24px">
+    ${todayDue.length?todayDue.map(cardHTML).join(''):'<div class="empty" style="grid-column:1/-1"><div class="empty-icon">✅</div><p>All clear for today!</p></div>'}
+  </div>
+
+  <div class="section-eyebrow" style="margin-bottom:12px">📅 Upcoming (${upcoming.length})</div>
+  <div class="clients-grid">
+    ${upcoming.length?upcoming.sort((a,b)=>a.followDate>b.followDate?1:-1).map(cardHTML).join(''):'<div class="empty" style="grid-column:1/-1"><div class="empty-icon">📭</div><p>No upcoming follow-ups scheduled.</p></div>'}
+  </div>`;
+}
+
+// ── SUMMARY ──
+function renderSummary(){
+  const totalRevenue=leads.reduce((a,c)=>a+(parseFloat(c.paid)||0),0);
+  const totalQuoted=leads.reduce((a,c)=>a+(parseFloat(c.amount)||0),0);
+  const won=leads.filter(c=>c.status==='closed-won');
+  const lost=leads.filter(c=>c.status==='closed-lost');
+  const convRate=leads.length?Math.round(won.length/leads.length*100):0;
+
+  const monthMap={};
+  leads.forEach(c=>{
+    const d=c.addDate||c.contactDate||(c.addedAt?new Date(c.addedAt).toISOString().slice(0,10):null);
+    if(d){
+      const key=new Date(d).toLocaleDateString('en-IN',{month:'short',year:'numeric'});
+      if(!monthMap[key])monthMap[key]={count:0,revenue:0,quoted:0,won:0,lost:0};
+      monthMap[key].count++;
+      monthMap[key].revenue+=parseFloat(c.paid)||0;
+      monthMap[key].quoted+=parseFloat(c.amount)||0;
+      if(c.status==='closed-won')monthMap[key].won++;
+      if(c.status==='closed-lost')monthMap[key].lost++;
+    }
+  });
+  const svcMap={};leads.forEach(c=>{if(c.service){svcMap[c.service]=(svcMap[c.service]||0)+1;}});
+  const srcMap={};leads.forEach(c=>{if(c.source){srcMap[c.source]=(srcMap[c.source]||0)+1;}});
+  const lostMap={};lost.forEach(c=>{if(c.lostReason)lostMap[c.lostReason]=(lostMap[c.lostReason]||0)+1;});
+
+  return `
+  <div class="section-title">📈 Analytics & Summary</div>
+  <div class="section-label">Revenue, pipeline health, and insights</div>
+  <div class="stats-grid" style="margin-bottom:24px">
+    <div class="stat-card"><div class="stat-label">Total Quoted</div><div class="stat-value">₹${totalQuoted.toLocaleString('en-IN')}</div></div>
+    <div class="stat-card"><div class="stat-label">Revenue Collected</div><div class="stat-value">₹${totalRevenue.toLocaleString('en-IN')}</div></div>
+    <div class="stat-card"><div class="stat-label">Pending Collection</div><div class="stat-value">₹${(totalQuoted-totalRevenue).toLocaleString('en-IN')}</div></div>
+    <div class="stat-card"><div class="stat-label">Conversion Rate</div><div class="stat-value">${convRate}%</div></div>
+  </div>
+  <div class="summary-grid">
+    <div class="summary-card">
+      <h4>📅 Month-wise Summary (Date Added)</h4>
+      ${Object.keys(monthMap).length?Object.entries(monthMap).map(([m,d])=>`
+        <div class="summary-row">
+          <span>${m} <span style="color:var(--text-dim);font-size:10px">(${d.count} leads, ${d.won} won)</span></span>
+          <span>₹${d.revenue.toLocaleString('en-IN')}</span>
+        </div>`).join(''):'<div style="color:var(--text-dim);font-size:12px;padding:10px 0">No date data yet</div>'}
+    </div>
+    <div class="summary-card">
+      <h4>🛠 Service-wise Breakdown</h4>
+      ${Object.keys(svcMap).length?Object.entries(svcMap).sort((a,b)=>b[1]-a[1]).map(([s,n])=>`<div class="summary-row"><span>${s}</span><span>${n}</span></div>`).join(''):'<div style="color:var(--text-dim);font-size:12px;padding:10px 0">No data</div>'}
+    </div>
+    <div class="summary-card">
+      <h4>📍 Lead Source Performance</h4>
+      ${Object.keys(srcMap).length?Object.entries(srcMap).sort((a,b)=>b[1]-a[1]).map(([s,n])=>`<div class="summary-row"><span>${s}</span><span>${n} leads</span></div>`).join(''):'<div style="color:var(--text-dim);font-size:12px;padding:10px 0">No data</div>'}
+    </div>
+    <div class="summary-card">
+      <h4>❌ Why Deals Are Lost</h4>
+      ${Object.keys(lostMap).length?Object.entries(lostMap).sort((a,b)=>b[1]-a[1]).map(([s,n])=>`<div class="summary-row"><span>${s}</span><span style="color:var(--danger)">${n}</span></div>`).join(''):'<div style="color:var(--text-dim);font-size:12px;padding:10px 0">No lost deal data</div>'}
+    </div>
+    <div class="summary-card" style="grid-column:1/-1">
+      <h4>💰 Top Clients by Payment</h4>
+      ${leads.filter(c=>c.amount||c.paid).length?leads.filter(c=>c.amount||c.paid).sort((a,b)=>(parseFloat(b.paid||0))-(parseFloat(a.paid||0))).slice(0,10).map(c=>`
+        <div class="summary-row">
+          <span>${c.name} <span style="color:var(--text-dim);font-size:10px">· ${c.biz||'—'}</span></span>
+          <span style="font-size:11px">₹${(c.paid||0).toLocaleString('en-IN')} collected / ₹${(c.amount||0).toLocaleString('en-IN')} quoted</span>
+        </div>`).join(''):'<div style="color:var(--text-dim);font-size:12px;padding:10px 0">No payment data</div>'}
+    </div>
+  </div>`;
+}
+
+// ── STATUS HELPERS ──
+function pillClass(s){
+  return {pending:'pill-pending',contacted:'pill-contacted',follow:'pill-follow','closed-won':'pill-closed-won','closed-lost':'pill-closed-lost'}[s]||'pill-pending';
+}
+function statusLabel(s){
+  return {pending:'Baat Karni Baki',contacted:'Baat Ho Gayi',follow:'Follow-up Pending','closed-won':'Closed — Won ✅','closed-lost':'Closed — Lost ❌'}[s]||s;
+}
+function statusDot(s){
+  return {pending:'🔴',contacted:'🔵',follow:'🟠','closed-won':'🟢','closed-lost':'⚫'}[s]||'⚪';
+}
+function onStatusChange(v){
+  document.getElementById('lostReasonGroup').style.display=v==='closed-lost'?'':'none';
+  document.getElementById('paidGroup').style.display=v==='closed-lost'?'none':'';
+}
+
+// ── DETAIL VIEW ──
+function openDetail(id){
+  const c=leads.find(x=>x.id===id);
+  if(!c) return;
+  const el=document.getElementById('mainContent');
+  const wa=c.wa||c.phone;
+  const waNum=wa?(wa.replace(/[^0-9]/g,'')):'';
+  const addDate=c.addDate||c.contactDate||(c.addedAt?new Date(c.addedAt).toISOString().slice(0,10):'');
+  el.innerHTML=`
+  <button class="back-btn" onclick="showSection('${currentSection}')">← Back</button>
+  <div class="detail-header">
+    <div class="detail-avatar">${initials(c.name)}</div>
+    <div class="detail-meta">
+      <h2>${c.name}</h2>
+      <p>${c.biz||'No business name'} ${c.city?'· '+c.city:''}</p>
+      <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
+        <div class="status-pill ${pillClass(c.status)}">${statusDot(c.status)} ${statusLabel(c.status)}</div>
+        ${c.highPotential?'<span class="badge badge-gold">⭐ High Potential</span>':''}
+        ${c.service?`<span class="badge badge-orange">${c.service}</span>`:''}
+        ${c.source?`<span class="badge" style="background:var(--bg-raised);color:var(--text-muted);border:1px solid var(--border)">${c.source}</span>`:''}
+      </div>
+    </div>
+    <div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn-sm" onclick="editClient('${c.id}')">✏️ Edit</button>
+      ${waNum?`<a class="btn-sm whatsapp" href="https://wa.me/91${waNum}" target="_blank">💬 WhatsApp</a>`:''}
+      ${!c.status.startsWith('closed')?`<button class="btn-sm success" onclick="quickWon('${c.id}');showSection('${currentSection}')">✅ Mark Won</button><button class="btn-sm danger" onclick="quickLost('${c.id}');showSection('${currentSection}')">❌ Mark Lost</button>`:''}
+    </div>
+  </div>
+  <div class="detail-grid">
+    ${[['Lead Added Date',fmtDate(addDate)],['Contact Date',fmtDate(c.contactDate)],['Follow-up Date',fmtDate(c.followDate)],['Phone',c.phone],['WhatsApp',c.wa||c.phone],['Email',c.email],['City',c.city],['Source',c.source],['Service',c.service],['Status',statusLabel(c.status)],['Lost Reason',c.lostReason||'—'],['High Potential',c.highPotential?'⭐ Yes':'No']].map(([l,v])=>`
+      <div class="detail-field"><div class="detail-field-label">${l}</div><div class="detail-field-val">${v||'—'}</div></div>`).join('')}
+    <div class="detail-field"><div class="detail-field-label">Quoted Amount</div><div class="detail-field-val" style="color:var(--gold);font-weight:600">${fmtMoney(c.amount)}</div></div>
+    <div class="detail-field"><div class="detail-field-label">Payment Received</div><div class="detail-field-val" style="color:var(--success);font-weight:600">${fmtMoney(c.paid)}</div></div>
+    <div class="detail-field"><div class="detail-field-label">Balance Pending</div><div class="detail-field-val" style="color:var(--danger);font-weight:600">${(c.amount||c.paid)?fmtMoney(parseFloat(c.amount||0)-parseFloat(c.paid||0)):'—'}</div></div>
+  </div>
+  ${c.msg?`<div class="summary-card" style="margin-bottom:16px"><h4>📩 Message / Script Used</h4><p style="font-size:12px;color:var(--text-muted);line-height:1.7;margin-top:8px;white-space:pre-wrap">${c.msg}</p></div>`:''}
+  ${c.remark?`<div class="summary-card"><h4>📝 Remarks / Notes</h4><p style="font-size:12px;color:var(--text-muted);line-height:1.7;margin-top:8px;white-space:pre-wrap">${c.remark}</p></div>`:''}
+  `;
+}
+
+// ── MODAL ──
+function openModal(){
+  editId=null;
+  clearForm();
+  document.getElementById('modalTitle').textContent='Add New Lead';
+  document.getElementById('f_addDate').value=today();
+  document.getElementById('modalOverlay').classList.add('open');
+}
+function closeModal(){ document.getElementById('modalOverlay').classList.remove('open'); editId=null; }
+
+function clearForm(){
+  ['name','biz','phone','wa','email','website','insta','social','city','source','service','status','contactDate','followDate','amount','paid','msg','remark','addDate','lostReason'].forEach(k=>{
+    const el=document.getElementById('f_'+k);
+    if(el) el.value='';
+  });
+  document.getElementById('f_status').value='pending';
+  document.getElementById('f_high').checked=false;
+  document.getElementById('lostReasonGroup').style.display='none';
+  document.getElementById('paidGroup').style.display='';
+}
+
+function editClient(id){
+  const c=leads.find(x=>x.id===id);
+  if(!c) return;
+  editId=id;
+  document.getElementById('modalTitle').textContent='Edit Lead';
+  const map={name:'name',biz:'biz',phone:'phone',wa:'wa',email:'email',website:'website',insta:'insta',social:'social',city:'city',source:'source',service:'service',status:'status',contactDate:'contactDate',followDate:'followDate',amount:'amount',paid:'paid',msg:'msg',remark:'remark',lostReason:'lostReason'};
+  Object.entries(map).forEach(([fk,ck])=>{ const el=document.getElementById('f_'+fk); if(el) el.value=c[ck]||''; });
+  // addDate
+  const addDate=c.addDate||c.contactDate||(c.addedAt?new Date(c.addedAt).toISOString().slice(0,10):'');
+  document.getElementById('f_addDate').value=addDate;
+  document.getElementById('f_high').checked=!!c.highPotential;
+  onStatusChange(c.status);
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+async function saveLead(){
+  const name=document.getElementById('f_name').value.trim();
+  const phone=document.getElementById('f_phone').value.trim();
+  if(!name){ alert('Name is required!'); return; }
+  const status=document.getElementById('f_status').value||'pending';
+  const addDate=document.getElementById('f_addDate').value||today();
+  const data={
+    id:editId||uid(),
+    name,phone,
+    biz:document.getElementById('f_biz').value.trim(),
+    wa:document.getElementById('f_wa').value.trim(),
+    email:document.getElementById('f_email').value.trim(),
+    website:document.getElementById('f_website').value.trim(),
+    insta:document.getElementById('f_insta').value.trim(),
+    social:document.getElementById('f_social').value.trim(),
+    city:document.getElementById('f_city').value.trim(),
+    source:document.getElementById('f_source').value,
+    service:document.getElementById('f_service').value,
+    status,
+    contactDate:document.getElementById('f_contactDate').value,
+    followDate:document.getElementById('f_followDate').value,
+    amount:document.getElementById('f_amount').value,
+    paid:status==='closed-lost'?'':document.getElementById('f_paid').value,
+    lostReason:status==='closed-lost'?document.getElementById('f_lostReason').value:'',
+    msg:document.getElementById('f_msg').value.trim(),
+    remark:document.getElementById('f_remark').value.trim(),
+    highPotential:document.getElementById('f_high').checked,
+    addDate,
+    addedAt:editId?(leads.find(x=>x.id===editId)||{}).addedAt||Date.now():Date.now(),
+    closedAt:status.startsWith('closed')?(editId?(leads.find(x=>x.id===editId)||{}).closedAt||Date.now():Date.now()):null
+  };
+
+  closeModal();
+
+  try{
+    await pushLeadToFirestore(data);
+    showToast('✅ Lead saved & synced to cloud!');
+    // No manual array update — the Firestore listener brings the confirmed
+    // data back and re-renders automatically.
+  }catch(e){
+    showToast('❌ Save FAILED — not synced: '+e.message);
+    alert('Save failed! Your lead was NOT saved.\n\nError: '+e.message+'\n\nCheck your internet connection or Firestore rules.');
+  }
+}
+
+async function deleteLead(id){
+  if(!confirm('Delete this lead permanently?')) return;
+  try{
+    await deleteLeadFromFirestore(id);
+    showToast('🗑 Lead deleted everywhere.');
+    // Listener auto-updates the UI on all devices.
+  }catch(e){
+    showToast('❌ Delete FAILED: '+e.message);
+    alert('Delete failed!\n\nError: '+e.message);
+  }
+}
+
+// ── EXPORT / IMPORT ──
+function downloadData(){
+  const json=JSON.stringify(leads,null,2);
+  const date=new Date().toISOString().slice(0,10);
+  const filename=`sparkedge-crm-${date}.json`;
+  const blob=new Blob([json],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=filename;a.click();
+  URL.revokeObjectURL(url);
+
+  // Also offer CSV
+  setTimeout(()=>{
+    const headers=['Name','Business','Phone','WhatsApp','Email','City','Source','Service','Status','Lead Added Date','Contact Date','Follow-up Date','Quoted Amount','Paid Amount','Balance','Lost Reason','Remark','High Potential'];
+    const rows=leads.map(c=>[c.name,c.biz,c.phone,c.wa,c.email,c.city,c.source,c.service,statusLabel(c.status),c.addDate||c.contactDate,c.contactDate,c.followDate,c.amount,c.paid,(parseFloat(c.amount||0)-parseFloat(c.paid||0))||'',c.lostReason,c.remark,c.highPotential?'Yes':'No'].map(v=>`"${(v||'').toString().replace(/"/g,'""')}"`).join(','));
+    const csv=[headers.join(','),...rows].join('\n');
+    const blob2=new Blob([csv],{type:'text/csv'});
+    const url2=URL.createObjectURL(blob2);
+    const a2=document.createElement('a');
+    a2.href=url2;a2.download=`sparkedge-crm-${date}.csv`;a2.click();
+    URL.revokeObjectURL(url2);
+  },500);
+
+  showToast('✅ Downloaded JSON + CSV files!');
+}
+
+function openImport(){ document.getElementById('importOverlay').classList.add('open'); }
+function closeImport(){ document.getElementById('importOverlay').classList.remove('open'); document.getElementById('importText').value=''; }
+
+async function importData(){
+  const raw=document.getElementById('importText').value.trim();
+  if(!raw){ alert('Paste JSON data first!'); return; }
+  try{
+    const imported=JSON.parse(raw);
+    if(!Array.isArray(imported)){ alert('Invalid format! Must be a JSON array.'); return; }
+
+    const db=getCrmDb();
+    const batch=db.batch();
+    imported.forEach(item=>{
+      if(!item.id) item.id=uid();
+      batch.set(db.collection('leads').doc(item.id), item, {merge:true});
+    });
+    await batch.commit();
+
+    closeImport();
+    showToast(`✅ Imported ${imported.length} lead(s) to cloud.`,4000);
+    // Listener auto-updates the UI on all devices.
+  }catch(e){
+    alert('Import error: '+e.message);
+  }
+}
+
+// ── MODAL OUTSIDE CLICK ──
+document.getElementById('modalOverlay').addEventListener('click',function(e){ if(e.target===this) closeModal(); });
+document.getElementById('importOverlay').addEventListener('click',function(e){ if(e.target===this) closeImport(); });
+
+/* ════════════════════════════════════════════════════
+   QUICK REPLIES — PRE-BUILT SALES FUNNEL SCRIPTS
+════════════════════════════════════════════════════ */
+const QUICK_REPLIES = [
+  {
+    id:'qr1', stage:'Stage 1 — First Contact / Cold DM',
+    icon:'👋', color:'#3498DB',
+    when:'Jab pehli baar kisi lead ko WhatsApp ya call karein. Inhone abhi kuch nahi poocha.',
+    situation:'Cold outreach — Google Maps, IndiaMart, Instagram se lead mila, pehla message bhej rahe ho.',
+    timing:'Lead add karne ke 30 min ke andar bhejo.',
+    tip:'Professional raho. Pressure mat dalo. Sirf interest janno.',
+    messages:[
+      {
+        label:'WhatsApp Cold DM — Hinglish',
+        text:`Hello [Name] ji 🙏
+
+Main Raunak bol raha hoon — SparkEdge Digital Solutions se.
+
+Aapka [business name] dekha — bahut aacha kaam kar rahe ho! 
+
+Main sirf yeh jaanna chahta tha ki kya aap apne business ke liye koi *digital solution* dhundh rahe ho — jaise:
+• Website / Online Presence
+• Billing ya Management Software
+• Social Media Growth
+
+Agar interest ho toh baat karte hain — bilkul free consultation hai.
+
+Aapko kya lagta hai? 😊`
+      },
+      {
+        label:'Short & Direct DM',
+        text:`Hi [Name] ji 👋
+
+SparkEdge se Raunak here.
+
+Kya aap [service] ke baare mein explore karna chahenge? Aapke business ke liye kuch kaam aa sakta hai.
+
+5 min call possible hai kisi din? 🙏`
+      },
+      {
+        label:'Instagram DM',
+        text:`Hey [Name]! 👋
+
+Your page looks amazing 🔥
+
+Main Raunak hoon — digital solutions banata hoon small businesses ke liye (website, software, social media).
+
+Kya aapko kisi cheez mein help chahiye? Happy to discuss! 😊`
+      },
+      {
+        label:'🇬🇧 English — Cold WhatsApp DM',
+        text:`Hello [Name]! 👋
+
+This is Raunak from SparkEdge Digital Solutions.
+
+I came across your [business/profile] and it looks great! I just wanted to reach out and check if you're currently looking for any digital solutions for your business — like:
+• A professional website
+• Business management software
+• Social media growth
+
+We offer a free consultation with no obligation. Would you be open to a quick chat? 😊`
+      },
+      {
+        label:'🇬🇧 English — Short Direct DM',
+        text:`Hi [Name]! 👋
+
+Raunak here from SparkEdge Digital Solutions.
+
+I noticed your business and thought I could help you with [service]. Would you be interested in a quick 5-minute call to explore?
+
+No pressure at all — happy to help! 🙏`
+      }
+    ]
+  },
+  {
+    id:'qr2', stage:'Stage 2 — Proposal / Quote Send',
+    icon:'📋', color:'#FF6B35',
+    when:'Client ne interest dikhaya, ab proposal ya quote bhejni hai.',
+    situation:'Call ho gayi, client ne details manga hai ya bola hai "kuch bhejo dekh ke bataunga".',
+    timing:'Call ke 1-2 ghante ke andar bhejo. Zyada late kiya toh interest khatam ho jaata hai.',
+    tip:'Exactly 3 options do — cheap, medium, premium. Anchoring kaam karta hai.',
+    messages:[
+      {
+        label:'Proposal Message — Detailed',
+        text:`[Name] ji 🙏
+
+Aapse baat karke bahut achha laga! Jaise discuss kiya, yahan aapke liye proposal hai:
+
+━━━━━━━━━━━━━━━━━━
+📦 *[Project Name] — Proposal*
+━━━━━━━━━━━━━━━━━━
+
+✅ *Kya milega:*
+• [Feature 1]
+• [Feature 2]  
+• [Feature 3]
+• [Feature 4]
+
+💰 *Investment:*
+• Basic: ₹[amount]
+• Standard: ₹[amount] *(Recommended)*
+• Premium: ₹[amount]
+
+⏱ *Timeline:* [X] days/weeks
+
+🎁 *Bonus (Limited Time):*
+• Free 1 month support
+• Free domain / hosting setup
+
+*Advance:* 50% to start work
+*Balance:* On delivery
+
+━━━━━━━━━━━━━━━━━━
+Koi bhi sawaal ho toh poochh sakte ho. Kab tak decide kar loge? 😊`
+      },
+      {
+        label:'Quick Quote — Short',
+        text:`[Name] ji! ✅
+
+[Service] ke liye quote:
+
+💰 ₹[amount] (all inclusive)
+
+Ismein shamil hai:
+✅ [Feature 1]
+✅ [Feature 2]
+✅ [Feature 3]
+
+Timeline: [X] days
+50% advance se kaam shuru hoga.
+
+Bata do — aage badhein? 🙏`
+      },
+      {
+        label:'🇬🇧 English — Detailed Proposal',
+        text:`Hi [Name]! 🙏
+
+It was great speaking with you! As discussed, here is the proposal for your project:
+
+━━━━━━━━━━━━━━━━━━
+📦 *[Project Name] — Proposal*
+━━━━━━━━━━━━━━━━━━
+
+✅ *What You Get:*
+• [Feature 1]
+• [Feature 2]
+• [Feature 3]
+• [Feature 4]
+
+💰 *Investment Options:*
+• Basic: ₹[amount]
+• Standard: ₹[amount] *(Recommended)*
+• Premium: ₹[amount]
+
+⏱ *Timeline:* [X] days/weeks
+
+🎁 *Bonus (Limited Time):*
+• 1 month free support after delivery
+• Free domain/hosting setup
+
+*Advance:* 50% to begin
+*Balance:* On final delivery
+
+━━━━━━━━━━━━━━━━━━
+Feel free to ask any questions. When do you think you can make a decision? 😊`
+      },
+      {
+        label:'🇬🇧 English — Quick Quote',
+        text:`Hi [Name]! ✅
+
+Here's the quote for [service]:
+
+💰 ₹[amount] (all-inclusive)
+
+Includes:
+✅ [Feature 1]
+✅ [Feature 2]
+✅ [Feature 3]
+
+Timeline: [X] days
+50% advance to start, balance on delivery.
+
+Shall we move forward? 🙏`
+      }
+    ]
+  },
+  {
+    id:'qr3', stage:'Stage 3 — Follow-up (No Response)',
+    icon:'⏰', color:'#F39C12',
+    when:'Proposal bheji thi lekin client ne reply nahi kiya 2-3 din se.',
+    situation:'Ghost ho gaya client. Follow-up lagani hai without being pushy.',
+    timing:'1st follow-up: 2 din baad. 2nd: 4 din baad. 3rd: 7 din baad. Phir close karo.',
+    tip:'Har follow-up mein kuch naya do — value, urgency, ya soft close.',
+    messages:[
+      {
+        label:'1st Follow-up — Soft Check-in',
+        text:`[Name] ji 🙏
+
+Bas yeh check karna tha ki proposal mili thi?
+
+Koi sawaal ho ya kuch explain karoon toh batao — happy to help!
+
+Aapka kya plan hai? 😊`
+      },
+      {
+        label:'2nd Follow-up — Add Value',
+        text:`[Name] ji! 
+
+Maine ek similar project abhi complete kiya — client ke results dekh ke khush ho gaya! 🎉
+
+Sochha aapko share karun. Aapka project bhi aisa ho sakta hai.
+
+Abhi bhi slots hain — agar ab confirm karo toh [X] din mein deliver ho jayega. 
+
+Aage badhein? 🙏`
+      },
+      {
+        label:'3rd Follow-up — Soft Close',
+        text:`[Name] ji 🙏
+
+Aakhri baar poochh raha hoon — abhi [project] ke liye slots available hain.
+
+Agar interest hai: ₹[amount] advance se kaam shuru ho jaata hai aaj hi.
+
+Agar abhi nahi chahiye — no problem at all! Bata do toh main slot kisi aur ko de deta hoon. 😊
+
+Kya kehte ho?`
+      },
+      {
+        label:'Final Close / Walk Away',
+        text:`[Name] ji,
+
+Lagta hai abhi sahi time nahi hai aapke liye — totally understandable! 👍
+
+Jab bhi ready ho, main yahan hoon. Aapka number save hai mere paas.
+
+Ek kaam karo — agar kabhi zaroorat pade toh directly WhatsApp kar dena. Priority service milegi purane contact ki wajah se. 😊
+
+Take care! 🙏 — Raunak, SparkEdge`
+      },
+      {
+        label:'🇬🇧 English — 1st Follow-up',
+        text:`Hi [Name]! 🙏
+
+Just checking in — did you get a chance to review the proposal I sent?
+
+Happy to answer any questions or clarify anything. Just let me know! 😊`
+      },
+      {
+        label:'🇬🇧 English — 2nd Follow-up (Value Add)',
+        text:`Hi [Name]!
+
+I just wrapped up a similar project and the client was thrilled with the results! 🎉
+
+Thought of you — your project could achieve something similar.
+
+I still have open slots this month. If you confirm now, delivery would be within [X] days.
+
+Worth a quick chat? 🙏`
+      },
+      {
+        label:'🇬🇧 English — Soft Close',
+        text:`Hi [Name],
+
+Last follow-up from my side — I still have slots available this month.
+
+If you're interested: a ₹[amount] advance gets the project started today.
+
+If the timing isn't right, no problem at all! Just let me know and I'll offer the slot to someone else. 😊
+
+What do you think?`
+      },
+      {
+        label:'🇬🇧 English — Walk Away',
+        text:`Hi [Name],
+
+I understand if now isn't the right time — completely okay! 👍
+
+Whenever you're ready, feel free to reach out. I'll always be happy to help and will give you priority since we've already connected.
+
+Take care! 🙏 — Raunak, SparkEdge`
+      }
+    ]
+  },
+  {
+    id:'qr4', stage:'Stage 4 — Objection Handling',
+    icon:'🧠', color:'#9B59B6',
+    when:'Client ne koi objection diya — price zyada hai, time nahi, soch ke bataunga etc.',
+    situation:'Real concern ya just delay tactic? Dono ke liye alag reply.',
+    timing:'Objection ke 10-15 min ke andar reply karo. Delay se moment khatam ho jaata hai.',
+    tip:'Kabhi argue mat karo. Acknowledge karo, phir reframe karo.',
+    messages:[
+      {
+        label:'"Price Zyada Hai" Objection',
+        text:`[Name] ji, bilkul samajh sakta hoon! 💯
+
+Lekin ek cheez compare karte hain:
+
+❌ Cheap option: ₹[X] mein milega — but:
+• Copy-paste template
+• No support
+• 3 mahine mein outdated
+
+✅ Humara option: ₹[Y] mein milega:
+• Custom, aapke business ke liye
+• 1 month free support
+• Long-term investment
+
+Aur honestly — ek client bhi agar isse aaya, toh poora investment recover ho jaata hai.
+
+Kya hum koi EMI ya phased payment plan dekh sakte hain? 🤝`
+      },
+      {
+        label:'"Sochke Batata Hoon" Objection',
+        text:`Bilkul [Name] ji! Zaroor socho. 
+
+Bas ek cheez batata hoon — abhi 2 slots hi bache hain is mahine ke liye.
+
+Agar confirm nahi kiya toh next batch [X date] se shuru hoga.
+
+Socho — 24 ghante kaafi hain? Kal tak bata dena. 🙏`
+      },
+      {
+        label:'"Kisi Aur Se Karwaana Hai" Objection',
+        text:`Arre [Name] ji, zaroor! Competition check karna chahiye — smart decision hai! 👍
+
+Sirf ek cheez dhyan rakhna quote compare karte waqt:
+
+✅ Support milta hai ya nahi after delivery?
+✅ Custom hai ya template?
+✅ Future changes possible hai?
+
+Humari service mein yeh sab include hai.
+
+Compare karke batao — agar hum se better deal mili toh honestly main khud bol dunga aage jao! 😊
+
+Fair enough? 🙏`
+      },
+      {
+        label:'🇬🇧 English — Price Objection',
+        text:`[Name], I completely understand! 💯
+
+Let me put it in perspective:
+
+❌ Cheap option: ₹[X] — but:
+• Generic template, not customized
+• No after-delivery support
+• Outdated in a few months
+
+✅ Our option: ₹[Y]:
+• Fully custom for your business
+• 1 month free support included
+• Long-term investment that pays off
+
+Honestly — even one new client from this covers the entire cost.
+
+Would you like to explore a phased payment plan? 🤝`
+      },
+      {
+        label:'🇬🇧 English — "I\'ll Think About It"',
+        text:`Of course, [Name]! Take your time. 😊
+
+Just a heads-up — I only have 2 slots available this month.
+
+If it isn't confirmed soon, the next available batch starts on [date].
+
+Would 24 hours work for you to decide? Let me know by tomorrow. 🙏`
+      },
+      {
+        label:'🇬🇧 English — Competitor Comparison',
+        text:`Absolutely, [Name] — it's smart to compare options! 👍
+
+Just keep these points in mind when evaluating quotes:
+
+✅ Do they offer post-delivery support?
+✅ Is it custom-built or a template?
+✅ Can you request changes later?
+
+All of these are included with us.
+
+Compare freely — if you find a genuinely better deal, I'll honestly tell you to go for it! 😊
+
+Fair enough? 🙏`
+      }
+    ]
+  },
+  {
+    id:'qr5', stage:'Stage 5 — Welcome / Project Start',
+    icon:'🎉', color:'#2ECC71',
+    when:'Client ne confirm kiya, advance payment aa gayi. Project officially shuru ho raha hai.',
+    situation:'WON! Client ko welcome karo aur expectations set karo.',
+    timing:'Payment receive hone ke 1 ghante ke andar bhejo. Client excited hota hai — capture that energy!',
+    tip:'Professional + warm tone. Client ko feel karao ki best decision liya unhone.',
+    messages:[
+      {
+        label:'Welcome Message — Detailed',
+        text:`[Name] ji 🎉🙏
+
+*Aapka SparkEdge mein swagat hai!*
+
+Bahut khushi hui ki hum saath kaam karenge! Aapne ek bahut aacha decision liya hai.
+
+━━━━━━━━━━━━━━━━━━
+🚀 *Project Details*
+━━━━━━━━━━━━━━━━━━
+📌 Project: [Project Name]
+📅 Start Date: [Date]
+⏱ Expected Delivery: [Date]
+💰 Advance Received: ₹[amount]
+💰 Balance Due (on delivery): ₹[amount]
+
+*Aage kya hoga:*
+1️⃣ Hum aapka requirements collect karenge [date tak]
+2️⃣ First draft [X days] mein share karenge
+3️⃣ 2 revisions included hain
+4️⃣ Final delivery [date] tak
+
+📞 Direct contact: [your number]
+📧 Email: sparkedge555@gmail.com
+
+*Koi bhi sawaal hoga toh seedha message karo — 12 ghante mein reply guaranteed!*
+
+Welcome to the SparkEdge family! 🙌`
+      },
+      {
+        label:'Quick Welcome — Short',
+        text:`[Name] ji! 🎉
+
+Advance received — thank you so much! ✅
+
+Project start ho gaya officially. Aapko [X days] mein pehla update milega.
+
+Koi bhi cheez chahiye — sidha message karo. 🙏
+
+— Raunak, SparkEdge ⚡`
+      },
+      {
+        label:'🇬🇧 English — Welcome (Detailed)',
+        text:`[Name]! 🎉🙏
+
+*Welcome to SparkEdge!*
+
+We're thrilled to have you on board — great decision!
+
+━━━━━━━━━━━━━━━━━━
+🚀 *Project Details*
+━━━━━━━━━━━━━━━━━━
+📌 Project: [Project Name]
+📅 Start Date: [Date]
+⏱ Expected Delivery: [Date]
+💰 Advance Received: ₹[amount]
+💰 Balance Due (on delivery): ₹[amount]
+
+*What happens next:*
+1️⃣ We'll collect your requirements by [date]
+2️⃣ First draft shared within [X] days
+3️⃣ 2 revisions included
+4️⃣ Final delivery by [date]
+
+📞 Direct contact: [your number]
+📧 Email: sparkedge555@gmail.com
+
+*Any questions? Message us directly — 12-hour response guaranteed!*
+
+Welcome to the SparkEdge family! 🙌`
+      },
+      {
+        label:'🇬🇧 English — Quick Welcome',
+        text:`[Name]! 🎉
+
+Advance received — thank you! ✅
+
+Your project has officially started. You'll receive your first update within [X] days.
+
+For anything at all — message directly. 🙏
+
+— Raunak, SparkEdge ⚡`
+      }
+    ]
+  },
+  {
+    id:'qr6', stage:'Stage 6 — Progress Update',
+    icon:'📊', color:'#1ABC9C',
+    when:'Project chal raha hai. Client ko update deni hai.',
+    situation:'Weekly ya milestone-based update. Client ko feel karao ki kaam ho raha hai.',
+    timing:'Har 3-5 days mein ek update zaroor bhejo — chahe chhoti bhi ho. Silence se client anxious ho jaata hai.',
+    tip:'Always end with a question or next step. Engagement maintain karo.',
+    messages:[
+      {
+        label:'Weekly Progress Update',
+        text:`[Name] ji 🙏
+
+*Weekly Update — [Project Name]*
+
+Is week yeh kaam complete kiya:
+✅ [Task 1]
+✅ [Task 2]
+🔄 [Task 3] — kaam chal raha hai
+
+Overall progress: [X]% complete
+
+*Agle week ka plan:*
+📌 [Next milestone]
+📌 [Next milestone]
+
+Expected next update: [Date]
+
+Koi feedback ya change chahiye toh batao! 😊`
+      },
+      {
+        label:'Milestone Update + Preview Share',
+        text:`[Name] ji! 🎉
+
+*[Milestone] complete ho gaya!*
+
+Aapke liye preview ready hai — dekho aur feedback do:
+
+🔗 [Link / Image]
+
+Kya aapko yeh direction theek lagti hai? Koi changes chahiye? 
+
+2 revisions included hain — freely bata sakte ho. 😊`
+      },
+      {
+        label:'🇬🇧 English — Weekly Update',
+        text:`Hi [Name]! 🙏
+
+*Weekly Update — [Project Name]*
+
+Completed this week:
+✅ [Task 1]
+✅ [Task 2]
+🔄 [Task 3] — in progress
+
+Overall progress: [X]% complete
+
+*Next week's plan:*
+📌 [Next milestone]
+📌 [Next milestone]
+
+Next update: [Date]
+
+Let me know if you'd like any changes! 😊`
+      },
+      {
+        label:'🇬🇧 English — Milestone + Preview',
+        text:`Hi [Name]! 🎉
+
+*[Milestone] is complete!*
+
+Your preview is ready — please take a look and share your feedback:
+
+🔗 [Link / Image]
+
+Does this direction look good to you? Any changes needed?
+
+You have 2 revisions included — feel free to share anything! 😊`
+      }
+    ]
+  },
+  {
+    id:'qr7', stage:'Stage 7 — Payment Reminder',
+    icon:'💰', color:'#E67E22',
+    when:'Koi installment ya balance due hai. Client ne abhi payment nahi ki.',
+    situation:'Balance pending hai. Professional tarike se remind karna hai bina relationship kharab kiye.',
+    timing:'Due date se 2 din pehle soft reminder. Due date ke din firm reminder. 3 din baad direct call.',
+    tip:'Payment reminder kabhi aggressive mat karo. Professional raho — client hamesha waapas aa sakta hai.',
+    messages:[
+      {
+        label:'Soft Payment Reminder (2 days before)',
+        text:`[Name] ji 🙏
+
+Bas yaad dilana tha — [milestone/phase] ki payment ₹[amount] [date] ko due hai.
+
+Koi problem ho toh advance mein bata dena — mil ke kuch solution nikaalienge. 😊
+
+UPI: [your UPI ID]
+Account: [if needed]
+
+Shukriya! 🙏`
+      },
+      {
+        label:'Due Date Reminder',
+        text:`[Name] ji,
+
+Aaj [project/phase] ki payment due date hai — ₹[amount]
+
+Jaise hi payment ho jaye, please screenshot bhej dena taaki records match ho sakein. ✅
+
+UPI ID: [your UPI]
+*[Bank Name]: [Account details]*
+
+Agar koi issue hai toh call karo — personally baat karte hain. 📞`
+      },
+      {
+        label:'Overdue Payment — Firm',
+        text:`[Name] ji 🙏
+
+[X] din ho gaye — ₹[amount] ki payment abhi pending hai.
+
+Kaam [hold/complete] hai — payment hone ke baad [next step] complete karenge.
+
+Kab tak transfer ho sakta hai? Please confirm karo taaki main schedule plan kar sakoon. 
+
+UPI: [your UPI ID] 🙏`
+      },
+      {
+        label:'🇬🇧 English — Soft Reminder',
+        text:`Hi [Name]! 🙏
+
+Just a gentle reminder — the payment of ₹[amount] for [milestone/phase] is due on [date].
+
+If you need any flexibility, please let me know in advance — we can work something out. 😊
+
+UPI: [your UPI ID]
+
+Thank you! 🙏`
+      },
+      {
+        label:'🇬🇧 English — Due Date',
+        text:`Hi [Name],
+
+Today is the due date for your payment of ₹[amount].
+
+Once the payment is done, please send a screenshot so we can update our records. ✅
+
+UPI ID: [your UPI]
+
+If you have any concerns, feel free to call — happy to sort it out directly. 📞`
+      },
+      {
+        label:'🇬🇧 English — Overdue Firm',
+        text:`Hi [Name],
+
+It's been [X] days and the payment of ₹[amount] is still pending.
+
+Work is currently [on hold / ready] — once payment is received, we'll proceed with [next step].
+
+Could you let me know when the transfer can be done?
+
+UPI: [your UPI ID] 🙏`
+      }
+    ]
+  },
+  {
+    id:'qr8', stage:'Stage 8 — Final Delivery',
+    icon:'🚀', color:'#FF3CAC',
+    when:'Project complete ho gaya. Client ko final delivery de rahe ho.',
+    situation:'Final deliverable share karna hai. Balance payment leni hai. Relationship strong karna hai.',
+    timing:'Delivery ke saath hi balance payment request karo — soft but clear.',
+    tip:'Delivery moment mein client sabse excited hota hai. Yahi perfect time hai referral maangne ka.',
+    messages:[
+      {
+        label:'Final Delivery Message — Complete',
+        text:`[Name] ji! 🎉🙌
+
+*Aapka [Project Name] ready hai!*
+
+━━━━━━━━━━━━━━━━━━
+🚀 *Final Delivery*
+━━━━━━━━━━━━━━━━━━
+
+Yahan aapka completed project hai:
+📎 [Link / File]
+
+*Login Details (agar applicable):*
+🔗 URL: [link]
+👤 Username: [username]
+🔑 Password: [password]
+
+*Aapko kya mila:*
+✅ [Deliverable 1]
+✅ [Deliverable 2]
+✅ [Deliverable 3]
+
+━━━━━━━━━━━━━━━━━━
+💰 *Balance Pending: ₹[amount]*
+
+UPI: [your UPI ID]
+Please payment ke baad screenshot bhej dena. 🙏
+
+━━━━━━━━━━━━━━━━━━
+Yeh project banake bahut maza aaya! Koi bhi cheez chahiye future mein — main hamesha available hoon. 💪
+
+*Feedback dena mat bhoolo — bahut kaam aata hai!* 🙏
+
+— Raunak, SparkEdge ⚡`
+      },
+      {
+        label:'Quick Delivery Note',
+        text:`[Name] ji! 🎉
+
+Project complete — yahan hai:
+📎 [Link/File]
+
+Balance: ₹[amount]
+UPI: [your UPI]
+
+Enjoy karo — bahut mehnat laga is mein! 💪
+Koi issue ho toh call karo. 🙏`
+      },
+      {
+        label:'🇬🇧 English — Full Delivery',
+        text:`[Name]! 🎉🙌
+
+*Your [Project Name] is ready!*
+
+━━━━━━━━━━━━━━━━━━
+🚀 *Final Delivery*
+━━━━━━━━━━━━━━━━━━
+
+Here is your completed project:
+📎 [Link / File]
+
+*Login Details (if applicable):*
+🔗 URL: [link]
+👤 Username: [username]
+🔑 Password: [password]
+
+*What's delivered:*
+✅ [Deliverable 1]
+✅ [Deliverable 2]
+✅ [Deliverable 3]
+
+━━━━━━━━━━━━━━━━━━
+💰 *Balance Due: ₹[amount]*
+
+UPI: [your UPI ID]
+Please send a screenshot after payment. 🙏
+
+━━━━━━━━━━━━━━━━━━
+It was a pleasure working on this project! For anything in the future — I'm always here. 💪
+
+*Don't forget to share your feedback — it means a lot!* 🙏
+
+— Raunak, SparkEdge ⚡`
+      },
+      {
+        label:'🇬🇧 English — Quick Delivery',
+        text:`[Name]! 🎉
+
+Project complete — here it is:
+📎 [Link/File]
+
+Balance due: ₹[amount]
+UPI: [your UPI]
+
+Loved working on this! 💪
+Call me if you need anything. 🙏`
+      }
+    ]
+  },
+  {
+    id:'qr9', stage:'Stage 9 — Happy Note + Referral Ask',
+    icon:'⭐', color:'#FFB347',
+    when:'Project delivered. Client khush hai. 2-3 din baad final note bhejo.',
+    situation:'Post-delivery glow period. Client satisfied hai — yahi best time hai testimonial aur referral maangne ka.',
+    timing:'Delivery ke exactly 3-5 din baad. Not same day (too pushy), not 2 weeks later (forgot).',
+    tip:'Referral maangna awkward nahi hai — agar client genuinely khush hai toh woh khushi se dega.',
+    messages:[
+      {
+        label:'Happy Note + Referral (Full)',
+        text:`[Name] ji 🙏😊
+
+Hope sab kuch aacha chal raha hai!
+
+Main bas yeh check karna chahta tha ki [project name] se sab theek hai — koi issue toh nahi?
+
+*Ek chhoti si request hai:* 🙏
+
+Agar aapka koi dost, relative, ya business contact hai jisko:
+• Website / Software chahiye
+• Digital solutions chahiye
+• Business grow karna chahiye
+
+...toh kya aap mera number unhe share kar sakte ho? 
+
+Referral se aaya client — main extra attention deta hoon unhe, promise! 🤝
+
+Aur agar possible ho — ek *Google Review ya WhatsApp testimony* dedo — bahut help hogi. Sirf 2 min ka kaam hai. 😊
+
+Aapke saath kaam karke bahut achha laga — aur aage bhi karte rahenge! 🙌
+
+— Raunak, SparkEdge ⚡`
+      },
+      {
+        label:'Short Referral Ask',
+        text:`[Name] ji 🙏
+
+Sab theek hai [project] ke saath?
+
+Ek kaam karo — agar koi known hai jisko website/software/digital kaam chahiye toh mera number do unhe. Referral ke liye ₹[X] discount milega unhe bhi! 😊
+
+Thanks! — Raunak ⚡`
+      },
+      {
+        label:'Testimonial Request',
+        text:`[Name] ji! 🙏
+
+[Project] kaisi chal rahi hai? Hope sab smooth hai!
+
+Ek baar meri help karo — mere Google Business / Instagram pe ek review likh do? Sirf 2 min. Isse mere jaise chhote business owners ko bahut fark padta hai. 🙏
+
+[Google Review Link]
+
+Shukriya — aap best client ho! 😊 — Raunak ⚡`
+      },
+      {
+        label:'🇬🇧 English — Happy Note + Referral',
+        text:`Hi [Name]! 🙏😊
+
+Hope everything is going well!
+
+I just wanted to check in and make sure everything with [project name] is working perfectly. Any issues at all?
+
+*One small request:* 🙏
+
+If you know any friends, family, or business contacts who might need:
+• A website or software solution
+• Digital services for their business
+• Help with online presence
+
+Could you share my contact with them?
+
+Anyone you refer gets extra attention from me — guaranteed! 🤝
+
+And if you have a moment — a quick *Google Review or WhatsApp testimonial* would genuinely help my business grow. Just 2 minutes! 😊
+
+It was truly a pleasure working with you! 🙌
+
+— Raunak, SparkEdge ⚡`
+      },
+      {
+        label:'🇬🇧 English — Short Referral',
+        text:`Hi [Name]! 🙏
+
+Hope the [project] is going great!
+
+Quick ask — if you know anyone who needs a website, software, or digital work, could you pass along my number?
+
+Referrals get a ₹[X] discount too! 😊
+
+Thanks! — Raunak ⚡`
+      },
+      {
+        label:'🇬🇧 English — Testimonial Request',
+        text:`Hi [Name]! 🙏
+
+How's [project] working out? Hope it's all smooth!
+
+Could you do me a favour — would you be able to leave a quick review on Google or send me a short WhatsApp testimonial? It only takes 2 minutes and makes a huge difference for small businesses like mine. 🙏
+
+[Google Review Link]
+
+Thank you so much — you're one of my best clients! 😊 — Raunak ⚡`
+      }
+    ]
+  },
+  {
+    id:'qr10', stage:'Stage 10 — Re-engagement (Cold Leads)',
+    icon:'🔄', color:'#8E44AD',
+    when:'Lead purani ho gayi — 1-2 mahine se koi baat nahi. Reactivate karna hai.',
+    situation:'Lead ne koi reply nahi kiya tha ya bola tha "baad mein". Unhe dobara warm karo.',
+    timing:'Every 45-60 days ek re-engagement bhejo. Bilkul casual tone mein — pressure zero.',
+    tip:'New reason do contact karne ka — naya offer, new work showcase, seasonal angle.',
+    messages:[
+      {
+        label:'Re-engagement — Casual Check-in',
+        text:`[Name] ji 🙏
+
+Kaafi time ho gaya — kaise chal raha hai sab?
+
+Maine recently kuch naye projects complete kiye — socha share karun. [link/image agar ho]
+
+Kya abhi [service] ke baare mein sochna shuru kiya hai? Ya abhi nahi?
+
+Bilkul no pressure — bas check in kar raha tha! 😊`
+      },
+      {
+        label:'Re-engagement — New Offer',
+        text:`[Name] ji! 
+
+Maine notice kiya hum pehle baat kar rahe the [service] ke baare mein.
+
+Good news — abhi *limited time offer* chal raha hai: [Offer detail].
+
+Interested? 10 min ki call mein sab clear ho jaayega. Bata do — free slot find karta hoon aapke liye. 🙏`
+      },
+      {
+        label:'🇬🇧 English — Casual Re-engagement',
+        text:`Hi [Name]! 🙏
+
+It's been a while — hope everything is going well!
+
+I've recently completed some new projects and thought of you. [link/image if available]
+
+Have you started thinking about [service] again? Or is the timing still not right?
+
+No pressure at all — just checking in! 😊`
+      },
+      {
+        label:'🇬🇧 English — New Offer Re-engagement',
+        text:`Hi [Name]!
+
+I noticed we spoke earlier about [service] — hope you've been well!
+
+Good news — I have a *limited-time offer* running right now: [Offer details].
+
+Interested? A quick 10-minute call would clear everything up. Just let me know and I'll find a slot that works for you. 🙏`
+      }
+    ]
+  }
+];
+
+function renderQuickReplies(){
+  const stageKeys = ['all',...QUICK_REPLIES.map(r=>r.id)];
+  return `
+  <style>
+    .qr-stage-nav{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px}
+    .qr-stage-btn{padding:6px 14px;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--bg-card);color:var(--text-muted);transition:.2s}
+    .qr-stage-btn:hover,.qr-stage-btn.active{background:rgba(255,107,53,.12);border-color:var(--accent);color:var(--accent)}
+    .qr-block{background:var(--bg-card);border:1px solid var(--border);border-radius:16px;margin-bottom:20px;overflow:hidden}
+    .qr-block-header{padding:18px 22px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:.15s}
+    .qr-block-header:hover{background:rgba(255,255,255,.02)}
+    .qr-stage-icon{width:42px;height:42px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+    .qr-stage-info{flex:1}
+    .qr-stage-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--text);margin-bottom:2px}
+    .qr-stage-when{font-size:11px;color:var(--text-muted);line-height:1.5}
+    .qr-expand-arrow{font-size:18px;color:var(--text-dim);transition:transform .2s}
+    .qr-block-body{padding:0 22px 20px;display:none}
+    .qr-block-body.open{display:block}
+    .qr-meta-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px}
+    .qr-meta-box{background:var(--bg-raised);border:1px solid var(--border);border-radius:10px;padding:12px}
+    .qr-meta-label{font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:var(--text-dim);margin-bottom:4px}
+    .qr-meta-val{font-size:12px;color:var(--text-muted);line-height:1.5}
+    .qr-tip{background:rgba(255,179,71,.06);border:1px solid rgba(255,179,71,.2);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--gold);margin-bottom:16px}
+    .qr-msg-block{background:var(--bg-raised);border:1px solid var(--border);border-radius:12px;margin-bottom:12px}
+    .qr-msg-header{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--border)}
+    .qr-msg-label{font-size:11px;font-weight:600;color:var(--text)}
+    .qr-copy-btn{font-size:11px;font-weight:600;padding:4px 10px;border-radius:6px;cursor:pointer;border:1px solid rgba(255,107,53,.3);background:rgba(255,107,53,.08);color:var(--accent);transition:.2s}
+    .qr-copy-btn:hover{background:rgba(255,107,53,.18)}
+    .qr-wa-btn{font-size:11px;font-weight:600;padding:4px 10px;border-radius:6px;cursor:pointer;border:1px solid rgba(37,211,102,.3);background:rgba(37,211,102,.08);color:#25D366;text-decoration:none;display:inline-flex;align-items:center;gap:4px;transition:.2s}
+    .qr-wa-btn:hover{background:rgba(37,211,102,.18)}
+    .qr-msg-text{padding:14px;font-size:12px;color:var(--text-muted);white-space:pre-wrap;line-height:1.7;font-family:'DM Sans',sans-serif}
+    .qr-customize-input{width:100%;background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-size:12px;outline:none;margin-bottom:8px;font-family:'DM Sans',sans-serif;resize:vertical;min-height:100px;transition:.2s}
+    .qr-customize-input:focus{border-color:var(--accent)}
+    .qr-funnel-header{background:var(--bg-raised);border:1px solid var(--border);border-radius:14px;padding:20px 22px;margin-bottom:24px}
+    .qr-funnel-steps{display:flex;gap:0;flex-wrap:wrap;margin-top:14px}
+    .qr-funnel-step{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:600;padding:6px 12px;border-radius:8px;background:var(--bg-card);border:1px solid var(--border);margin:3px;cursor:pointer;transition:.2s}
+    .qr-funnel-step:hover{border-color:var(--accent);color:var(--accent)}
+  </style>
+
+  <div class="section-eyebrow">💬 Pre-Built Sales Funnel</div>
+  <div class="section-title">Quick Reply Scripts</div>
+  <div class="section-label">10 stages · Complete WhatsApp funnel from cold lead to referral</div>
+
+  <!-- Funnel Overview -->
+  <div class="qr-funnel-header">
+    <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:700;margin-bottom:4px">🎯 Complete Sales Funnel — Lead se Referral Tak</div>
+    <div style="font-size:12px;color:var(--text-muted);margin-bottom:12px">Har stage ke liye ready messages. [Name] aur [amount] replace karo — bas!</div>
+    <div class="qr-funnel-steps">
+      ${QUICK_REPLIES.map((r,i)=>`
+        <div class="qr-funnel-step" onclick="scrollToStage('${r.id}')" style="color:${r.color}">
+          ${r.icon} ${i+1}. ${r.stage.split('—')[1]?.trim()||r.stage}
+        </div>`).join('')}
+    </div>
+  </div>
+
+  <!-- Stage filter -->
+  <div class="qr-stage-nav">
+    <button class="qr-stage-btn active" onclick="filterQR('all',this)">📋 All Stages</button>
+    ${QUICK_REPLIES.map(r=>`<button class="qr-stage-btn" onclick="filterQR('${r.id}',this)" style="">${r.icon} ${r.stage.split('—')[0].trim()}</button>`).join('')}
+  </div>
+
+  <!-- Reply Blocks -->
+  <div id="qrList">
+    ${QUICK_REPLIES.map(r=>`
+    <div class="qr-block" id="${r.id}" data-qr="${r.id}">
+      <div class="qr-block-header" onclick="toggleQR('${r.id}')">
+        <div class="qr-stage-icon" style="background:${r.color}22;border:1px solid ${r.color}44">${r.icon}</div>
+        <div class="qr-stage-info">
+          <div class="qr-stage-title" style="color:${r.color}">${r.stage}</div>
+          <div class="qr-stage-when">${r.when}</div>
+        </div>
+        <div class="qr-expand-arrow" id="arr_${r.id}">▼</div>
+      </div>
+      <div class="qr-block-body" id="body_${r.id}">
+        <div class="qr-meta-grid">
+          <div class="qr-meta-box"><div class="qr-meta-label">📍 Situation</div><div class="qr-meta-val">${r.situation}</div></div>
+          <div class="qr-meta-box"><div class="qr-meta-label">⏰ Timing</div><div class="qr-meta-val">${r.timing}</div></div>
+          <div class="qr-meta-box"><div class="qr-meta-label">💡 Pro Tip</div><div class="qr-meta-val" style="color:var(--gold)">${r.tip}</div></div>
+        </div>
+        ${r.messages.map((m,mi)=>`
+        <div class="qr-msg-block">
+          <div class="qr-msg-header">
+            <div class="qr-msg-label">📩 ${m.label}</div>
+            <div style="display:flex;gap:6px">
+              <button class="qr-copy-btn" onclick="copyQR('msg_${r.id}_${mi}','copyBtn_${r.id}_${mi}')" id="copyBtn_${r.id}_${mi}">📋 Copy</button>
+              <a class="qr-wa-btn" href="https://wa.me/?text=${encodeURIComponent(m.text)}" target="_blank">💬 Send</a>
+              <button class="qr-copy-btn" style="background:rgba(52,152,219,.08);border-color:rgba(52,152,219,.3);color:var(--info)" onclick="editQR('${r.id}',${mi})">✏️ Edit</button>
+            </div>
+          </div>
+          <div class="qr-msg-text" id="msg_${r.id}_${mi}">${m.text}</div>
+          <div id="edit_${r.id}_${mi}" style="display:none;padding:10px 14px;border-top:1px solid var(--border)">
+            <textarea class="qr-customize-input" id="editArea_${r.id}_${mi}">${m.text}</textarea>
+            <div style="display:flex;gap:8px">
+              <button class="qr-copy-btn" onclick="saveQREdit('${r.id}',${mi})">💾 Save</button>
+              <button class="qr-copy-btn" style="background:none;border-color:var(--border);color:var(--text-muted)" onclick="cancelQREdit('${r.id}',${mi})">Cancel</button>
+              <button class="qr-copy-btn" style="background:rgba(231,76,60,.08);border-color:rgba(231,76,60,.3);color:var(--danger)" onclick="resetQR('${r.id}',${mi})">🔄 Reset</button>
+            </div>
+          </div>
+        </div>`).join('')}
+      </div>
+    </div>`).join('')}
+  </div>`;
+}
+
+function toggleQR(id){
+  const body=document.getElementById('body_'+id);
+  const arr=document.getElementById('arr_'+id);
+  const open=body.classList.toggle('open');
+  arr.style.transform=open?'rotate(180deg)':'rotate(0deg)';
+}
+function scrollToStage(id){
+  const el=document.getElementById(id);
+  if(!el) return;
+  el.scrollIntoView({behavior:'smooth',block:'start'});
+  const body=document.getElementById('body_'+id);
+  if(!body.classList.contains('open')) toggleQR(id);
+}
+function filterQR(id,btn){
+  document.querySelectorAll('.qr-stage-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.qr-block[data-qr]').forEach(el=>{
+    el.style.display=(id==='all'||el.dataset.qr===id)?'':'none';
+  });
+}
+function copyQR(msgId,btnId){
+  const el=document.getElementById(msgId);
+  if(!el) return;
+  navigator.clipboard.writeText(el.textContent||el.innerText).then(()=>{
+    const btn=document.getElementById(btnId);
+    const orig=btn.textContent; btn.textContent='✅ Copied!';
+    setTimeout(()=>btn.textContent=orig,1800);
+  });
+}
+function editQR(rid,mi){
+  document.getElementById('edit_'+rid+'_'+mi).style.display='block';
+  document.getElementById('msg_'+rid+'_'+mi).style.display='none';
+}
+function cancelQREdit(rid,mi){
+  document.getElementById('edit_'+rid+'_'+mi).style.display='none';
+  document.getElementById('msg_'+rid+'_'+mi).style.display='block';
+}
+function saveQREdit(rid,mi){
+  const val=document.getElementById('editArea_'+rid+'_'+mi).value;
+  document.getElementById('msg_'+rid+'_'+mi).textContent=val;
+  cancelQREdit(rid,mi);
+  showToast('✅ Message saved (this session only)');
+}
+function resetQR(rid,mi){
+  const r=QUICK_REPLIES.find(x=>x.id===rid);
+  if(!r) return;
+  document.getElementById('editArea_'+rid+'_'+mi).value=r.messages[mi].text;
+}
+
+/* ════════════════════════════════════════════════════
+   TEAM MANAGEMENT PAGE
+════════════════════════════════════════════════════ */
+function renderTeamPage(){
+  if(!window.CRM_USER?.isOwner) return `<div class="empty"><div class="empty-icon">🔒</div><p>Only the owner can manage team members.</p></div>`;
+  const members=crmGetMembers();
+
+  return `
+  <style>
+    .team-member-card{background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:18px;margin-bottom:14px;display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap}
+    .team-avatar{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:#fff;flex-shrink:0;background:var(--grad)}
+    .team-info{flex:1;min-width:200px}
+    .team-name{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:var(--text);margin-bottom:2px}
+    .team-role{font-size:12px;color:var(--accent);font-weight:600;margin-bottom:6px}
+    .team-meta{font-size:11px;color:var(--text-muted);margin-bottom:8px;line-height:1.7}
+    .team-perms{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
+    .perm-chip{font-size:10px;font-weight:600;padding:3px 9px;border-radius:5px;background:rgba(46,204,113,.08);color:var(--success);border:1px solid rgba(46,204,113,.2)}
+    .perm-chip.denied{background:rgba(231,76,60,.08);color:var(--danger);border-color:rgba(231,76,60,.2)}
+    .cross-device-info{background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.22);border-radius:12px;padding:16px 20px;margin-bottom:20px}
+    .team-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+  </style>
+
+  <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:20px">
+    <div>
+      <div class="section-title">🧑‍💻 Team Management</div>
+      <div class="section-label">Add members · Set permissions · Export for cross-device login</div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn-save" style="font-size:12px;padding:8px 14px;background:var(--bg-raised);border:1px solid var(--border);color:var(--text-muted)" onclick="exportCrmTeamConfig()" title="Emergency offline fallback only">📤 Export Team Config (emergency only)</button>
+      <button class="btn-add" onclick="openAddMember()">+ Add Member</button>
+    </div>
+  </div>
+
+<!-- Cross-device info -->
+  <div class="cross-device-info" style="background:rgba(46,204,113,.06);border-color:rgba(46,204,113,.22)">
+    <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:#2ECC71;margin-bottom:8px">✅ Team Members Sync Automatically via Firestore</div>
+    <div style="font-size:12px;color:var(--text-muted);line-height:1.85">
+      Members you add, edit, or suspend here update live on every device within seconds — no file editing, no manual sharing.<br><br>
+      <strong style="color:var(--text)">A new member can log in immediately on any device</strong> using the password you set, the moment you click Save.<br><br>
+      <code style="background:var(--bg-raised);border:1px solid var(--border);border-radius:4px;padding:1px 6px">HARDCODED_MEMBERS</code> in this file is only an offline fallback in case Firestore is briefly unreachable — you do not need to edit it manually for day-to-day team management.<br><br>
+      The <strong>"📤 Export Team Config"</strong> button below is kept only as an emergency backup tool, not part of your normal workflow.
+    </div>
+  </div>
+
+  <!-- Owner card -->
+  <div style="font-size:10px;text-transform:uppercase;letter-spacing:2px;color:var(--text-dim);margin-bottom:10px">Owner</div>
+  <div class="team-member-card" style="border-color:rgba(255,107,53,.25);background:rgba(255,107,53,.04)">
+    <div class="team-avatar" style="background:linear-gradient(135deg,#FF6B35,#FF3CAC)">👑</div>
+    <div class="team-info">
+      <div class="team-name">Raunak <span style="font-size:11px;color:var(--text-muted);font-weight:400">(Owner)</span></div>
+      <div class="team-role">Full Access — All Permissions</div>
+      <div class="team-meta">All CRM features &nbsp;·&nbsp; Team management &nbsp;·&nbsp; Cannot be removed</div>
+      <div class="team-perms">
+        ${Object.entries(CRM_PERMS).map(([k,v])=>`<span class="perm-chip">✅ ${v}</span>`).join('')}
+      </div>
+    </div>
+  </div>
+
+  <!-- Members -->
+  <div style="font-size:10px;text-transform:uppercase;letter-spacing:2px;color:var(--text-dim);margin:16px 0 10px">Team Members (${members.length})</div>
+  ${members.length ? members.map(m=>`
+  <div class="team-member-card" id="mc_${m.id}">
+    <div class="team-avatar" style="background:linear-gradient(135deg,#3B82F6,#7B5EA7)">${initials(m.name)}</div>
+    <div class="team-info">
+      <div class="team-name">${m.name}</div>
+      <div class="team-role">${m.role}</div>
+      <div class="team-meta">
+        Password: <code style="background:var(--bg-raised);border:1px solid var(--border);border-radius:4px;padding:1px 6px;font-size:11px">${m.password}</code>
+        &nbsp;·&nbsp; ${m.email||'No email'} &nbsp;·&nbsp; ${m.wa?'WA: '+m.wa:''} &nbsp;·&nbsp; Added: ${m.addedAt||'—'}
+        &nbsp;·&nbsp; Status: <strong style="color:${m.status==='active'?'var(--success)':'var(--danger)'}">${m.status}</strong>
+      </div>
+      <div class="team-perms">
+        ${Object.entries(CRM_PERMS).map(([k,v])=>`<span class="perm-chip ${(m.permissions||[]).includes(k)?'':'denied'}">${(m.permissions||[]).includes(k)?'✅':'❌'} ${v}</span>`).join('')}
+      </div>
+      <div class="team-actions">
+        <button class="btn-sm" onclick="editMember('${m.id}')">✏️ Edit</button>
+        <button class="btn-sm" onclick="toggleMemberStatus('${m.id}')">${m.status==='active'?'🔴 Deactivate':'🟢 Activate'}</button>
+        <button class="btn-sm danger" onclick="deleteMember('${m.id}')">🗑 Remove</button>
+        <a class="btn-sm whatsapp" href="https://wa.me/${m.wa||''}" target="_blank">💬 WhatsApp</a>
+      </div>
+    </div>
+  </div>`).join(''):`
+  <div class="empty"><div class="empty-icon">👥</div><p>No team members yet. Click "+ Add Member" to invite someone.</p></div>`}
+
+  <!-- Add/Edit Member Modal -->
+  <div class="modal-overlay" id="memberModal">
+    <div class="modal" style="max-width:560px">
+      <h3 id="memberModalTitle">Add New Member</h3>
+      <div class="form-grid">
+        <div class="form-group"><label>Full Name *</label><input id="m_name" placeholder="e.g. Pinkesh Kumar"/></div>
+        <div class="form-group"><label>Role / Designation</label><input id="m_role" placeholder="e.g. Marketing Manager"/></div>
+        <div class="form-group"><label>Email</label><input id="m_email" placeholder="member@email.com"/></div>
+        <div class="form-group"><label>WhatsApp Number</label><input id="m_wa" placeholder="9693717475"/></div>
+        <div class="form-group"><label>Password (min 6 chars) *</label><input id="m_pwd" placeholder="e.g. Member@123" type="text"/></div>
+        <div class="form-group">
+          <label>Permission Preset</label>
+          <select id="m_preset" onchange="applyPreset(this.value)">
+            <option value="">— Choose preset or custom below —</option>
+            <option value="full">Full Member (all permissions)</option>
+            <option value="basic">Basic Member (view + edit + analytics)</option>
+            <option value="readonly">View Only (read access)</option>
+            <option value="custom">Custom (select below)</option>
+          </select>
+        </div>
+        <div class="form-group form-full">
+          <label>Permissions</label>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px">
+            ${Object.entries(CRM_PERMS).filter(([k])=>k!=='manage_team').map(([k,v])=>`
+            <div class="checkbox-row">
+              <input type="checkbox" id="mp_${k}" value="${k}"/>
+              <label for="mp_${k}">${v}</label>
+            </div>`).join('')}
+          </div>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-cancel" onclick="closeMemberModal()">Cancel</button>
+        <button class="btn-save" onclick="saveMember()">💾 Save Member</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+let editMemberId=null;
+function openAddMember(){
+  editMemberId=null;
+  document.getElementById('memberModalTitle').textContent='Add New Member';
+  ['m_name','m_role','m_email','m_wa','m_pwd'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('m_preset').value='';
+  Object.keys(CRM_PERMS).filter(k=>k!=='manage_team').forEach(k=>{const el=document.getElementById('mp_'+k);if(el)el.checked=false;});
+  document.getElementById('memberModal').classList.add('open');
+}
+function closeMemberModal(){document.getElementById('memberModal').classList.remove('open');}
+function editMember(id){
+  const m=crmGetMembers().find(x=>x.id===id);
+  if(!m) return;
+  editMemberId=id;
+  document.getElementById('memberModalTitle').textContent='Edit Member';
+  document.getElementById('m_name').value=m.name||'';
+  document.getElementById('m_role').value=m.role||'';
+  document.getElementById('m_email').value=m.email||'';
+  document.getElementById('m_wa').value=m.wa||'';
+  document.getElementById('m_pwd').value=m.password||'';
+  Object.keys(CRM_PERMS).filter(k=>k!=='manage_team').forEach(k=>{
+    const el=document.getElementById('mp_'+k);
+    if(el) el.checked=(m.permissions||[]).includes(k);
+  });
+  document.getElementById('memberModal').classList.add('open');
+}
+function applyPreset(v){
+  const fullPerms=Object.keys(CRM_PERMS).filter(k=>k!=='manage_team');
+  const basicPerms=['view_leads','edit_leads','view_analytics','quick_replies'];
+  const readPerms=['view_leads','view_analytics'];
+  const apply=(arr)=>fullPerms.forEach(k=>{const el=document.getElementById('mp_'+k);if(el)el.checked=arr.includes(k);});
+  if(v==='full') apply(fullPerms);
+  else if(v==='basic') apply(basicPerms);
+  else if(v==='readonly') apply(readPerms);
+}
+ async function saveMember(){
+  const name=document.getElementById('m_name').value.trim();
+  const pwd=document.getElementById('m_pwd').value.trim();
+  if(!name){alert('Name is required!');return;}
+  if(!pwd||pwd.length<6){alert('Password must be at least 6 characters!');return;}
+  if(pwd==='RAUNAK@1'){alert('Cannot use the owner password!');return;}
+  const perms=Object.keys(CRM_PERMS).filter(k=>k!=='manage_team'&&document.getElementById('mp_'+k)?.checked);
+  const members=crmGetMembers();
+  if(!editMemberId){
+    // Check dupe password
+    if(members.find(m=>m.password===pwd)){alert('This password is already used by another member!');return;}
+    members.push({
+      id:'mem_'+Date.now(),name,
+      role:document.getElementById('m_role').value.trim(),
+      email:document.getElementById('m_email').value.trim(),
+      wa:document.getElementById('m_wa').value.trim(),
+      password:pwd,permissions:perms,status:'active',
+      addedAt:new Date().toLocaleDateString('en-IN')
+    });
+  } else {
+    const idx=members.findIndex(x=>x.id===editMemberId);
+    if(idx>-1) members[idx]={...members[idx],name,role:document.getElementById('m_role').value.trim(),email:document.getElementById('m_email').value.trim(),wa:document.getElementById('m_wa').value.trim(),password:pwd,permissions:perms};
+  }
+  await crmSaveMembers(members);
+  closeMemberModal();
+  showToast('✅ Member saved & synced to all devices!');
+  renderSection('team');
+}
+async function toggleMemberStatus(id){
+  const members=crmGetMembers();
+  const m=members.find(x=>x.id===id);
+  if(!m) return;
+  m.status=m.status==='active'?'inactive':'active';
+  await crmSaveMembers(members);
+  showToast(`Member ${m.status==='active'?'activated on all devices':'suspended on all devices.'}`);
+  renderSection('team');
+}
+async function deleteMember(id){
+  if(!confirm('Remove this team member? They will lose access immediately.')) return;
+  const members = crmGetMembers().filter(x => x.id !== id);
+  await crmDeleteMemberFromFirestore(id);
+  await crmSaveMembers(members);
+  showToast('🗑 Member removed from all devices.');
+  renderSection('team');
+}
+function exportCrmTeamConfig(){
+  const members=crmGetMembers();
+  const json=JSON.stringify(members,null,2);
+  const snippet=`// SparkEdge CRM Team Config — Generated: ${new Date().toLocaleString()}\n// Paste this inside lead-management-crm.html replacing the HARDCODED_MEMBERS array.\nconst HARDCODED_MEMBERS = ${json};`;
+  navigator.clipboard.writeText(snippet).then(()=>{
+    alert('✅ Team config copied to clipboard!\n\nHow to use:\n1. Open lead-management-crm.html in Notepad/VS Code\n2. Find: "// ▼▼▼ START MEMBER CONFIG ▼▼▼"\n3. Replace the entire HARDCODED_MEMBERS = [...] line with the copied text\n4. Save the file and re-share with team members\n\nNow their passwords will work on ANY device worldwide! ✅');
+  }).catch(()=>{
+    const blob=new Blob([snippet],{type:'text/plain'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;a.download='crm-team-config.txt';a.click();
+    URL.revokeObjectURL(url);
+    alert('Team config downloaded as .txt — paste it into the HTML file as instructed.');
+  });
+}
+
+/* ════════════════════════════════════════════════════
+   WORKFLOW GUIDE — ROLE-BASED
+════════════════════════════════════════════════════ */
+function renderWorkflow(){
+  const isOwner = window.CRM_USER?.isOwner;
+
+  const ownerRightCol = `
+    <div class="cloud-box">
+      <h4>🔐 One-Time Setup: Cross-Device Team Login</h4>
+      ${[['👤','Go to Settings & Team (sidebar) → Add your team member'],['📤','Click "Export Team Config" → copies a code snippet'],['📝','Open lead-management-crm.html in Notepad / VS Code'],['🔍','Find: "// ▼▼▼ START MEMBER CONFIG ▼▼▼"'],['✂️','Replace the HARDCODED_MEMBERS = [...] block with the copied snippet'],['💾','Save file → Send updated HTML to your team member via WhatsApp'],['✅','Team member opens file on their device → their password works on any device!']].map(([i,t])=>`<div class="cloud-step"><div class="cloud-icon">${i}</div><div class="cloud-text">${t}</div></div>`).join('')}
+    </div>
+   <div class="cloud-box" style="background:rgba(52,152,219,.06);border-color:rgba(52,152,219,.2)">
+      <h4 style="color:var(--info)">☁️ How Sync Actually Works Now</h4>
+      ${[['⚡','Leads sync live via Firestore — no exporting or importing needed anymore'],['👀','Any lead you add, edit, or move shows up on every team member\'s device within seconds'],['📱','Open the CRM on your phone and laptop at the same time — both stay in sync automatically'],['⬇','The Backup button is for manual safety copies only — not required for normal use'],['⚠️','Avoid two people editing the exact same lead at the exact same moment — last save wins']].map(([i,t])=>`<div class="cloud-step"><div class="cloud-icon">${i}</div><div class="cloud-text">${t}</div></div>`).join('')}
+    </div>
+    <div class="cloud-box" style="background:rgba(123,94,167,.06);border-color:rgba(123,94,167,.2)">
+      <h4 style="color:#7B5EA7">🛡 Team Permissions — What You Control</h4>
+      ${[['👑','You (Owner) have full access — all features, team management, all data'],['💼','Team members only access what you permit — set per-member permissions'],['🔐','Go to Settings & Team → choose Full / Basic / View Only or custom'],['📤','After adding a member → Export Team Config → update HTML → re-share'],['🔴','To block access: Deactivate the member from Settings & Team page']].map(([i,t])=>`<div class="cloud-step"><div class="cloud-icon">${i}</div><div class="cloud-text">${t}</div></div>`).join('')}
+    </div>`;
+
+  const memberRightCol = `
+   <div class="cloud-box" style="background:rgba(52,152,219,.06);border-color:rgba(52,152,219,.2)">
+      <h4 style="color:var(--info)">☁️ How Sync Actually Works Now</h4>
+      ${[['⚡','Leads sync live via Firestore — there is nothing to export or import manually'],['💼','Just add leads, update statuses, and set follow-up dates as normal'],['👀','Your team lead sees your changes within seconds, automatically'],['✅','No file sharing, no daily JSON routine — it just works in the background'],['⚠️','Avoid editing the exact same lead as a teammate at the exact same moment']].map(([i,t])=>`<div class="cloud-step"><div class="cloud-icon">${i}</div><div class="cloud-text">${t}</div></div>`).join('')}
+    </div>
+    <div class="cloud-box" style="background:rgba(255,179,71,.06);border-color:rgba(255,179,71,.2)">
+      <h4 style="color:var(--gold)">💬 Quick Replies — How to Use</h4>
+      ${[['📋','Open Quick Replies from the sidebar — 10 stages, Hindi + English both'],['🎯','Match the stage to your situation (e.g. first DM → Stage 1)'],['✏️','Click Edit → replace [Name] and [amount] with real values'],['📋','Click Copy → paste directly in WhatsApp'],['💬','Or click Send → opens WhatsApp Web with message pre-filled'],['⭐','Every script is tested and professionally written — use with confidence!']].map(([i,t])=>`<div class="cloud-step"><div class="cloud-icon">${i}</div><div class="cloud-text">${t}</div></div>`).join('')}
+    </div>`;
+
+const ownerSafety = `
+  <div class="warn-box">
+    <h4>⚠️ Data Safety & Security</h4>
+    ${[['☁️','All leads and team data live in Firestore — surviving browser clears, device changes, even reinstalls'],['⬇','Use the Backup button occasionally as an extra safety copy — not your primary save method'],['🔒','This CRM connects to a private Firestore project — treat this HTML file as confidential, same as a password'],['👥','Team members cannot see owner credentials, passwords, or team management settings'],['🌐','An internet connection is required — leads will not save while fully offline']].map(([i,t])=>`<div class="cloud-step"><div class="cloud-icon">${i}</div><div class="cloud-text">${t}</div></div>`).join('')}
+  </div>`;
+
+  const memberSafety = `
+  <div class="warn-box">
+    <h4>⚠️ Data Safety — Reminders</h4>
+    ${[['☁️','Your leads sync automatically to the cloud — no manual export needed for normal use'],['🌐','You need an internet connection — changes won\'t save while fully offline'],['🔒','Your access is limited to what has been permitted by the team admin']].map(([i,t])=>`<div class="cloud-step"><div class="cloud-icon">${i}</div><div class="cloud-text">${t}</div></div>`).join('')}
+  </div>`;
+
+  return `
+  <div class="section-eyebrow">🗺 Workflow Guide</div>
+  <div class="section-title">How to Use SparkEdge CRM</div>
+  <div class="section-label">${isOwner ? 'Owner view — full guide including team sync, permissions & data security' : 'Your personal workflow guide — daily routine & quick start'}</div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:28px">
+    <div>
+      <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;margin-bottom:14px;color:var(--text)">🔄 Lead-to-Client Workflow</div>
+      <div class="flow-wrap">
+        ${[['Find Lead','Google Maps, IndiaMart, Instagram, JustDial se leads nikalo. Cold call karo.'],['Add to CRM','Click "+ Add Lead" → name, phone, source, service bharo → Status: Not Contacted'],['First Contact','Call / DM karo. Quick Replies → Stage 1 script copy karo → WhatsApp pe paste karo.'],['Follow-up','Follow-up tab se overdue leads dekho. Script bhejo. Next follow-up date set karo.'],['Send Proposal','Quick Replies Stage 2 use karo. Quote bhejo with 3 pricing options.'],['Handle Objection','Quick Replies Stage 4 se exact objection ka script copy karo.'],['Close the Deal','Won → Click ✅ Won. Lost → Click ❌ Lost and enter reason for analytics.'],['Welcome Client','Quick Replies Stage 5 — welcome message bhejo. Project details confirm karo.'],['Progress Updates','Har 3-5 din mein update bhejo (Stage 6). Client engaged rehta hai.'],['Payment Reminders','Due date se pehle Stage 7 script use karo. Professional tone rakhna.'],['Final Delivery','Stage 8 — deliver karo + balance payment lo in same message.'],['Referral Ask','3-5 din baad Stage 9 — happy note + referral maango. Best time yahi hai.']].map(([t,d],i)=>`
+          <div class="flow-step">
+            <div class="flow-num">${String(i+1).padStart(2,'0')}</div>
+            <div><div class="flow-title">${t}</div><div class="flow-desc">${d}</div></div>
+          </div>${i<11?'<div class="flow-arrow">↓</div>':''}`).join('')}
+      </div>
+    </div>
+    <div>
+      <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;margin-bottom:14px;color:var(--success)">
+        ${isOwner ? '☁️ Team Sync & Management' : '☁️ Your Sync & Quick Guide'}
+      </div>
+      ${isOwner ? ownerRightCol : memberRightCol}
+    </div>
+  </div>
+  ${isOwner ? ownerSafety : memberSafety}`;
+}
+
+// ── MODAL OUTSIDE CLICK ──
+document.getElementById('modalOverlay').addEventListener('click',function(e){ if(e.target===this) closeModal(); });
+document.getElementById('importOverlay').addEventListener('click',function(e){ if(e.target===this) closeImport(); });
+</script>
+</body>
+</html>
