@@ -112,6 +112,8 @@ nav{position:sticky;top:0;z-index:200;background:rgba(10,10,15,.95);backdrop-fil
 .sb-link{display:flex;align-items:center;gap:9px;padding:9px 12px;border-radius:9px;font-size:13px;font-weight:500;
   color:var(--text-muted);cursor:pointer;border:none;background:none;width:100%;text-align:left;margin-bottom:2px}
 .sb-link:hover{background:rgba(255,107,53,.08);color:var(--text)}
+.sb-link[href]{color:var(--text-muted);text-decoration:none;}
+.sb-link[href]:hover{color:var(--text);}
 .sb-link.active{background:rgba(255,107,53,.13);color:var(--accent);font-weight:600}
 .sb-badge{margin-left:auto;background:var(--accent);color:#fff;font-size:10px;font-weight:700;padding:1px 7px;border-radius:10px}
 .sb-divider{height:1px;background:var(--border);margin:6px 10px}
@@ -297,7 +299,23 @@ tbody td .td-main{font-weight:600;color:var(--text);font-size:13px}
 <button class="sb-link" id="sbTeamMgmtLink" onclick="navTo('teammgmt')" style="display:none">
   <i data-lucide="shield-check" style="width:15px;height:15px;stroke:currentColor;fill:none;flex-shrink:0;"></i> Manage Access
 </button>
-  <div style="flex:1"></div>
+ <div style="flex:1"></div>
+  <div class="sb-divider"></div>
+
+  <div class="sb-label">Other Portals</div>
+  <a class="sb-link" href="https://sparkedge555.github.io/sparkedge-client-portal/admin.html" target="_blank" rel="noopener">
+    <i data-lucide="layout-grid" style="width:15px;height:15px;stroke:currentColor;fill:none;flex-shrink:0;"></i> Admin Portal
+    <i data-lucide="external-link" style="width:11px;height:11px;stroke:currentColor;fill:none;margin-left:auto;opacity:.5;"></i>
+  </a>
+  <a class="sb-link" href="https://sparkedge555.github.io/sparkedge-client-portal/lead-management-crm.html" target="_blank" rel="noopener">
+    <i data-lucide="funnel" style="width:15px;height:15px;stroke:currentColor;fill:none;flex-shrink:0;"></i> Lead CRM
+    <i data-lucide="external-link" style="width:11px;height:11px;stroke:currentColor;fill:none;margin-left:auto;opacity:.5;"></i>
+  </a>
+  <a class="sb-link" href="https://sparkedge555.github.io/sparkedge-client-portal/client-retention-portal.html" target="_blank" rel="noopener">
+    <i data-lucide="heart-handshake" style="width:15px;height:15px;stroke:currentColor;fill:none;flex-shrink:0;"></i> Client Retention
+    <i data-lucide="external-link" style="width:11px;height:11px;stroke:currentColor;fill:none;margin-left:auto;opacity:.5;"></i>
+  </a>
+
   <div class="sb-divider"></div>
   <button class="sb-link" id="sbLogoutBtn" style="color:var(--danger);display:none" onclick="doLogout()">
   <i data-lucide="log-out" style="width:15px;height:15px;stroke:currentColor;fill:none;flex-shrink:0;"></i> Logout
