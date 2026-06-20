@@ -471,29 +471,6 @@ tbody td .td-main{font-weight:600;color:var(--text);font-size:13px}
   </div>
 </div>
 
-<!-- ═══ MODAL: WHATSAPP MESSAGE READY TO COPY ═══ -->
-<div class="modal-overlay" id="waModal">
-  <div class="modal sm">
-    <div class="modal-header">
-      <div class="modal-title">📲 WhatsApp Message Ready</div>
-      <button class="modal-close" onclick="closeModal('waModal')">
-        <i data-lucide="x" style="width:14px;height:14px;stroke:currentColor;fill:none;"></i>
-      </button>
-    </div>
-    <div style="font-size:12px;color:var(--text-muted);margin-bottom:6px">Send to:</div>
-    <div id="waPhoneDisplay" style="font-family:'Syne',sans-serif;font-weight:800;font-size:16px;color:var(--accent);margin-bottom:16px">—</div>
-    <div style="font-size:12px;color:var(--text-muted);margin-bottom:6px">Message:</div>
-    <textarea id="waMsgBox" readonly style="width:100%;min-height:120px;background:var(--bg-raised);border:1px solid var(--border);
-      border-radius:9px;padding:12px;color:var(--text);font-size:13px;resize:vertical;outline:none;line-height:1.6"></textarea>
-    <div class="form-actions" style="margin-top:14px">
-      <button class="btn btn-secondary" onclick="closeModal('waModal')">Close</button>
-      <button class="btn btn-primary" onclick="copyWaMsg()">
-        <i data-lucide="copy" style="width:13px;height:13px;stroke:#fff;fill:none;"></i> Copy Message
-      </button>
-    </div>
-  </div>
-</div>
-
 <script>
 /* ═══════════════════════════════════════════════
    FIREBASE — same project as other SparkEdge portals
@@ -710,21 +687,6 @@ function fmtDate(d){if(!d)return '—';try{return new Date(d).toLocaleDateString
 function showToast(msg,dur=3000){const t=document.getElementById('toast');t.textContent=msg;t.style.display='block';setTimeout(()=>t.style.display='none',dur);}
 function closeModal(id){document.getElementById(id).classList.remove('open');}
 function initials(n){return(n||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2)||'?';}
-function sendWhatsAppMsg(phone,msg){
-  document.getElementById('waPhoneDisplay').textContent=phone?phone:'⚠️ No number saved — add it in Referral Partners';
-  document.getElementById('waMsgBox').value=msg;
-  document.getElementById('waModal').classList.add('open');
-}
-function copyWaMsg(){
-  const box=document.getElementById('waMsgBox');
-  box.select();
-  navigator.clipboard.writeText(box.value).then(()=>{
-    showToast('✅ Message copied! Paste it on WhatsApp.');
-  }).catch(()=>{
-    document.execCommand('copy');
-    showToast('✅ Message copied!');
-  });
-}
 
 /* ── RENDER ROUTER ── */
 function renderSection(s){
@@ -861,15 +823,8 @@ function renderLedgerTable(arr){
 }
 async function markPaid(id){
   try{
-    const entry=getLedger().find(l=>l.id===id);
     await getDb().collection('pay_ledger').doc(id).set({status:'paid',paidAt:Date.now()},{merge:true});
     showToast('✅ Marked as paid!');
-    if(entry&&entry.earnerType==='partner'){
-      const partner=getPartners().find(p=>p.id===entry.earnerId);
-      const phone=partner?partner.phone:'';
-      const msg=`Hi ${entry.earnerName}, your commission of ₹${Number(entry.amount).toLocaleString('en-IN')} for ticket ${entry.ticketId||'—'} has been PAID. Thank you for the referral! - SparkEdge`;
-      setTimeout(()=>sendWhatsAppMsg(phone,msg),400);
-    }
   }catch(e){showToast('❌ Failed: '+e.message);}
 }
 async function deleteLedgerEntry(id){
@@ -1059,14 +1014,13 @@ function renderClaims(){
 
   <div class="card">
     <div class="card-title">📋 All Claimed Tickets (${claims.length})</div>
-   ${claims.length?`<div class="table-wrap"><table><thead><tr><th>Ticket</th><th>Client</th><th>Claimed By</th><th>Date</th><th>Note</th><th>Action</th></tr></thead><tbody>
+    ${claims.length?`<div class="table-wrap"><table><thead><tr><th>Ticket</th><th>Client</th><th>Claimed By</th><th>Date</th><th>Note</th></tr></thead><tbody>
     ${claims.map(c=>`<tr>
       <td class="td-main">${c.ticketId}</td>
       <td>${c.clientName||'—'}</td>
       <td><span class="tbl-pill ${c.claimedBy===window.PORTAL_USER.memberId?'tbl-safe':'tbl-info'}">${c.claimedByName}${c.claimedBy===window.PORTAL_USER.memberId?' (You)':''}</span></td>
       <td>${fmtDate(c.claimedAt)}</td>
       <td style="font-size:11px">${c.note||'—'}</td>
-      <td>${window.PORTAL_USER.isOwner?`<button class="btn btn-success btn-sm" onclick='openLedgerModal(null,{type:"team",id:"${c.claimedBy}",ticketId:"${c.ticketId}",clientName:"${(c.clientName||'').replace(/'/g,"")}"})'>💰 Pay</button>`:'—'}</td>
     </tr>`).join('')}
     </tbody></table></div>`:`<div class="empty"><div class="empty-icon">🎫</div><p>No tickets claimed yet.</p></div>`}
   </div>`;
@@ -1247,7 +1201,7 @@ function renderPartners(){
           <div style="font-size:11px;color:var(--text-muted);margin-top:2px">${p.phone||''} ${p.email?'· '+p.email:''}</div>
           <div style="font-size:11px;color:var(--purple);margin-top:2px">Default: ${p.commType==='percent'?p.commValue+'% of project value':fmtMoney(p.commValue)+' per client'}</div>
         </div>
-      ${canManage?`<div style="display:flex;gap:6px"><button class="btn btn-success btn-sm" onclick='openLedgerModal(null,{type:"partner",id:"${p.id}",name:"${p.name}"})'>💰 Pay</button><button class="btn btn-secondary btn-sm" onclick="openPartnerModal('${p.id}')">✏️</button><button class="btn btn-danger btn-sm" onclick="deletePartner('${p.id}')">🗑</button></div>`:''}
+        ${canManage?`<div style="display:flex;gap:6px"><button class="btn btn-secondary btn-sm" onclick="openPartnerModal('${p.id}')">✏️</button><button class="btn btn-danger btn-sm" onclick="deletePartner('${p.id}')">🗑</button></div>`:''}
       </div>
       <div style="display:flex;gap:20px;flex-wrap:wrap;font-size:12px">
         <div>Paid: <strong style="color:var(--success)">${fmtMoney(paid)}</strong></div>
@@ -1301,7 +1255,7 @@ async function deletePartner(id){
    LEDGER ENTRY MODAL (add/edit)
 ════════════════════════════════════ */
 let editLedgerId=null;
-function openLedgerModal(id,prefill){
+function openLedgerModal(id){
   editLedgerId=id||null;
   document.getElementById('ledgerModalTitle').textContent=id?'Edit Payment Entry':'Add Payment Entry';
   document.getElementById('dupWarnBox').innerHTML='';
@@ -1318,18 +1272,13 @@ function openLedgerModal(id,prefill){
     document.getElementById('lf_status').value=l.status;
     document.getElementById('lf_date').value=l.date||'';
     document.getElementById('lf_note').value=l.note||'';
-}else{
-    document.getElementById('lf_earnerType').value=(prefill&&prefill.type)?prefill.type:'team';
-    populateEarnerSelect();
-    if(prefill&&prefill.id){document.getElementById('lf_earnerId').value=prefill.id;}
-    document.getElementById('lf_ticketId').value=(prefill&&prefill.ticketId)?prefill.ticketId.toUpperCase():'';
-    document.getElementById('lf_clientName').value=(prefill&&prefill.clientName)?prefill.clientName:'';
-    document.getElementById('lf_type').value=(prefill&&prefill.type==='partner')?'commission':'commission';
-    document.getElementById('lf_amount').value='';
+  }else{
+    document.getElementById('lf_earnerType').value='team';populateEarnerSelect();
+    document.getElementById('lf_ticketId').value='';document.getElementById('lf_clientName').value='';
+    document.getElementById('lf_type').value='commission';document.getElementById('lf_amount').value='';
     document.getElementById('lf_status').value='pending';
     document.getElementById('lf_date').value=new Date().toISOString().slice(0,10);
     document.getElementById('lf_note').value='';
-    checkTicketOwnership();
   }
   document.getElementById('ledgerModal').classList.add('open');
 }
@@ -1380,14 +1329,6 @@ async function saveLedgerEntry(){
   try{
     await getDb().collection('pay_ledger').doc(data.id).set(data,{merge:true});
     closeModal('ledgerModal');showToast('✅ Payment entry saved!');
-    if(earnerType==='partner'){
-      const partner=getPartners().find(p=>p.id===earnerId);
-      const phone=partner?partner.phone:'';
-      const msg=data.status==='paid'
-        ? `Hi ${earnerName}, your commission of ₹${amount.toLocaleString('en-IN')} for ticket ${data.ticketId||'—'} has been PAID. Thank you for the referral! - SparkEdge`
-        : `Hi ${earnerName}, your commission of ₹${amount.toLocaleString('en-IN')} for ticket ${data.ticketId||'—'} has been logged and is pending payment. We'll notify you once it's paid. - SparkEdge`;
-      setTimeout(()=>sendWhatsAppMsg(phone,msg),400);
-    }
   }catch(e){showToast('❌ Failed: '+e.message);}
 }
 
