@@ -636,6 +636,7 @@ footer .footer-credit strong{
 
   <!-- Team (owner only) -->
  <button class="sidebar-link" id="sidebarTeamLink" onclick="navTo('team')" style="display:none"><span class="s-icon"><span class="l-icon"><svg width="17" height="17" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span></span><span class="s-name">Team & Members</span></button>
+  <button class="sidebar-link" id="sidebarPerfLink" onclick="navTo('performance')" style="display:none"><span class="s-icon"><span class="l-icon"><svg width="17" height="17" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 16l4-4 4 4 4-6"/></svg></span></span><span class="s-name">Team Performance</span></button>
 
   <div class="sidebar-divider"></div>
   <div class="sidebar-section-label">Open Tools</div>
@@ -649,7 +650,7 @@ footer .footer-credit strong{
 
   <hr>
   <!-- Settings — owner only -->
-  <button class="sidebar-link" id="sidebarSettingsBtn" onclick="navTo('team')" style="display:none;color:var(--gold)"><span class="s-icon"><span class="l-icon"><svg width="17" height="17" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg></span></span><span class="s-name">Settings & Team</span></button>
+ <button class="sidebar-link" id="sidebarSettingsBtn" onclick="navTo('settings')" style="display:none;color:var(--gold)">
 
   <!-- Logout — always visible after login -->
 <button class="sidebar-link" id="sidebarLogoutBtn" onclick="crmLogout()" style="color:var(--danger);display:none"><span class="s-icon"><span class="l-icon"><svg width="17" height="17" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></span></span><span class="s-name">Logout</span></button>
@@ -996,8 +997,10 @@ function updateCrmUserUI(){
   const sb = document.getElementById('sidebarSettingsBtn');
   if(sb) sb.style.display = u.isOwner ? 'flex' : 'none';
   // Sidebar team link — owner only
-  const tl = document.getElementById('sidebarTeamLink');
+ const tl = document.getElementById('sidebarTeamLink');
   if(tl) tl.style.display = u.isOwner ? 'flex' : 'none';
+  const pl = document.getElementById('sidebarPerfLink');
+  if(pl) pl.style.display = u.isOwner ? 'flex' : 'none';
 }
 
 function applyCrmPermissions(){
@@ -1103,6 +1106,8 @@ function renderSection(s){
   else if(s==='workflow') el.innerHTML=renderWorkflow();
   else if(s==='quickreplies') el.innerHTML=renderQuickReplies();
   else if(s==='team') el.innerHTML=renderTeamPage();
+  else if(s==='performance') el.innerHTML=renderTeamPerformance();
+  else if(s==='settings') el.innerHTML=renderSettings();
 }
 
 // ── DASHBOARD ──
@@ -1341,11 +1346,13 @@ function cardHTML(c){
         <div class="status-pill ${pillClass(c.status)}">${statusDot(c.status)} ${statusLabel(c.status)}</div>
       </div>
     </div>
-    <div class="card-info">
+   <div class="card-info">
       <div class="info-item"><div class="info-label">Phone</div><div class="info-val">${c.phone||'—'}</div></div>
       <div class="info-item"><div class="info-label">Added Date</div><div class="info-val">${fmtDate(addDate)}</div></div>
       <div class="info-item"><div class="info-label">Follow-up</div><div class="info-val ${c.followDate&&c.followDate<today()&&!c.status.startsWith('closed')?'style="color:var(--danger)"':''}">${fmtDate(c.followDate)}</div></div>
       <div class="info-item"><div class="info-label">Quoted</div><div class="info-val">${fmtMoney(c.amount)}</div></div>
+      <div class="info-item"><div class="info-label">Added By</div><div class="info-val" style="color:var(--info)">${c.addedBy||'—'}</div></div>
+      ${c.status.startsWith('closed')?`<div class="info-item"><div class="info-label">${c.status==='closed-won'?'Won By':'Closed By'}</div><div class="info-val" style="color:${c.status==='closed-won'?'var(--success)':'var(--danger)'}">${c.closedBy||'—'}</div></div>`:''}
     </div>
     <div style="margin-bottom:10px">
       ${c.service?`<span class="service-tag">${c.service}</span>`:''}
@@ -1366,7 +1373,7 @@ function cardHTML(c){
 async function quickWon(id){
   const c=leads.find(x=>x.id===id);
   if(!c) return;
-  const updated={...c, status:'closed-won', closedAt:Date.now()};
+  const updated={...c, status:'closed-won', closedAt:Date.now(), closedBy:window.CRM_USER?.name||'Unknown'};
   try{
     await pushLeadToFirestore(updated);
     showToast('🎉 Lead marked as WON! Moving to Clients.');
@@ -1378,7 +1385,7 @@ async function quickLost(id){
   const reason=prompt('Why was this lead lost? (optional)','');
   const c=leads.find(x=>x.id===id);
   if(!c) return;
-  const updated={...c, status:'closed-lost', lostReason:reason||'', closedAt:Date.now()};
+  const updated={...c, status:'closed-lost', lostReason:reason||'', closedAt:Date.now(), closedBy:window.CRM_USER?.name||'Unknown'};
   try{
     await pushLeadToFirestore(updated);
     showToast('❌ Lead marked as Lost.');
@@ -1480,6 +1487,8 @@ function renderTable(){
           <th class="sortable" onclick="sortTable('amount')">Quoted ${sortCol==='amount'?sortDir>0?'↑':'↓':''}</th>
           <th>Paid</th>
           <th>Balance</th>
+        <th>Added By</th>
+          <th>Closed By</th>
           <th>Actions</th>
         </tr>
       </thead>
@@ -1523,7 +1532,7 @@ function renderTableRows(arr){
     }
     return (av>bv?1:-1)*sortDir;
   });
-  if(!sorted.length) return `<tr><td colspan="13" style="text-align:center;padding:30px;color:var(--text-dim)">No leads match your filters</td></tr>`;
+if(!sorted.length) return `<tr><td colspan="15" style="text-align:center;padding:30px;color:var(--text-dim)">No leads match your filters</td></tr>`;
   return sorted.map(c=>{
     const addDate=c.addDate||c.contactDate||(c.addedAt?new Date(c.addedAt).toISOString().slice(0,10):'');
     const bal=(parseFloat(c.amount||0)-parseFloat(c.paid||0));
@@ -1541,6 +1550,8 @@ function renderTableRows(arr){
       <td style="color:var(--gold);font-weight:600">${fmtMoney(c.amount)}</td>
       <td style="color:var(--success)">${fmtMoney(c.paid)}</td>
       <td style="color:${bal>0?'var(--danger)':'var(--text-muted)'}">${c.amount?fmtMoney(bal):'—'}</td>
+   <td style="color:var(--info)">${c.addedBy||'—'}</td>
+      <td style="color:${c.status==='closed-won'?'var(--success)':c.status==='closed-lost'?'var(--danger)':'var(--text-dim)'}">${c.closedBy||'—'}</td>
       <td onclick="event.stopPropagation()">
         <div style="display:flex;gap:5px">
           <button class="btn-sm" onclick="editClient('${c.id}')">✏️</button>
@@ -1689,7 +1700,7 @@ function openDetail(id){
     </div>
   </div>
   <div class="detail-grid">
-    ${[['Lead Added Date',fmtDate(addDate)],['Contact Date',fmtDate(c.contactDate)],['Follow-up Date',fmtDate(c.followDate)],['Phone',c.phone],['WhatsApp',c.wa||c.phone],['Email',c.email],['City',c.city],['Source',c.source],['Service',c.service],['Status',statusLabel(c.status)],['Lost Reason',c.lostReason||'—'],['High Potential',c.highPotential?'⭐ Yes':'No']].map(([l,v])=>`
+  ${[['Lead Added Date',fmtDate(addDate)],['Added By',c.addedBy||'—'],['Contact Date',fmtDate(c.contactDate)],['Follow-up Date',fmtDate(c.followDate)],['Phone',c.phone],['WhatsApp',c.wa||c.phone],['Email',c.email],['City',c.city],['Source',c.source],['Service',c.service],['Status',statusLabel(c.status)],['Closed / Won By',c.closedBy||'—'],['Lost Reason',c.lostReason||'—'],['High Potential',c.highPotential?'⭐ Yes':'No']].map(([l,v])=>`
       <div class="detail-field"><div class="detail-field-label">${l}</div><div class="detail-field-val">${v||'—'}</div></div>`).join('')}
     <div class="detail-field"><div class="detail-field-label">Quoted Amount</div><div class="detail-field-val" style="color:var(--gold);font-weight:600">${fmtMoney(c.amount)}</div></div>
     <div class="detail-field"><div class="detail-field-label">Payment Received</div><div class="detail-field-val" style="color:var(--success);font-weight:600">${fmtMoney(c.paid)}</div></div>
@@ -1764,8 +1775,10 @@ async function saveLead(){
     remark:document.getElementById('f_remark').value.trim(),
     highPotential:document.getElementById('f_high').checked,
     addDate,
+    addedBy:editId?(leads.find(x=>x.id===editId)||{}).addedBy||(window.CRM_USER?.name||'Unknown'):( window.CRM_USER?.name||'Unknown'),
     addedAt:editId?(leads.find(x=>x.id===editId)||{}).addedAt||Date.now():Date.now(),
-    closedAt:status.startsWith('closed')?(editId?(leads.find(x=>x.id===editId)||{}).closedAt||Date.now():Date.now()):null
+    closedBy:status.startsWith('closed')?(editId?(leads.find(x=>x.id===editId)||{}).closedBy||(window.CRM_USER?.name||'Unknown')): (window.CRM_USER?.name||'Unknown'):null,
+    closedAt:status.startsWith('closed')?(editId?(leads.find(x=>x.id===editId)||{}).closedAt||Date.now()):Date.now()):null
   };
 
   closeModal();
@@ -2918,6 +2931,174 @@ function resetQR(rid,mi){
 /* ════════════════════════════════════════════════════
    TEAM MANAGEMENT PAGE
 ════════════════════════════════════════════════════ */
+function renderTeamPerformance(){
+  if(!window.CRM_USER?.isOwner) return `<div class="empty"><div class="empty-icon">🔒</div><p>Only the owner can view team performance reports.</p></div>`;
+
+  const members = [{id:'owner', name:'Raunak (Owner)'},...crmGetMembers()];
+  const allNames = [...new Set([...leads.map(l=>l.addedBy), ...leads.map(l=>l.closedBy)].filter(Boolean))];
+
+  // Build stats per person
+  const stats = {};
+  members.forEach(m=>{
+    stats[m.name]={name:m.name, added:0, won:0, lost:0, closed:0, totalQuoted:0, totalCollected:0};
+  });
+  allNames.forEach(n=>{ if(!stats[n]) stats[n]={name:n,added:0,won:0,lost:0,closed:0,totalQuoted:0,totalCollected:0}; });
+
+  leads.forEach(l=>{
+    if(l.addedBy && stats[l.addedBy]){
+      stats[l.addedBy].added++;
+      stats[l.addedBy].totalQuoted += parseFloat(l.amount||0);
+    }
+    if(l.closedBy && stats[l.closedBy]){
+      stats[l.closedBy].closed++;
+      if(l.status==='closed-won'){ stats[l.closedBy].won++; stats[l.closedBy].totalCollected += parseFloat(l.paid||0); }
+      if(l.status==='closed-lost') stats[l.closedBy].lost++;
+    }
+  });
+
+  const rows = Object.values(stats).filter(s=>s.added>0||s.closed>0).sort((a,b)=>b.won-a.won);
+
+  // Per-lead attribution table (recent 50)
+  const recentLeads = [...leads].sort((a,b)=>(b.addedAt||0)-(a.addedAt||0)).slice(0,50);
+
+  return `
+  <div class="section-eyebrow">📊 Team Performance</div>
+  <div class="section-title">Who Added, Who Closed</div>
+  <div class="section-label">Track every team member's contribution — leads added, won, lost, and revenue generated</div>
+
+  <div class="stats-grid" style="margin-bottom:24px">
+    <div class="stat-card"><div class="stat-label">Total Leads</div><div class="stat-value">${leads.length}</div><div class="stat-sub">In CRM</div></div>
+    <div class="stat-card"><div class="stat-label">Total Won</div><div class="stat-value">${leads.filter(l=>l.status==='closed-won').length}</div><div class="stat-sub">Closed Won</div></div>
+    <div class="stat-card"><div class="stat-label">Active Team</div><div class="stat-value">${crmGetMembers().filter(m=>m.status==='active').length + 1}</div><div class="stat-sub">Members + Owner</div></div>
+    <div class="stat-card"><div class="stat-label">Unattributed</div><div class="stat-value">${leads.filter(l=>!l.addedBy).length}</div><div class="stat-sub">No addedBy data</div></div>
+  </div>
+
+  <!-- Per-person summary table -->
+  <div class="card" style="background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:20px">
+    <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:14px">👤 Per-Member Scorecard</div>
+    ${rows.length ? `
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>Member</th>
+          <th>Leads Added</th>
+          <th>Won</th>
+          <th>Lost</th>
+          <th>Win Rate</th>
+          <th>Revenue Collected</th>
+          <th>Total Quoted</th>
+        </tr></thead>
+        <tbody>
+          ${rows.map(s=>{
+            const rate = s.closed>0 ? Math.round(s.won/s.closed*100) : 0;
+            return `<tr>
+              <td><div class="td-name">${s.name}</div></td>
+              <td style="color:var(--info);font-weight:600">${s.added}</td>
+              <td style="color:var(--success);font-weight:700">${s.won}</td>
+              <td style="color:var(--danger);font-weight:600">${s.lost}</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px">
+                  <div style="flex:1;height:6px;background:var(--bg-raised);border-radius:3px;min-width:60px">
+                    <div style="width:${rate}%;height:100%;background:${rate>=50?'var(--success)':'var(--warning)'};border-radius:3px"></div>
+                  </div>
+                  <span style="font-weight:600;color:${rate>=50?'var(--success)':'var(--warning)'}">${rate}%</span>
+                </div>
+              </td>
+              <td style="color:var(--gold);font-weight:700">₹${s.totalCollected.toLocaleString('en-IN')}</td>
+              <td>₹${s.totalQuoted.toLocaleString('en-IN')}</td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>` : '<div class="empty"><div class="empty-icon">📊</div><p>No data yet. Add leads and mark them as won/lost to see stats here.</p></div>'}
+  </div>
+
+  <!-- Per-lead attribution -->
+  <div class="card" style="background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:20px">
+    <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:14px">🎯 Lead-wise Attribution (Last 50)</div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>Lead Name</th>
+          <th>Business</th>
+          <th>Status</th>
+          <th>Added By</th>
+          <th>Closed / Won By</th>
+          <th>Quoted</th>
+          <th>Collected</th>
+          <th>Added On</th>
+        </tr></thead>
+        <tbody>
+          ${recentLeads.length ? recentLeads.map(l=>`
+          <tr>
+            <td><div class="td-name">${l.name}${l.highPotential?' ⭐':''}</div></td>
+            <td>${l.biz||'—'}</td>
+            <td><span class="tbl-status ${tblStatusClass(l.status)}">${statusLabel(l.status).replace('Baat Karni Baki','Not Contacted').replace('Baat Ho Gayi','Contacted').replace('Follow-up Pending','Follow-up').replace('Closed — Won ✅','Won').replace('Closed — Lost ❌','Lost')}</span></td>
+            <td style="color:var(--info);font-weight:600">${l.addedBy||'<span style="color:var(--text-dim)">Unknown</span>'}</td>
+            <td style="color:${l.status==='closed-won'?'var(--success)':l.status==='closed-lost'?'var(--danger)':'var(--text-dim)'};font-weight:${l.closedBy?'600':'400'}">${l.closedBy||'—'}</td>
+            <td style="color:var(--gold)">${fmtMoney(l.amount)}</td>
+            <td style="color:var(--success)">${fmtMoney(l.paid)}</td>
+            <td>${fmtDate(l.addDate||l.contactDate||(l.addedAt?new Date(l.addedAt).toISOString().slice(0,10):null))}</td>
+          </tr>`).join('') : '<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--text-dim)">No leads yet</td></tr>'}
+        </tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+
+function renderSettings(){
+  if(!window.CRM_USER?.isOwner) return `<div class="empty"><div class="empty-icon">🔒</div><p>Only the owner can access Settings.</p></div>`;
+  return `
+  <div class="section-eyebrow">⚙️ Settings</div>
+  <div class="section-title">Portal Settings</div>
+  <div class="section-label">Manage your CRM configuration and data</div>
+
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin-bottom:24px">
+    <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:20px;cursor:pointer" onclick="navTo('team')">
+      <div style="font-size:28px;margin-bottom:10px">👥</div>
+      <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;margin-bottom:6px">Team & Members</div>
+      <div style="font-size:12px;color:var(--text-muted);line-height:1.6">Add team members, set passwords, assign permissions, activate or suspend access.</div>
+      <div style="margin-top:14px;font-size:11px;font-weight:600;color:var(--accent)">→ Go to Team Management</div>
+    </div>
+    <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:20px;cursor:pointer" onclick="navTo('performance')">
+      <div style="font-size:28px;margin-bottom:10px">📊</div>
+      <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;margin-bottom:6px">Team Performance</div>
+      <div style="font-size:12px;color:var(--text-muted);line-height:1.6">See who added which leads, who closed deals, win rates, and revenue attribution per member.</div>
+      <div style="margin-top:14px;font-size:11px;font-weight:600;color:var(--success)">→ View Performance Report</div>
+    </div>
+    <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:20px;cursor:pointer" onclick="downloadData()">
+      <div style="font-size:28px;margin-bottom:10px">⬇️</div>
+      <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;margin-bottom:6px">Backup Data</div>
+      <div style="font-size:12px;color:var(--text-muted);line-height:1.6">Download all leads as JSON + CSV. Use as an emergency backup — Firestore is your live source.</div>
+      <div style="margin-top:14px;font-size:11px;font-weight:600;color:var(--info)">→ Download Backup Now</div>
+    </div>
+    <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:20px;cursor:pointer" onclick="openImport()">
+      <div style="font-size:28px;margin-bottom:10px">⬆️</div>
+      <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;margin-bottom:6px">Import / Restore</div>
+      <div style="font-size:12px;color:var(--text-muted);line-height:1.6">Paste a previously exported JSON to merge leads back into Firestore. Won't delete existing data.</div>
+      <div style="margin-top:14px;font-size:11px;font-weight:600;color:var(--warning)">→ Import JSON Data</div>
+    </div>
+    <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:20px;cursor:pointer" onclick="exportCrmTeamConfig()">
+      <div style="font-size:28px;margin-bottom:10px">📤</div>
+      <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;margin-bottom:6px">Export Team Config</div>
+      <div style="font-size:12px;color:var(--text-muted);line-height:1.6">Emergency offline fallback — export team member array for hardcoding into the HTML file.</div>
+      <div style="margin-top:14px;font-size:11px;font-weight:600;color:var(--text-dim)">→ Copy Config to Clipboard</div>
+    </div>
+    <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:20px">
+      <div style="font-size:28px;margin-bottom:10px">ℹ️</div>
+      <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;margin-bottom:6px">Portal Info</div>
+      <div style="font-size:12px;color:var(--text-muted);line-height:1.85">
+        Total Leads: <strong style="color:var(--text)">${leads.length}</strong><br>
+        Team Members: <strong style="color:var(--text)">${crmGetMembers().filter(m=>m.status==='active').length}</strong> active<br>
+        Firestore Project: <code style="font-size:10px">sparkedge-client-portal</code><br>
+        Version: <strong style="color:var(--accent)">v2.0 — Multi-User + Attribution</strong>
+      </div>
+    </div>
+  </div>`;
+}
+
+
 function renderTeamPage(){
   if(!window.CRM_USER?.isOwner) return `<div class="empty"><div class="empty-icon">🔒</div><p>Only the owner can manage team members.</p></div>`;
   const members=crmGetMembers();
@@ -3140,28 +3321,28 @@ function exportCrmTeamConfig(){
 function renderWorkflow(){
   const isOwner = window.CRM_USER?.isOwner;
 
-  const ownerRightCol = `
+const ownerRightCol = `
     <div class="cloud-box">
       <h4>🔐 One-Time Setup: Cross-Device Team Login</h4>
-      ${[['👤','Go to Settings & Team (sidebar) → Add your team member'],['📤','Click "Export Team Config" → copies a code snippet'],['📝','Open lead-management-crm.html in Notepad / VS Code'],['🔍','Find: "// ▼▼▼ START MEMBER CONFIG ▼▼▼"'],['✂️','Replace the HARDCODED_MEMBERS = [...] block with the copied snippet'],['💾','Save file → Send updated HTML to your team member via WhatsApp'],['✅','Team member opens file on their device → their password works on any device!']].map(([i,t])=>`<div class="cloud-step"><div class="cloud-icon">${i}</div><div class="cloud-text">${t}</div></div>`).join('')}
+      ${[['👤','Go to Settings → Team & Members → Add your team member with name, password and permissions'],['✅','Member can log in immediately on any device — Firestore syncs automatically'],['📤','"Export Team Config" in Settings is an emergency fallback only — not needed for daily use']].map(([i,t])=>`<div class="cloud-step"><div class="cloud-icon">${i}</div><div class="cloud-text">${t}</div></div>`).join('')}
     </div>
-   <div class="cloud-box" style="background:rgba(52,152,219,.06);border-color:rgba(52,152,219,.2)">
-      <h4 style="color:var(--info)">☁️ How Sync Actually Works Now</h4>
-      ${[['⚡','Leads sync live via Firestore — no exporting or importing needed anymore'],['👀','Any lead you add, edit, or move shows up on every team member\'s device within seconds'],['📱','Open the CRM on your phone and laptop at the same time — both stay in sync automatically'],['⬇','The Backup button is for manual safety copies only — not required for normal use'],['⚠️','Avoid two people editing the exact same lead at the exact same moment — last save wins']].map(([i,t])=>`<div class="cloud-step"><div class="cloud-icon">${i}</div><div class="cloud-text">${t}</div></div>`).join('')}
+    <div class="cloud-box" style="background:rgba(52,152,219,.06);border-color:rgba(52,152,219,.2)">
+      <h4 style="color:var(--info)">☁️ How Sync Actually Works</h4>
+      ${[['⚡','Leads sync live via Firestore — no exporting or importing needed'],['📊','Team Performance tab shows who added each lead and who closed/won it'],['🎯','Every lead card now shows Added By and Won/Closed By fields'],['👀','Any changes show on every device within seconds automatically'],['⚠️','Avoid two people editing the exact same lead simultaneously — last save wins']].map(([i,t])=>`<div class="cloud-step"><div class="cloud-icon">${i}</div><div class="cloud-text">${t}</div></div>`).join('')}
     </div>
     <div class="cloud-box" style="background:rgba(123,94,167,.06);border-color:rgba(123,94,167,.2)">
-      <h4 style="color:#7B5EA7">🛡 Team Permissions — What You Control</h4>
-      ${[['👑','You (Owner) have full access — all features, team management, all data'],['💼','Team members only access what you permit — set per-member permissions'],['🔐','Go to Settings & Team → choose Full / Basic / View Only or custom'],['📤','After adding a member → Export Team Config → update HTML → re-share'],['🔴','To block access: Deactivate the member from Settings & Team page']].map(([i,t])=>`<div class="cloud-step"><div class="cloud-icon">${i}</div><div class="cloud-text">${t}</div></div>`).join('')}
+      <h4 style="color:#7B5EA7">🛡 Settings & Team — What Changed</h4>
+      ${[['⚙️','Settings (sidebar) is now separate from Team & Members — Settings shows all config options'],['👥','Team & Members manages member accounts, passwords and permissions'],['📊','Team Performance tracks who added leads, who won deals, win rates and revenue per person'],['🔴','To block access: Deactivate the member from Team & Members page — takes effect immediately on all devices'],['📋','Lead cards now show Added By and Won By — full accountability on every lead']].map(([i,t])=>`<div class="cloud-step"><div class="cloud-icon">${i}</div><div class="cloud-text">${t}</div></div>`).join('')}
     </div>`;
 
-  const memberRightCol = `
-   <div class="cloud-box" style="background:rgba(52,152,219,.06);border-color:rgba(52,152,219,.2)">
-      <h4 style="color:var(--info)">☁️ How Sync Actually Works Now</h4>
-      ${[['⚡','Leads sync live via Firestore — there is nothing to export or import manually'],['💼','Just add leads, update statuses, and set follow-up dates as normal'],['👀','Your team lead sees your changes within seconds, automatically'],['✅','No file sharing, no daily JSON routine — it just works in the background'],['⚠️','Avoid editing the exact same lead as a teammate at the exact same moment']].map(([i,t])=>`<div class="cloud-step"><div class="cloud-icon">${i}</div><div class="cloud-text">${t}</div></div>`).join('')}
+const memberRightCol = `
+    <div class="cloud-box" style="background:rgba(52,152,219,.06);border-color:rgba(52,152,219,.2)">
+      <h4 style="color:var(--info)">☁️ How Sync Works</h4>
+      ${[['⚡','Leads sync live via Firestore — nothing to export or import manually'],['💼','Add leads, update statuses, set follow-up dates — changes appear everywhere in seconds'],['🎯','Your name is automatically recorded on every lead you add (Added By field)'],['✅','When you mark a lead as Won or Lost, your name is recorded as Closed By'],['⚠️','Avoid editing the exact same lead as a teammate at the same moment — last save wins']].map(([i,t])=>`<div class="cloud-step"><div class="cloud-icon">${i}</div><div class="cloud-text">${t}</div></div>`).join('')}
     </div>
     <div class="cloud-box" style="background:rgba(255,179,71,.06);border-color:rgba(255,179,71,.2)">
       <h4 style="color:var(--gold)">💬 Quick Replies — How to Use</h4>
-      ${[['📋','Open Quick Replies from the sidebar — 10 stages, Hindi + English both'],['🎯','Match the stage to your situation (e.g. first DM → Stage 1)'],['✏️','Click Edit → replace [Name] and [amount] with real values'],['📋','Click Copy → paste directly in WhatsApp'],['💬','Or click Send → opens WhatsApp Web with message pre-filled'],['⭐','Every script is tested and professionally written — use with confidence!']].map(([i,t])=>`<div class="cloud-step"><div class="cloud-icon">${i}</div><div class="cloud-text">${t}</div></div>`).join('')}
+      ${[['📋','Open Quick Replies from the sidebar — 10 stages, Hindi + English both'],['🎯','Match the stage to your situation (e.g. first DM → Stage 1)'],['✏️','Click Edit → replace [Name] and [amount] with real values'],['📋','Click Copy → paste directly in WhatsApp'],['💬','Or click Send → opens WhatsApp Web with message pre-filled']].map(([i,t])=>`<div class="cloud-step"><div class="cloud-icon">${i}</div><div class="cloud-text">${t}</div></div>`).join('')}
     </div>`;
 
 const ownerSafety = `
