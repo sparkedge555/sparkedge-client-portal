@@ -345,11 +345,12 @@ tbody td .td-main{font-weight:600;color:var(--text);font-size:13px}
         <select id="lf_earnerId"></select>
       </div>
       <div class="section-divider">
-  <i data-lucide="ticket" style="width:12px;height:12px;stroke:currentColor;fill:none;"></i> Linked Ticket / Client
+  <i data-lucide="ticket" style="width:12px;height:12px;stroke:currentColor;fill:none;"></i> Linked To (Ticket OR Service Work)
 </div>
-      <div class="fg"><label>Ticket ID *</label><input id="lf_ticketId" placeholder="SE-001" oninput="this.value=this.value.toUpperCase();checkTicketOwnership()"/></div>
-      <div class="fg"><label>Client Name</label><input id="lf_clientName" placeholder="Client name"/></div>
-<div class="section-divider">
+      <div class="fg"><label>Ticket ID (optional)</label><input id="lf_ticketId" placeholder="SE-001" oninput="this.value=this.value.toUpperCase();checkTicketOwnership()"/></div>
+      <div class="fg"><label>Client Name (optional)</label><input id="lf_clientName" placeholder="Client name"/></div>
+      <div class="fg full"><label>Work / Service Description (fill this if there's no ticket)</label><input id="lf_workDesc" placeholder="e.g. Built new landing page, edited promo video, fixed bug"/></div>
+      <div class="section-divider">
   <i data-lucide="wallet" style="width:12px;height:12px;stroke:currentColor;fill:none;"></i> Payment Details
 </div>
       <div class="fg"><label>Type *</label>
@@ -600,7 +601,7 @@ function attachPartnersListener(){
 }
 function attachClaimsListener(){
   getDb().collection('pay_claims').onSnapshot(snap=>{
-    const arr=[];snap.forEach(d=>arr.push({ticketId:d.id,...d.data()}));
+    const arr=[];snap.forEach(d=>arr.push({docId:d.id,...d.data()}));
     window._claimsCache=arr;
     if(currentSection==='claims')renderSection('claims');
   },err=>console.warn('claims listener',err.message));
@@ -794,7 +795,7 @@ function ledgerRowHTML(l,showWho){
   <div class="ledger-row ${l.status}">
     <div class="ledger-dot ${l.status}"></div>
     <div class="ledger-info">
-      <div class="ledger-title">${showWho?(l.earnerName+' — '):''}${l.type==='commission'?'Commission':l.type==='salary'?'Salary':l.type==='bonus'?'Bonus':'Payment'} ${l.ticketId?'· '+l.ticketId:''}</div>
+      <div class="ledger-title">${showWho?(l.earnerName+' — '):''}${l.type==='commission'?'Commission':l.type==='salary'?'Salary':l.type==='bonus'?'Bonus':'Payment'} ${l.ticketId?'· '+l.ticketId:(l.workDesc?'· '+l.workDesc:'')}</div>
       <div class="ledger-meta">${l.clientName?l.clientName+' · ':''}${fmtDate(l.date)} ${l.note?'· '+l.note:''}</div>
     </div>
     <div class="ledger-amt" style="color:${l.status==='paid'?'var(--success)':'var(--warning)'}">${fmtMoney(l.amount)}</div>
@@ -1038,6 +1039,7 @@ function renderWorkflow(){
 /* ════════════════════════════════════
    TICKET OWNERSHIP / CLAIMS
 ════════════════════════════════════ */
+let _clf='',_cldate='',_clpay='';
 function renderClaims(){
   const claims=getClaims();
   const canClaim=has('claim')||window.PORTAL_USER.isOwner;
@@ -1058,18 +1060,52 @@ function renderClaims(){
   </div>`:''}
 
   <div class="card">
-    <div class="card-title">📋 All Claimed Tickets (${claims.length})</div>
-   ${claims.length?`<div class="table-wrap"><table><thead><tr><th>Ticket</th><th>Client</th><th>Claimed By</th><th>Date</th><th>Note</th><th>Action</th></tr></thead><tbody>
-    ${claims.map(c=>`<tr>
+    <div class="card-title">📋 All Claimed Tickets</div>
+    <div class="toolbar">
+      <div class="search-wrap"><span class="search-icon">🔍</span><input placeholder="Search ticket, client, name..." oninput="_clf=this.value;refreshClaimsTable()"/></div>
+      <select class="fsel" onchange="_cldate=this.value;refreshClaimsTable()">
+        <option value="">All Time</option>
+        <option value="thismonth">This Month</option>
+        <option value="lastmonth">Last Month</option>
+      </select>
+      <select class="fsel" onchange="_clpay=this.value;refreshClaimsTable()">
+        <option value="">Any Payment Status</option>
+        <option value="paid">✅ Paid</option>
+        <option value="pending">⏳ Pending</option>
+        <option value="none">🚫 No Payment Logged</option>
+      </select>
+    </div>
+    <div id="claimsTableWrap">${renderClaimsTable(claims)}</div>
+  </div>`;
+}
+function refreshClaimsTable(){
+  document.getElementById('claimsTableWrap').innerHTML=renderClaimsTable(getClaims());
+}
+function renderClaimsTable(arr){
+  let r=[...arr];
+  if(_clf)r=r.filter(c=>((c.ticketId||'')+(c.clientName||'')+(c.claimedByName||'')).toLowerCase().includes(_clf.toLowerCase()));
+  if(_cldate)r=r.filter(c=>inMonthRange(c.claimedAt,_cldate));
+  if(_clpay)r=r.filter(c=>getTicketPayStatus(c.ticketId)===_clpay);
+  if(!r.length)return `<div class="empty"><div class="empty-icon">🎫</div><p>No tickets match.</p></div>`;
+  const isOwner=window.PORTAL_USER.isOwner;
+  return `<div class="table-wrap"><table><thead><tr><th>Ticket</th><th>Client</th><th>Claimed By</th><th>Date</th><th>Payment</th><th>Note</th><th>Actions</th></tr></thead><tbody>
+  ${r.map(c=>{
+    const pay=getTicketPayStatus(c.ticketId);
+    const payLabel=pay==='paid'?'<span class="tbl-pill tbl-safe">✅ Paid</span>':pay==='pending'?'<span class="tbl-pill tbl-warn">⏳ Pending</span>':'<span class="tbl-pill tbl-info" style="opacity:.6">🚫 None</span>';
+    return `<tr>
       <td class="td-main">${c.ticketId}</td>
       <td>${c.clientName||'—'}</td>
       <td><span class="tbl-pill ${c.claimedBy===window.PORTAL_USER.memberId?'tbl-safe':'tbl-info'}">${c.claimedByName}${c.claimedBy===window.PORTAL_USER.memberId?' (You)':''}</span></td>
       <td>${fmtDate(c.claimedAt)}</td>
+      <td>${payLabel}</td>
       <td style="font-size:11px">${c.note||'—'}</td>
-      <td>${window.PORTAL_USER.isOwner?`<button class="btn btn-success btn-sm" onclick='openLedgerModal(null,{type:"team",id:"${c.claimedBy}",ticketId:"${c.ticketId}",clientName:"${(c.clientName||'').replace(/'/g,"")}"})'>💰 Pay</button>`:'—'}</td>
-    </tr>`).join('')}
-    </tbody></table></div>`:`<div class="empty"><div class="empty-icon">🎫</div><p>No tickets claimed yet.</p></div>`}
-  </div>`;
+      <td style="display:flex;gap:6px">
+        ${isOwner?`<button class="btn btn-success btn-sm" onclick='openLedgerModal(null,{type:"team",id:"${c.claimedBy}",ticketId:"${c.ticketId}",clientName:"${(c.clientName||'').replace(/'/g,"")}"})'>💰 Pay</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteClaim('${c.docId}','${c.ticketId}')">🗑</button>`:'—'}
+      </td>
+    </tr>`;
+  }).join('')}
+  </tbody></table></div>`;
 }
 async function claimTicket(){
   const ticketId=document.getElementById('cl_ticketId').value.trim().toUpperCase();
@@ -1111,6 +1147,34 @@ function checkTicketOwnership(){
   }else{
     box.innerHTML='';
   }
+}
+
+async function deleteClaim(docId,ticketId){
+  if(!window.PORTAL_USER.isOwner){showToast('⛔ Owner only.');return;}
+  if(!confirm(`Delete the claim for ticket "${ticketId}"? This only removes ownership record, NOT any payment entries already made.`))return;
+  try{
+    await getDb().collection('pay_claims').doc(docId).delete();
+    showToast('🗑 Claim deleted.');
+  }catch(e){showToast('❌ Failed: '+e.message);}
+}
+
+// 
+function getTicketPayStatus(ticketId){
+  const entries=getLedger().filter(l=>l.ticketId===ticketId);
+  if(!entries.length)return 'none';
+  if(entries.every(e=>e.status==='paid'))return 'paid';
+  return 'pending';
+}
+function inMonthRange(ts,range){
+  if(!range)return true;
+  if(!ts)return false;
+  const d=new Date(ts),now=new Date();
+  if(range==='thismonth')return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();
+  if(range==='lastmonth'){
+    const lm=new Date(now.getFullYear(),now.getMonth()-1,1);
+    return d.getMonth()===lm.getMonth()&&d.getFullYear()===lm.getFullYear();
+  }
+  return true;
 }
 
 /* ════════════════════════════════════
@@ -1311,8 +1375,9 @@ function openLedgerModal(id,prefill){
     document.getElementById('lf_earnerType').value=l.earnerType;
     populateEarnerSelect();
     document.getElementById('lf_earnerId').value=l.earnerId;
-    document.getElementById('lf_ticketId').value=l.ticketId||'';
+   document.getElementById('lf_ticketId').value=l.ticketId||'';
     document.getElementById('lf_clientName').value=l.clientName||'';
+    document.getElementById('lf_workDesc').value=l.workDesc||'';
     document.getElementById('lf_type').value=l.type;
     document.getElementById('lf_amount').value=l.amount;
     document.getElementById('lf_status').value=l.status;
@@ -1322,7 +1387,7 @@ function openLedgerModal(id,prefill){
     document.getElementById('lf_earnerType').value=(prefill&&prefill.type)?prefill.type:'team';
     populateEarnerSelect();
     if(prefill&&prefill.id){document.getElementById('lf_earnerId').value=prefill.id;}
-    document.getElementById('lf_ticketId').value=(prefill&&prefill.ticketId)?prefill.ticketId.toUpperCase():'';
+    document.getElementById('lf_ticketId').value='';document.getElementById('lf_clientName').value='';document.getElementById('lf_workDesc').value='';
     document.getElementById('lf_clientName').value=(prefill&&prefill.clientName)?prefill.clientName:'';
     document.getElementById('lf_type').value=(prefill&&prefill.type==='partner')?'commission':'commission';
     document.getElementById('lf_amount').value='';
@@ -1363,12 +1428,15 @@ async function saveLedgerEntry(){
   const earnerId=sel.value;
   const earnerName=sel.selectedOptions[0]?.dataset.name||'';
   const amount=parseFloat(document.getElementById('lf_amount').value);
+  const ticketId=document.getElementById('lf_ticketId').value.trim().toUpperCase();
+  const workDesc=document.getElementById('lf_workDesc').value.trim();
   if(!earnerId){alert('Select a person!');return;}
   if(!amount||amount<=0){alert('Enter a valid amount!');return;}
+  if(!ticketId&&!workDesc){alert('Enter a Ticket ID, OR describe the work in "Work / Service Description"!');return;}
   const data={
     id:editLedgerId||uid(),
     earnerType,earnerId,earnerName,
-    ticketId:document.getElementById('lf_ticketId').value.trim().toUpperCase(),
+    ticketId,workDesc,
     clientName:document.getElementById('lf_clientName').value.trim(),
     type:document.getElementById('lf_type').value,
     amount,status:document.getElementById('lf_status').value,
