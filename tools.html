@@ -245,6 +245,13 @@ img,svg{max-width:100%;}
 .card-gold:hover{border-color:rgba(245,158,11,.35);}
 .card-cyan:hover{border-color:rgba(6,182,212,.35);}
 
+/* Hover border colors */
+.card-teal::before{background:linear-gradient(90deg,#14B8A6,#06B6D4);}
+.card-teal:hover{border-color:rgba(20,184,166,.35);}
+.tag-teal{background:rgba(20,184,166,.1);color:#14B8A6;border:1px solid rgba(20,184,166,.22);}
+.card-open-btn.teal{background:rgba(20,184,166,.1);border-color:rgba(20,184,166,.3);color:#14B8A6;}
+.card-teal:hover .card-open-btn.teal{background:#14B8A6;color:#fff;border-color:#14B8A6;}
+
 /* ── CARD TOP ROW ── */
 .card-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;}
 
@@ -595,6 +602,24 @@ img,svg{max-width:100%;}
       <span class="card-open-btn cyan"><i data-lucide="external-link" style="width:11px;height:11px;"></i> Open</span>
       </div>
     </a>
+
+  <!-- ONBOARDING FORM -->
+<a href="https://sparkedge555.github.io/sparkedge-client-portal/onboarding.html"
+   target="_blank" class="tool-card card-teal">
+  <div class="card-top">
+    <div class="card-icon-wrap" style="background:rgba(20,184,166,.12);border-color:rgba(20,184,166,.25);--icon-glow:rgba(20,184,166,.25);">
+      <i data-lucide="clipboard-list" style="color:#14B8A6;"></i>
+    </div>
+    <div class="card-arrow-icon"><i data-lucide="arrow-up-right"></i></div>
+  </div>
+  <span class="card-tag tag-teal"><i data-lucide="user-plus" style="width:9px;height:9px;"></i> Client Onboarding</span>
+  <div class="card-title">Client Onboarding Form</div>
+  <div class="card-desc">Send this form to new clients after advance payment. Collects business details, branding info, contact, social links and more. Data saves directly to Firestore — view submissions in the Onboarding Hub.</div>
+  <div class="card-footer">
+    <span class="card-url">…/onboarding.html</span>
+    <span class="card-open-btn teal"><i data-lucide="external-link" style="width:11px;height:11px;"></i> Open</span>
+  </div>
+</a>
 
     <!-- PAYMENTS & COMMISSIONS -->
     <a href="https://sparkedge555.github.io/sparkedge-client-portal/payments.html"
