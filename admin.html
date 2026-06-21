@@ -4009,9 +4009,27 @@ function renderTeamPage(){
 
   // Only owner can see add/delete buttons
   if(addBtn) addBtn.style.display = isOwner() ? 'block' : 'none';
+  // ── Fixed Owner Card — always shown, never editable/deletable ──
+  const ownerCardHTML = `<div class="team-card" style="margin-bottom:10px;border:1px solid rgba(255,107,53,.35);background:linear-gradient(135deg,rgba(255,107,53,.07),rgba(255,60,172,.04));">
+    <div class="team-avatar" style="font-size:18px;background:linear-gradient(135deg,#FFB347,#FF6B35);">👑</div>
+    <div style="flex:1;min-width:0;">
+      <div style="font-size:14px;font-weight:700;display:flex;align-items:center;gap:8px;">
+        Raunak Karn
+        <span style="font-size:10px;padding:2px 9px;border-radius:10px;font-weight:800;background:rgba(255,107,53,.15);border:1px solid rgba(255,107,53,.35);color:var(--accent);letter-spacing:.5px;">OWNER</span>
+      </div>
+      <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">Founder & Lead Designer · sparkedge555@gmail.com · +91 91424 50715</div>
+      <div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:2px;">
+        <span style="background:rgba(255,107,53,.12);border:1px solid rgba(255,107,53,.3);border-radius:5px;padding:2px 8px;font-size:10px;font-weight:600;color:var(--accent);margin:2px;">👑 Full Access — All Permissions</span>
+      </div>
+      <div style="margin-top:6px;">
+        <span style="font-size:10px;padding:2px 8px;border-radius:10px;font-weight:700;background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.3);color:#22C55E;">✅ Active</span>
+      </div>
+    </div>
+    <div style="font-size:10px;color:var(--text-dim);text-align:right;max-width:90px;line-height:1.5;">🔒 Fixed — cannot be edited, suspended, or removed</div>
+  </div>`;
 
-  if(!members.length){
-    list.innerHTML = `<div class="empty-state"><div class="es-icon">🧑‍💻</div><div class="es-text">No team members yet. Invite your first member!</div></div>`;
+if(!members.length){
+    list.innerHTML = ownerCardHTML + `<div class="empty-state"><div class="es-icon">🧑‍💻</div><div class="es-text">No team members yet. Invite your first member!</div></div>`;
     const alert = document.getElementById('memberSharingAlert');
     if(alert) alert.style.display = 'none';
     return;
@@ -4051,8 +4069,9 @@ if(countEl) countEl.textContent = members.length + ' member(s)';
         <button class="btn btn-sm" style="background:rgba(139,92,246,.1);border:1px solid rgba(139,92,246,.3);color:#8B5CF6;font-size:10px;" onclick="downloadWelcomeNote(${i})">📩 Welcome</button>
         <button class="btn btn-sm" style="background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.15);color:#EF4444;font-size:10px;" onclick="deleteMember(${i})">🗑 Remove</button>
       </div>`:''}
-    </div>`;
+ </div>`;
   }).join('');
+  list.innerHTML = ownerCardHTML + list.innerHTML;
   setTimeout(() => lucide.createIcons(), 50);
 }
 
