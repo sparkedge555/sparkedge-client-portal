@@ -707,19 +707,7 @@ function getDb(){
 
 /* ── HARDCODED MEMBERS (same pattern as other portals) ── */
 // ▼▼▼ PASTE MEMBER CONFIG HERE ▼▼▼
-const HARDCODED_MEMBERS = [
-  {
-    "id":"mem_1778838014185",
-    "name":"Pinkesh Kr Prabhakar",
-    "role":"Marketing Manager",
-    "email":"pinkeshkumarprabhakar9@gmail.com",
-    "wa":"9693717475",
-    "password":"Pinkesh@1",
-    "permissions":["view","edit","send","export"],
-    "status":"active",
-    "addedAt":"15/5/2026"
-  }
-];
+const HARDCODED_MEMBERS = [];
 // ▲▲▲ END MEMBER CONFIG ▲▲▲
 
 window._teamCache = [...HARDCODED_MEMBERS];
@@ -732,18 +720,16 @@ function attachTeamListener(){
   window._teamListenerAttached = true;
   try{
     getDb().collection('team').onSnapshot(snap=>{
-  const fs=[];
-  snap.forEach(d=>{
-    const data = d.data();
-    if (data.role === 'owner' || data.role === 'Owner') return;
-    fs.push({id:d.id,...data});
-  });
-      const merged=[...HARDCODED_MEMBERS];
-      fs.forEach(fm=>{
-        const idx=merged.findIndex(h=>h.id===fm.id);
-        idx>=0?merged[idx]=fm:merged.push(fm);
+      const fs=[];
+      snap.forEach(d=>{
+        const data = d.data();
+        if (data.role === 'owner' || data.role === 'Owner') return;
+        fs.push({id:d.id,...data});
       });
-      window._teamCache=merged;
+      // Firestore is the single source of truth once it's reachable.
+      // Do NOT re-merge HARDCODED_MEMBERS here — if a member was deleted
+      // from Firestore, they must disappear, not reappear from the fallback.
+      window._teamCache = fs;
       if(currentSection==='team') renderSection('team');
     },err=>console.warn('Team listener:',err.message));
   }catch(e){console.warn('Team listener setup:',e.message)}

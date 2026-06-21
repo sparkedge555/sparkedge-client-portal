@@ -605,24 +605,7 @@ const SETTINGS_AUTH_KEY = 'se_settings_pwd';
 // needing the same browser/localStorage.
 // Format: {id, name, role, email, password, status, permissions:[]}
 // ▼▼▼ PASTE MEMBER CONFIG(s) HERE — between the [ ] brackets ▼▼▼
-const HARDCODED_MEMBERS = [
-  {
-    "id": "mem_1778838014185",
-    "name": "Pinkesh Kr Prabhakar",
-    "role": "Marketing Manager",
-    "email": "pinkeshkumarprabhakar9@gmail.com",
-    "wa": "96937 17475",
-    "password": "Pinkesh@1",
-    "permissions": [
-      "view_tickets",
-      "edit_tickets",
-      "view_clients",
-      "export"
-    ],
-    "status": "active",
-    "addedAt": "15/5/2026"
-  }
-];
+const HARDCODED_MEMBERS = [];
 // ▲▲▲ END OF MEMBER CONFIG — save file and git push ▲▲▲
 
 /* ══════════════════════════════════════════════════════
@@ -659,26 +642,24 @@ function attachTeamListener() {
   try {
     getDb().collection('team').onSnapshot(snapshot => {
       const fsMembers = [];
-      snapshot.forEach(doc => fsMembers.push({ id: doc.id, ...doc.data() }));
-      // Merge: Firestore wins over hardcoded for same IDs
-      const merged = [...HARDCODED_MEMBERS];
-      fsMembers.forEach(fm => {
-        const idx = merged.findIndex(hm => hm.id === fm.id);
-        if (idx >= 0) merged[idx] = fm;
-        else merged.push(fm);
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        if (data.role === 'owner') return; // owner is never a team doc
+        fsMembers.push({ id: doc.id, ...data });
       });
-      window._teamCache = merged;
-      // Re-render team page if it's currently open
+      // Firestore is the single source of truth once reachable.
+      // No merge with HARDCODED_MEMBERS here — deleted members must stay deleted.
+      window._teamCache = fsMembers;
       const teamPage = document.getElementById('page-team');
       if (teamPage && teamPage.classList.contains('active')) {
         renderTeamPage();
       }
-      // Also refresh member count badge in sidebar
       const badge = document.getElementById('teamMemberCountBadge');
       if (badge) badge.textContent = window._teamCache.length;
     }, err => {
       console.warn('[SparkEdge] Firestore team listener error:', err.message);
-      // Fall back to localStorage + hardcoded on error
+      // ONLY here — when Firestore is genuinely unreachable — fall back
+      // to localStorage merged with the hardcoded list.
       try {
         const stored = JSON.parse(localStorage.getItem(AUTH_KEY)) || [];
         const merged = [...HARDCODED_MEMBERS];

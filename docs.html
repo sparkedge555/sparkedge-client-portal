@@ -819,19 +819,7 @@ footer .f-credit strong{
    Owner: RAUNAK@1 · Members: stored in localStorage + hardcoded
 ═══════════════════════════════════════ */
 const AUTH_KEY = 'se_members';
-const HARDCODED_MEMBERS = [
-  {
-    "id": "mem_1778838014185",
-    "name": "Pinkesh Kr Prabhakar",
-    "role": "Marketing Manager",
-    "email": "pinkeshkumarprabhakar9@gmail.com",
-    "wa": "96937 17475",
-    "password": "Pinkesh@1",
-    "permissions": ["view_tickets","edit_tickets","view_clients","export"],
-    "status": "active",
-    "addedAt": "15/5/2026"
-  }
-];
+const HARDCODED_MEMBERS = [];
 let _teamCacheDocs = [...HARDCODED_MEMBERS];
 
 function getDbDocs() {
@@ -854,15 +842,17 @@ async function fetchTeamFromFirestore() {
   try {
     const snapshot = await getDbDocs().collection('team').get();
     const fsMembers = [];
-    snapshot.forEach(doc => fsMembers.push({ id: doc.id, ...doc.data() }));
-    const merged = [...HARDCODED_MEMBERS];
-    fsMembers.forEach(fm => {
-      const idx = merged.findIndex(hm => hm.id === fm.id);
-      if (idx >= 0) merged[idx] = fm; else merged.push(fm);
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      if (data.role === 'owner') return;
+      fsMembers.push({ id: doc.id, ...data });
     });
-    _teamCacheDocs = merged;
+    // Firestore succeeded — trust it completely, no hardcoded merge.
+    _teamCacheDocs = fsMembers;
   } catch(e) {
     console.warn('Firestore team fetch failed:', e.message);
+    // ONLY on failure, fall back to the hardcoded list.
+    _teamCacheDocs = [...HARDCODED_MEMBERS];
   }
   return _teamCacheDocs;
 }
@@ -878,16 +868,16 @@ function attachDocsTeamListener(){
   try{
     getDbDocs().collection('team').onSnapshot(snapshot => {
       const fsMembers = [];
-      snapshot.forEach(doc => fsMembers.push({ id: doc.id, ...doc.data() }));
-      const merged = [...HARDCODED_MEMBERS];
-      fsMembers.forEach(fm => {
-        const idx = merged.findIndex(hm => hm.id === fm.id);
-        if (idx >= 0) merged[idx] = fm; else merged.push(fm);
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        if (data.role === 'owner') return;
+        fsMembers.push({ id: doc.id, ...data });
       });
-   _teamCacheDocs = merged;
-      localStorage.setItem(AUTH_KEY, JSON.stringify(merged));
+      // Firestore is the source of truth — no hardcoded re-merge here.
+      _teamCacheDocs = fsMembers;
+      localStorage.setItem(AUTH_KEY, JSON.stringify(fsMembers));
 
-      if(window.DOCS_USER && window.DOCS_USER.role !== 'owner'){
+   if(window.DOCS_USER && window.DOCS_USER.role !== 'owner'){
         const me = merged.find(m => m.id === window.DOCS_USER.memberId);
         if(me){
           if(me.status !== 'active'){
