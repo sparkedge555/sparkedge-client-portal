@@ -2391,14 +2391,14 @@ async function saveTeamMember(){
   if(!name){alert('Name required!');return;}
   if(!pwd||pwd.length<6){alert('Password must be at least 6 characters!');return;}
   if(pwd==='RAUNAK@1'){alert('Cannot use owner password!');return;}
-  const perms=['view','edit','vault','send','export'].filter(p=>document.getElementById('tp_'+p)?.checked);
-const members=getMembers();
-const editId=document.getElementById('tm_editId').value;
-const existing = editId ? members.find(m=>m.id===editId) : null;
-const adminOnlyPerms = (existing?.permissions || []).filter(p =>
-  ['view_tickets','edit_tickets','create_tickets','delete_tickets','view_finance','view_clients'].includes(p)
-);
-const finalPerms = [...new Set([...perms, ...adminOnlyPerms])];
+  const retentionPerms=['view','edit','vault','send','export'].filter(p=>document.getElementById('tp_'+p)?.checked);
+  const members=getMembers();
+  const editId=document.getElementById('tm_editId').value;
+  const existing = editId ? members.find(m=>m.id===editId) : null;
+  const foreignPerms = (existing?.permissions || []).filter(p =>
+    ['view_tickets','edit_tickets','create_tickets','delete_tickets','view_finance','view_clients','generate_docs','save_drafts','view_team'].includes(p)
+  );
+  const perms = [...new Set([...retentionPerms, ...foreignPerms])];
   await saveMembers(members);
   closeModal('teamMemberModal');
   showToast('✅ Team member saved & synced!');

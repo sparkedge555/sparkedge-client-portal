@@ -4131,20 +4131,21 @@ async function saveMember(){
   if(!name){ alert('Name is required.'); return; }
   if(!pwd){ alert('Password is required for member login.'); return; }
   if(pwd === 'RAUNAK@1'){ alert('Member cannot use the owner password.'); return; }
-  if(pwd.length < 6){ alert('Password must be at least 6 characters.'); return; }
-
-  const perms = ['view_tickets','edit_tickets','create_tickets','delete_tickets','view_finance','view_clients','export'].filter(p => {
-  const cb = document.getElementById('perm_'+p);
-  return cb && cb.checked;
-});
-
-// Preserve retention-portal-only permissions (vault, send) that aren't editable from this modal
-const existingMember = (editIdx >= 0 && members[editIdx]) ? members[editIdx] : null;
-const retentionOnlyPerms = (existingMember?.permissions || []).filter(p => ['vault','send'].includes(p));
-const finalPerms = [...new Set([...perms, ...retentionOnlyPerms])];
+ if(pwd.length < 6){ alert('Password must be at least 6 characters.'); return; }
 
   const members = getMembers();
   const editIdx = parseInt(document.getElementById('memberModalEditIdx').value);
+
+  const perms = ['view_tickets','edit_tickets','create_tickets','delete_tickets','view_finance','view_clients','export'].filter(p => {
+    const cb = document.getElementById('perm_'+p);
+    return cb && cb.checked;
+  });
+
+  const existingMember = (editIdx >= 0 && members[editIdx]) ? members[editIdx] : null;
+  const foreignPerms = (existingMember?.permissions || []).filter(p =>
+    ['vault','send','generate_docs','save_drafts','view_team'].includes(p)
+  );
+  const finalPerms = [...new Set([...perms, ...foreignPerms])];
 
   // Check password uniqueness
   const isDup = members.some((m,i) => m.password === pwd && i !== editIdx);

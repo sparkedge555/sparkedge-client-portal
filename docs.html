@@ -884,8 +884,23 @@ function attachDocsTeamListener(){
         const idx = merged.findIndex(hm => hm.id === fm.id);
         if (idx >= 0) merged[idx] = fm; else merged.push(fm);
       });
-      _teamCacheDocs = merged;
+   _teamCacheDocs = merged;
       localStorage.setItem(AUTH_KEY, JSON.stringify(merged));
+
+      if(window.DOCS_USER && window.DOCS_USER.role !== 'owner'){
+        const me = merged.find(m => m.id === window.DOCS_USER.memberId);
+        if(me){
+          if(me.status !== 'active'){
+            showToast('⛔ Your access was suspended. Logging out...', 3000);
+            setTimeout(doLogout, 1500);
+            return;
+          }
+          window.DOCS_USER.permissions = me.permissions || [];
+          sessionStorage.setItem('se_docs_session', JSON.stringify(window.DOCS_USER));
+          updateUserBadge();
+        }
+      }
+
       const teamSection = document.getElementById('teamSection');
       if(teamSection && teamSection.style.display !== 'none'){
         renderTeamPage();
@@ -3076,13 +3091,19 @@ async function saveMember(){
   if(!pwd || pwd.length<6){ alert('Password must be at least 6 characters.'); return; }
   if(pwd==='RAUNAK@1'){ alert('Members cannot use the owner password.'); return; }
 
-  const perms = ['generate_docs','save_drafts','export','view_team'].filter(p=>{
+  const docsPerms = ['generate_docs','save_drafts','export','view_team'].filter(p=>{
     const cb = document.getElementById('pm_'+p);
     return cb && cb.checked;
   });
 
   const members = getMembers();
   const editIdx = parseInt(document.getElementById('memberModalEditIdx').value);
+
+  const existingMember = (editIdx >= 0 && members[editIdx]) ? members[editIdx] : null;
+  const foreignPerms = (existingMember?.permissions || []).filter(p =>
+    !['generate_docs','save_drafts','export','view_team'].includes(p)
+  );
+  const perms = [...new Set([...docsPerms, ...foreignPerms])];
   const isDup = members.some((m,i)=>m.password===pwd && i!==editIdx);
   if(isDup){ alert('This password is already used. Choose a unique one.'); return; }
 
