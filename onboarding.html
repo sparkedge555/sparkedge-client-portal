@@ -280,13 +280,18 @@ async function saveMembers(arr){
   await batch.commit(); showToast('✅ Team synced to cloud!');
 }
 function attachTeamListener(){
-  if(window._teamListenerAttached) return; window._teamListenerAttached=true;
+  if(window._teamListenerAttached) return;
+  window._teamListenerAttached = true;
   try{
     getDb().collection('team').onSnapshot(snap=>{
-      const fs=[]; snap.forEach(d=>fs.push({id:d.id,...d.data()}));
-      const merged=[...HARDCODED_MEMBERS];
-      fs.forEach(fm=>{const idx=merged.findIndex(h=>h.id===fm.id); idx>=0?merged[idx]=fm:merged.push(fm);});
-      window._teamCache=merged;
+      const fs=[];
+      snap.forEach(d=>{
+        const data=d.data();
+        if(data.role==='owner'||data.role==='Owner') return;
+        fs.push({id:d.id,...data});
+      });
+      // Firestore is single source of truth
+      window._teamCache=fs;
       if(currentAdminTab==='team') adminNav('team');
     },err=>console.warn('Team listener:',err.message));
   }catch(e){console.warn(e.message);}
@@ -378,11 +383,10 @@ async function doAdminLogin(){
   if(!m){
     try{
       const snap=await getDb().collection('team').get();
-      const fs=[];snap.forEach(d=>fs.push({id:d.id,...d.data()}));
-      const merged=[...HARDCODED_MEMBERS];
-      fs.forEach(fm=>{const idx=merged.findIndex(h=>h.id===fm.id);idx>=0?merged[idx]=fm:merged.push(fm);});
-      window._teamCache=merged;
-      m=merged.find(x=>x.password===v&&x.status==='active');
+const fs=[];
+snap.forEach(d=>fs.push({id:d.id,...d.data()}));
+window._teamCache=fs;
+m=fs.find(x=>x.password===v&&x.status==='active');
     }catch(e){}
   }
   if(m){

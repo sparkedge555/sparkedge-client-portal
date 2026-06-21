@@ -553,15 +553,15 @@ function attachTeamListener(){
   if(window._teamListenerAttached) return;
   window._teamListenerAttached = true;
   try{
-    getDb().collection('pay_team').onSnapshot(snap=>{
+    getDb().collection('team').onSnapshot(snap=>{
       const fs=[];
-      snap.forEach(d=>fs.push({id:d.id,...d.data()}));
-      const merged=[...HARDCODED_MEMBERS];
-      fs.forEach(fm=>{
-        const idx=merged.findIndex(h=>h.id===fm.id);
-        idx>=0?merged[idx]=fm:merged.push(fm);
+      snap.forEach(d=>{
+        const data=d.data();
+        if(data.role==='owner'||data.role==='Owner') return;
+        fs.push({id:d.id,...data});
       });
-      window._teamCache=merged;
+      // Firestore is single source of truth — no merge with HARDCODED
+      window._teamCache=fs;
       refreshMyPermissions();
       if(currentSection==='teammgmt')renderSection('teammgmt');
     },err=>console.warn('pay_team listener:',err.message));
@@ -605,14 +605,15 @@ async function saveMembers(arr){
   const batch=db.batch();
   arr.forEach(m=>{
     if(!m.id)m.id='mem_'+Date.now();
-    batch.set(db.collection('pay_team').doc(m.id),m);
+    batch.set(db.collection('team').doc(m.id),m);
   });
   await batch.commit();
   showToast('✅ Team synced to cloud!');
 }
 
+
 async function deleteMemberFromFirestore(memberId){
-  try{await getDb().collection('pay_team').doc(memberId).delete();}
+  try{await getDb().collection('team').doc(memberId).delete();}
   catch(e){console.warn('Could not delete from Firestore:',e.message);}
 }
 let currentSection='dashboard';
@@ -668,16 +669,11 @@ async function doLogin(){
   let m=members.find(x=>x.password===val&&x.status==='active');
   if(!m){
     try{
-      const snap=await getDb().collection('pay_team').get();
-      const fs=[];
-      snap.forEach(d=>fs.push({id:d.id,...d.data()}));
-      const merged=[...HARDCODED_MEMBERS];
-      fs.forEach(fm=>{
-        const idx=merged.findIndex(h=>h.id===fm.id);
-        idx>=0?merged[idx]=fm:merged.push(fm);
-      });
-      window._teamCache=merged;
-      m=merged.find(x=>x.password===val&&x.status==='active');
+     const snap=await getDb().collection('team').get();
+const fs=[];
+snap.forEach(d=>fs.push({id:d.id,...d.data()}));
+window._teamCache=fs;
+m=fs.find(x=>x.password===val&&x.status==='active');
     }catch(e){console.warn('Firestore login fallback failed:',e.message);}
   }
   if(m){
@@ -1338,7 +1334,7 @@ async function saveTeamMember(){
     addedAt:editId?(members.find(m=>m.id===editId)?.addedAt||new Date().toLocaleDateString('en-IN')):new Date().toLocaleDateString('en-IN')
   };
   try{
-    await getDb().collection('pay_team').doc(memberData.id).set(memberData,{merge:true});
+    await getDb().collection('team').doc(memberData.id).set(memberData,{merge:true});
     window._teamCache=members.filter(m=>m.id!==memberData.id).concat(memberData);
     closeModal('teamModal');
     showToast('✅ Member saved & synced to all devices!');
