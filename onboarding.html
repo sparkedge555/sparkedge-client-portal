@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>SparkEdge — Client Onboarding</title>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --bg:#0A0A0F;--bg-card:#111118;--bg-raised:#16161F;--border:rgba(255,255,255,.08);
+  --accent:#FF6B35;--accent-2:#FF3CAC;--gold:#FFB347;
+  --text:#F0F0F5;--text-muted:#8888A8;--text-dim:#4A4A6A;
+  --success:#22C55E;--warning:#F59E0B;--danger:#EF4444;--info:#3B82F6;
+  --grad:linear-gradient(135deg,#FF6B35,#FF3CAC);--r:14px;--r-lg:20px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh}
+a{color:var(--accent);text-decoration:none}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+.hidden{display:none!important}
+.wrap{max-width:880px;margin:0 auto;padding:28px 18px 80px}
+.badge{display:inline-flex;align-items:center;gap:6px;background:rgba(255,107,53,.1);border:1px solid rgba(255,107,53,.25);color:var(--accent);border-radius:20px;padding:5px 14px;font-size:11px;font-weight:700;letter-spacing:.5px}
+.h-title{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;margin:12px 0 4px;letter-spacing:-.5px}
+.h-sub{color:var(--text-muted);font-size:13px;line-height:1.6;margin-bottom:24px}
+.card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-lg);padding:22px;margin-bottom:18px}
+.sec-head{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.sec-icon{width:34px;height:34px;border-radius:10px;background:rgba(255,107,53,.1);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.sec-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:700}
+.tag{font-size:10px;font-weight:700;letter-spacing:.5px;padding:3px 9px;border-radius:20px;margin-left:auto}
+.tag.req{background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.3);color:var(--danger)}
+.tag.opt{background:rgba(122,122,154,.12);border:1px solid rgba(122,122,154,.25);color:var(--text-muted)}
+.fg{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.fg label{font-size:12px;font-weight:600;color:var(--text-muted)}
+.fg label .req-star{color:var(--danger);margin-left:3px}
+.fg .hint{font-size:11px;color:var(--text-dim);margin-top:-2px}
+.fg input,.fg textarea,.fg select{background:var(--bg-raised);border:1px solid var(--border);border-radius:10px;padding:11px 14px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13.5px;outline:none;transition:.2s;width:100%}
+.fg input:focus,.fg textarea:focus,.fg select:focus{border-color:rgba(255,107,53,.5);box-shadow:0 0 0 3px rgba(255,107,53,.08)}
+.fg textarea{resize:vertical;min-height:80px;line-height:1.6}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:640px){.grid2{grid-template-columns:1fr}}
+.chk-row{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-muted);margin-top:4px;cursor:pointer}
+.chk-row input{width:auto;accent-color:var(--accent)}
+.btn{display:inline-flex;align-items:center;gap:7px;padding:11px 22px;border-radius:11px;border:none;font-family:'Syne',sans-serif;font-weight:700;font-size:14px;cursor:pointer;transition:.2s}
+.btn-primary{background:var(--grad);color:#fff;box-shadow:0 6px 22px rgba(255,107,53,.3)}
+.btn-primary:hover{opacity:.9;transform:translateY(-1px)}
+.btn-sec{background:var(--bg-raised);border:1px solid var(--border);color:var(--text-muted);font-family:'DM Sans',sans-serif;font-weight:600;font-size:12px;padding:8px 14px}
+.btn-sec:hover{color:var(--text);border-color:rgba(255,107,53,.3)}
+.btn-danger{background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.3);color:var(--danger);font-family:'DM Sans',sans-serif;font-weight:600;font-size:12px;padding:8px 14px}
+.btn-sm{padding:6px 12px;font-size:11px;border-radius:8px}
+.note-box{background:rgba(255,107,53,.06);border:1px solid rgba(255,107,53,.2);border-radius:10px;padding:13px 16px;font-size:12px;color:var(--text-muted);line-height:1.7;margin-bottom:18px}
+.center-pad{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px;text-align:center}
+.pill{display:inline-flex;align-items:center;gap:5px;padding:3px 11px;border-radius:20px;font-size:10px;font-weight:700}
+.pill-submitted{background:rgba(34,197,94,.12);color:var(--success);border:1px solid rgba(34,197,94,.3)}
+.pill-pending{background:rgba(245,158,11,.12);color:var(--warning);border:1px solid rgba(245,158,11,.3)}
+.pill-reviewed{background:rgba(59,130,246,.12);color:var(--info);border:1px solid rgba(59,130,246,.3)}
+.toast{position:fixed;bottom:22px;right:22px;background:var(--bg-card);border:1px solid rgba(34,197,94,.4);color:var(--success);border-radius:12px;padding:12px 18px;font-size:13px;font-weight:600;z-index:9999;display:none;box-shadow:0 8px 30px rgba(0,0,0,.5)}
+/* ===== ADMIN LOGIN ===== */
+#adminLoginScreen{position:fixed;inset:0;background:var(--bg);z-index:5000;display:none;align-items:center;justify-content:center;padding:16px}
+.login-card{background:var(--bg-card);border:1px solid var(--border);border-radius:20px;padding:40px 32px;width:100%;max-width:380px;text-align:center}
+.login-icon{width:56px;height:56px;border-radius:14px;background:var(--grad);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:24px}
+.login-title{font-family:'Syne',sans-serif;font-size:19px;font-weight:800;margin-bottom:6px}
+.login-sub{font-size:12px;color:var(--text-muted);margin-bottom:22px}
+.login-card input{width:100%;background:var(--bg-raised);border:1px solid var(--border);border-radius:10px;padding:12px 14px;color:var(--text);font-size:14px;outline:none;margin-bottom:12px}
+.login-err{display:none;color:var(--danger);font-size:12px;margin-bottom:10px}
+/* ===== ADMIN SHELL ===== */
+#adminShell{display:none}
+.admin-nav{position:sticky;top:0;z-index:200;background:rgba(10,10,15,.95);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:0 20px;height:58px;display:flex;align-items:center;justify-content:space-between}
+.admin-brand{font-family:'Syne',sans-serif;font-weight:800;font-size:15px;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.admin-tabs{display:flex;gap:6px;flex-wrap:wrap;margin:18px 0 22px;padding:0 18px}
+.admin-tab{padding:8px 16px;border-radius:9px;font-size:12.5px;font-weight:700;cursor:pointer;border:1px solid var(--border);background:var(--bg-card);color:var(--text-muted)}
+.admin-tab.active{background:rgba(255,107,53,.13);border-color:var(--accent);color:var(--accent)}
+.admin-body{max-width:1180px;margin:0 auto;padding:0 18px 60px}
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:22px}
+.stat-card{background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:16px}
+.stat-card .l{font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--text-dim);font-weight:700;margin-bottom:6px}
+.stat-card .v{font-family:'Syne',sans-serif;font-size:24px;font-weight:800}
+.sub-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:14px}
+.sub-card{background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:16px;cursor:pointer;transition:.2s}
+.sub-card:hover{border-color:rgba(255,107,53,.35);transform:translateY(-2px)}
+.sub-card .top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.sub-card .tid{font-family:'Syne',sans-serif;font-weight:800;color:var(--accent);font-size:13px}
+.sub-card .biz{font-size:14px;font-weight:700;margin-top:6px}
+.sub-card .meta{font-size:11px;color:var(--text-muted);margin-top:4px}
+.toolbar{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+.toolbar input[type=text]{flex:1;min-width:180px;background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:10px 14px;color:var(--text);font-size:13px;outline:none}
+.detail-field{background:var(--bg-raised);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:8px}
+.detail-field .l{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--text-dim);font-weight:700;margin-bottom:4px}
+.detail-field .v{font-size:13px;color:var(--text);white-space:pre-wrap;word-break:break-word}
+.detail-field .v a{color:var(--accent)}
+.empty{text-align:center;padding:60px 20px;color:var(--text-dim)}
+.empty .ic{font-size:40px;margin-bottom:10px}
+.linktool input{background:var(--bg-raised);border:1px solid var(--border);border-radius:10px;padding:11px 14px;color:var(--text);font-size:13px;outline:none;width:100%}
+.linkbox{display:flex;gap:8px;background:var(--bg-raised);border:1px dashed var(--border);border-radius:10px;padding:12px;margin-top:10px;align-items:center;font-family:monospace;font-size:12px;color:var(--accent);word-break:break-all}
+.team-row{display:flex;align-items:flex-start;gap:14px;background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:10px;flex-wrap:wrap}
+.team-avatar{width:42px;height:42px;border-radius:11px;background:var(--grad);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;color:#fff;flex-shrink:0}
+</style>
+</head>
+<body>
+
+<div class="toast" id="toast"></div>
+
+<!-- ════════════ PUBLIC FORM VIEW ════════════ -->
+<div id="publicView" class="wrap hidden">
+  <div class="badge">⚡ SparkEdge</div>
+  <div class="h-title" id="pf_heading">Tell us about your business</div>
+  <div class="h-sub" id="pf_sub">This form helps us build exactly what you need. Takes about 10–15 minutes. Fields marked <span style="color:var(--danger);font-weight:700">Required</span> must be filled — everything else is optional but helps us a lot.</div>
+
+  <div id="pf_noTicket" class="card hidden" style="text-align:center;">
+    <div style="font-size:32px;margin-bottom:10px;">🔗</div>
+    <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700;margin-bottom:6px;">This link is missing a ticket ID</div>
+    <div style="font-size:13px;color:var(--text-muted);">Please use the exact link shared with you on WhatsApp (it looks like <code>?ticket=SE-001</code>). Contact SparkEdge if you need a fresh link.</div>
+  </div>
+
+  <div id="pf_already" class="card hidden" style="text-align:center;border-color:rgba(34,197,94,.3)">
+    <div style="font-size:32px;margin-bottom:10px;">✅</div>
+    <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700;margin-bottom:6px;">Thanks — we've already received your details!</div>
+    <div style="font-size:13px;color:var(--text-muted);margin-bottom:14px;">You can still update your submission any time using this same link.</div>
+    <button class="btn btn-sec" onclick="document.getElementById('pf_already').classList.add('hidden');document.getElementById('pf_form').classList.remove('hidden')">✏️ Edit My Submission</button>
+  </div>
+
+  <form id="pf_form" class="hidden" onsubmit="return submitOnboardingForm(event)">
+
+    <div class="note-box">🎫 Submitting for Ticket: <strong id="pf_ticketShow" style="color:var(--accent)"></strong> — this links your details directly to your SparkEdge project.</div>
+
+    <!-- BUSINESS IDENTITY -->
+    <div class="card">
+      <div class="sec-head"><div class="sec-icon">🏢</div><div class="sec-title">Business Identity</div><span class="tag req">Required</span></div>
+      <div class="grid2">
+        <div class="fg"><label>Full legal business name <span class="req-star">*</span></label><input id="f_legalName" required placeholder="e.g. Sharma Enterprises Pvt Ltd"/></div>
+        <div class="fg"><label>Display name (if different)</label><input id="f_displayName" placeholder="e.g. Sharma Designs"/></div>
+      </div>
+      <div class="fg"><label>Tagline / one-liner <span class="req-star">*</span></label><input id="f_tagline" required placeholder="What you do, in one sentence"/></div>
+      <div class="fg"><label>About the business <span class="req-star">*</span></label><textarea id="f_about" required placeholder="2–3 paragraphs — your story, what you offer, why clients choose you..."></textarea></div>
+    </div>
+
+    <!-- CONTACT -->
+    <div class="card">
+      <div class="sec-head"><div class="sec-icon">📞</div><div class="sec-title">Contact Information (for the website)</div><span class="tag req">Required</span></div>
+      <div class="grid2">
+        <div class="fg"><label>Phone number <span class="req-star">*</span></label><input id="f_phone" required placeholder="+91 XXXXX XXXXX"/></div>
+        <div class="fg"><label>WhatsApp number <span class="req-star">*</span></label><input id="f_wa" required placeholder="+91 XXXXX XXXXX"/></div>
+        <div class="fg"><label>Email address <span class="req-star">*</span></label><input id="f_email" type="email" required placeholder="business@email.com"/></div>
+        <div class="fg"><label>Business address</label><input id="f_address" placeholder="Street, City, State, PIN"/></div>
+      </div>
+    </div>
+
+    <!-- AUDIENCE -->
+    <div class="card">
+      <div class="sec-head"><div class="sec-icon">🎯</div><div class="sec-title">Target Audience</div><span class="tag req">Required</span></div>
+      <div class="fg"><label>Who visits your site, and what are they looking for? <span class="req-star">*</span></label><textarea id="f_audience" required placeholder="e.g. Parents aged 25–40 looking for admission info, fee details, and faculty credentials"></textarea></div>
+    </div>
+
+    <!-- BRANDING -->
+    <div class="card">
+      <div class="sec-head"><div class="sec-icon">🎨</div><div class="sec-title">Branding & Visual Identity</div><span class="tag opt">Optional</span></div>
+      <div class="fg">
+        <label>Logo file (Google Drive link)</label>
+        <input id="f_logo" placeholder="https://drive.google.com/..."/>
+        <div class="hint">Upload a PNG with transparent background to Drive → right-click → Share → "Anyone with the link" → paste link here.</div>
+      </div>
+      <div class="fg"><label>Brand colours (hex codes)</label>
+        <div class="grid2">
+          <input id="f_color1" placeholder="#FF6B35 (primary)"/>
+          <input id="f_color2" placeholder="#111118 (secondary)"/>
+        </div>
+        <label class="chk-row"><input type="checkbox" id="f_noColorPref" onchange="document.getElementById('f_color1').disabled=this.checked;document.getElementById('f_color2').disabled=this.checked;"/> No preference — SparkEdge can choose colours for me</label>
+      </div>
+      <div class="fg"><label>Team / faculty photos (Google Drive link)</label><input id="f_teamPhotos" placeholder="https://drive.google.com/..."/></div>
+    </div>
+
+    <!-- INSPIRATION -->
+    <div class="card">
+      <div class="sec-head"><div class="sec-icon">🌐</div><div class="sec-title">Design Inspiration</div><span class="tag opt">Optional</span></div>
+      <div class="fg"><label>3 reference websites you like the style of</label>
+        <input id="f_ref1" placeholder="https://example1.com" style="margin-bottom:8px"/>
+        <input id="f_ref2" placeholder="https://example2.com" style="margin-bottom:8px"/>
+        <input id="f_ref3" placeholder="https://example3.com"/>
+      </div>
+    </div>
+
+    <!-- SERVICES -->
+    <div class="card">
+      <div class="sec-head"><div class="sec-icon">🛠</div><div class="sec-title">Services / Courses / Products</div><span class="tag req">Required</span></div>
+      <div class="fg"><label>List each one with a short description <span class="req-star">*</span></label>
+        <textarea id="f_services" required placeholder="e.g.&#10;1. Logo Design — Custom logo with 3 concepts, ₹2,999&#10;2. Website Package — 5-page business site, ₹9,999"></textarea>
+        <div class="hint">One per line is fine. Include price if you want it shown.</div>
+      </div>
+      <div class="fg"><label>Should pricing be shown publicly on the website?</label>
+        <select id="f_showPricing"><option value="yes">Yes, show pricing</option><option value="no">No, hide pricing (show "Contact us")</option><option value="some">Show some, hide some — I'll specify above</option></select>
+      </div>
+    </div>
+
+    <!-- SOCIAL -->
+    <div class="card">
+      <div class="sec-head"><div class="sec-icon">🔗</div><div class="sec-title">Social Media Links</div><span class="tag opt">Optional</span></div>
+      <div class="grid2">
+        <div class="fg"><label>Instagram</label><input id="f_insta" placeholder="https://instagram.com/..."/></div>
+        <div class="fg"><label>Facebook</label><input id="f_fb" placeholder="https://facebook.com/..."/></div>
+        <div class="fg"><label>YouTube</label><input id="f_yt" placeholder="https://youtube.com/..."/></div>
+        <div class="fg"><label>Other (LinkedIn / X / etc.)</label><input id="f_otherSocial" placeholder="https://..."/></div>
+      </div>
+    </div>
+
+    <!-- NOTES -->
+    <div class="card">
+      <div class="sec-head"><div class="sec-icon">📝</div><div class="sec-title">Anything Else?</div><span class="tag opt">Optional</span></div>
+      <div class="fg"><label>Other notes, special requests, or things we should know</label><textarea id="f_notes" placeholder="Anything at all..."></textarea></div>
+    </div>
+
+    <!-- FILLED BY -->
+    <div class="card">
+      <div class="sec-head"><div class="sec-icon">👤</div><div class="sec-title">Your Details (so we know who submitted this)</div><span class="tag req">Required</span></div>
+      <div class="grid2">
+        <div class="fg"><label>Your full name <span class="req-star">*</span></label><input id="f_fillerName" required placeholder="Your name"/></div>
+        <div class="fg"><label>Your role</label><input id="f_fillerRole" placeholder="e.g. Owner, Manager, Staff"/></div>
+      </div>
+      <label class="chk-row"><input type="checkbox" id="f_consent" required/> I confirm the information provided above is accurate to the best of my knowledge, and I authorise SparkEdge to use it for building my project.</label>
+    </div>
+
+    <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:6px">
+      <button type="submit" class="btn btn-primary">✅ Submit My Details</button>
+    </div>
+  </form>
+</div>
+
+<!-- ════════════ TEAM ACCESS FLOATING LINK ════════════ -->
+<button id="teamAccessBtn" onclick="document.getElementById('adminLoginScreen').style.display='flex'" style="position:fixed;bottom:14px;left:14px;background:var(--bg-card);border:1px solid var(--border);color:var(--text-dim);font-size:10px;padding:6px 12px;border-radius:20px;cursor:pointer;z-index:50;">Team Access →</button>
+
+<!-- ════════════ ADMIN LOGIN ════════════ -->
+<div id="adminLoginScreen">
+  <div class="login-card">
+    <div class="login-icon">🔐</div>
+    <div class="login-title">SparkEdge Team Login</div>
+    <div class="login-sub">Enter your password to view client submissions.</div>
+    <div class="login-err" id="loginErr">⚠ Incorrect password.</div>
+    <input type="password" id="loginPwd" placeholder="Password" onkeydown="if(event.key==='Enter')doAdminLogin()"/>
+    <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="doAdminLogin()">Unlock →</button>
+    <div style="margin-top:14px"><button class="btn-sec" style="background:none;border:none" onclick="document.getElementById('adminLoginScreen').style.display='none'">Cancel</button></div>
+  </div>
+</div>
+
+<!-- ════════════ ADMIN SHELL ════════════ -->
+<div id="adminShell">
+  <div class="admin-nav">
+    <div class="admin-brand">⚡ SparkEdge — Onboarding Hub</div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <span id="adminUserName" style="font-size:12px;color:var(--text-muted)"></span>
+      <button class="btn-sec" onclick="adminLogout()">Logout</button>
+    </div>
+  </div>
+  <div class="admin-tabs" id="adminTabs">
+    <div class="admin-tab active" onclick="adminNav('dashboard')">📊 Dashboard</div>
+    <div class="admin-tab" onclick="adminNav('submissions')">📋 Submissions</div>
+    <div class="admin-tab" onclick="adminNav('linktool')">🔗 Generate Link</div>
+    <div class="admin-tab" onclick="adminNav('team')">🧑‍💻 Team</div>
+  </div>
+  <div class="admin-body" id="adminBody"></div>
+</div>
+
+<script>
+/* ═══════════ FIREBASE ═══════════ */
+const FB_CONFIG={apiKey:"AIzaSyA0rufGe1NcKnsalr7VFnIuRLwfjPyD0QE",authDomain:"sparkedge-client-portal.firebaseapp.com",projectId:"sparkedge-client-portal",storageBucket:"sparkedge-client-portal.firebasestorage.app",messagingSenderId:"848868473172",appId:"1:848868473172:web:2111dd537b9bc7549370c1"};
+let _fbInited=false;
+function getDb(){ if(!_fbInited){ if(!firebase.apps.length) firebase.initializeApp(FB_CONFIG); _fbInited=true; } return firebase.firestore(); }
+
+/* ═══════════ TEAM (same pattern as admin.html / retention) ═══════════ */
+const HARDCODED_MEMBERS=[
+  {"id":"mem_1778838014185","name":"Pinkesh Kr Prabhakar","role":"Marketing Manager","email":"pinkeshkumarprabhakar9@gmail.com","wa":"9693717475","password":"Pinkesh@1","permissions":["view","delete","export"],"status":"active","addedAt":"15/5/2026"}
+];
+window._teamCache=[...HARDCODED_MEMBERS];
+window._teamListenerAttached=false;
+window.ADMIN_USER=null;
+function getMembers(){return window._teamCache||[...HARDCODED_MEMBERS];}
+async function saveMembers(arr){
+  const db=getDb();const batch=db.batch();
+  arr.forEach(m=>{if(!m.id)m.id='mem_'+Date.now();batch.set(db.collection('team').doc(m.id),m);});
+  await batch.commit(); showToast('✅ Team synced to cloud!');
+}
+function attachTeamListener(){
+  if(window._teamListenerAttached) return; window._teamListenerAttached=true;
+  try{
+    getDb().collection('team').onSnapshot(snap=>{
+      const fs=[]; snap.forEach(d=>fs.push({id:d.id,...d.data()}));
+      const merged=[...HARDCODED_MEMBERS];
+      fs.forEach(fm=>{const idx=merged.findIndex(h=>h.id===fm.id); idx>=0?merged[idx]=fm:merged.push(fm);});
+      window._teamCache=merged;
+      if(currentAdminTab==='team') adminNav('team');
+    },err=>console.warn('Team listener:',err.message));
+  }catch(e){console.warn(e.message);}
+}
+
+/* ═══════════ TOAST ═══════════ */
+function showToast(msg,dur=2800){const t=document.getElementById('toast');t.textContent=msg;t.style.display='block';setTimeout(()=>t.style.display='none',dur);}
+
+/* ═══════════ PUBLIC FORM LOGIC ═══════════ */
+const TICKET = new URLSearchParams(location.search).get('ticket');
+let pf_existing=null;
+
+(async function initPublicView(){
+  if(document.getElementById('adminLoginScreen').style.display==='flex') return;
+  document.getElementById('publicView').classList.remove('hidden');
+  if(!TICKET){ document.getElementById('pf_noTicket').classList.remove('hidden'); return; }
+  document.getElementById('pf_ticketShow').textContent=TICKET;
+  document.getElementById('pf_heading').textContent='Tell us about your business — '+TICKET;
+  try{
+    const doc=await getDb().collection('onboarding_submissions').doc(TICKET).get();
+    if(doc.exists){
+      pf_existing=doc.data();
+      prefillForm(pf_existing);
+      document.getElementById('pf_already').classList.remove('hidden');
+    } else {
+      document.getElementById('pf_form').classList.remove('hidden');
+    }
+  }catch(e){
+    document.getElementById('pf_form').classList.remove('hidden');
+    console.warn('Could not check existing submission:',e.message);
+  }
+})();
+
+function prefillForm(d){
+  const map={f_legalName:'legalName',f_displayName:'displayName',f_tagline:'tagline',f_about:'about',
+  f_phone:'phone',f_wa:'wa',f_email:'email',f_address:'address',f_audience:'audience',
+  f_logo:'logo',f_color1:'color1',f_color2:'color2',f_teamPhotos:'teamPhotos',
+  f_ref1:'ref1',f_ref2:'ref2',f_ref3:'ref3',f_services:'services',
+  f_insta:'insta',f_fb:'fb',f_yt:'yt',f_otherSocial:'otherSocial',f_notes:'notes',
+  f_fillerName:'fillerName',f_fillerRole:'fillerRole'};
+  Object.entries(map).forEach(([id,k])=>{const el=document.getElementById(id); if(el&&d[k]) el.value=d[k];});
+  if(d.showPricing) document.getElementById('f_showPricing').value=d.showPricing;
+  if(d.noColorPref){ document.getElementById('f_noColorPref').checked=true; document.getElementById('f_color1').disabled=true; document.getElementById('f_color2').disabled=true; }
+}
+
+async function submitOnboardingForm(e){
+  e.preventDefault();
+  if(!TICKET){ showToast('⚠️ No ticket ID in this link.'); return false; }
+  const data={
+    ticketId:TICKET,
+    legalName:val('f_legalName'),displayName:val('f_displayName'),tagline:val('f_tagline'),about:val('f_about'),
+    phone:val('f_phone'),wa:val('f_wa'),email:val('f_email'),address:val('f_address'),
+    audience:val('f_audience'),
+    logo:val('f_logo'),color1:val('f_color1'),color2:val('f_color2'),noColorPref:document.getElementById('f_noColorPref').checked,
+    teamPhotos:val('f_teamPhotos'),
+    ref1:val('f_ref1'),ref2:val('f_ref2'),ref3:val('f_ref3'),
+    services:val('f_services'),showPricing:val('f_showPricing'),
+    insta:val('f_insta'),fb:val('f_fb'),yt:val('f_yt'),otherSocial:val('f_otherSocial'),
+    notes:val('f_notes'),
+    fillerName:val('f_fillerName'),fillerRole:val('f_fillerRole'),
+    status: pf_existing?'updated':'submitted',
+    reviewed: pf_existing?(pf_existing.reviewed||false):false,
+    submittedAt: pf_existing?pf_existing.submittedAt:Date.now(),
+    lastUpdatedAt: Date.now(),
+    userAgent: navigator.userAgent
+  };
+  try{
+    await getDb().collection('onboarding_submissions').doc(TICKET).set(data,{merge:true});
+    document.getElementById('pf_form').classList.add('hidden');
+    document.getElementById('publicView').innerHTML = `<div class="card" style="text-align:center;border-color:rgba(34,197,94,.35)"><div style="font-size:40px;margin-bottom:10px">🎉</div><div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;margin-bottom:8px">Thank you, ${data.fillerName||'there'}!</div><div style="font-size:13px;color:var(--text-muted);line-height:1.7">We've received your business details for <strong style="color:var(--accent)">${TICKET}</strong>. Our team will start working on your project shortly. You can reopen this same link any time to update your information.</div></div>`;
+  }catch(err){
+    alert('Could not submit — check your internet connection.\n\n'+err.message);
+  }
+  return false;
+}
+function val(id){return (document.getElementById(id)?.value||'').trim();}
+
+/* ═══════════ ADMIN LOGIN ═══════════ */
+async function doAdminLogin(){
+  const v=document.getElementById('loginPwd').value.trim();
+  const err=document.getElementById('loginErr'); err.style.display='none';
+  if(v==='RAUNAK@1'){
+    window.ADMIN_USER={name:'Raunak (Owner)',role:'Owner',isOwner:true,permissions:['all']};
+    sessionStorage.setItem('se_onb_session',JSON.stringify(window.ADMIN_USER));
+    return enterAdmin();
+  }
+  let members=getMembers();
+  let m=members.find(x=>x.password===v&&x.status==='active');
+  if(!m){
+    try{
+      const snap=await getDb().collection('team').get();
+      const fs=[];snap.forEach(d=>fs.push({id:d.id,...d.data()}));
+      const merged=[...HARDCODED_MEMBERS];
+      fs.forEach(fm=>{const idx=merged.findIndex(h=>h.id===fm.id);idx>=0?merged[idx]=fm:merged.push(fm);});
+      window._teamCache=merged;
+      m=merged.find(x=>x.password===v&&x.status==='active');
+    }catch(e){}
+  }
+  if(m){
+    window.ADMIN_USER={name:m.name,role:m.role,isOwner:false,permissions:m.permissions||[],memberId:m.id};
+    sessionStorage.setItem('se_onb_session',JSON.stringify(window.ADMIN_USER));
+    return enterAdmin();
+  }
+  err.style.display='block';
+}
+function hasPerm(p){const u=window.ADMIN_USER;if(!u)return false;if(u.isOwner)return true;return (u.permissions||[]).includes(p);}
+
+function enterAdmin(){
+  document.getElementById('adminLoginScreen').style.display='none';
+  document.getElementById('publicView').classList.add('hidden');
+  document.getElementById('teamAccessBtn').classList.add('hidden');
+  document.getElementById('adminShell').style.display='block';
+  document.getElementById('adminUserName').textContent=window.ADMIN_USER.name+' · '+window.ADMIN_USER.role;
+  attachTeamListener();
+  attachSubmissionsListener();
+  adminNav('dashboard');
+}
+function adminLogout(){ sessionStorage.removeItem('se_onb_session'); location.reload(); }
+
+(function checkSession(){
+  try{
+    const s=sessionStorage.getItem('se_onb_session');
+    if(s){ window.ADMIN_USER=JSON.parse(s); document.getElementById('publicView').classList.add('hidden'); document.getElementById('teamAccessBtn').classList.add('hidden'); document.getElementById('adminShell').style.display='block'; setTimeout(()=>{document.getElementById('adminUserName').textContent=window.ADMIN_USER.name+' · '+window.ADMIN_USER.role; attachTeamListener(); attachSubmissionsListener(); adminNav('dashboard');},50); }
+  }catch{}
+})();
+
+/* ═══════════ SUBMISSIONS DATA ═══════════ */
+let submissions=[];
+let _subsListenerAttached=false;
+function attachSubmissionsListener(){
+  if(_subsListenerAttached) return; _subsListenerAttached=true;
+  try{
+    getDb().collection('onboarding_submissions').onSnapshot(snap=>{
+      const arr=[]; snap.forEach(d=>arr.push({id:d.id,...d.data()}));
+      submissions=arr.sort((a,b)=>(b.lastUpdatedAt||0)-(a.lastUpdatedAt||0));
+      if(['dashboard','submissions'].includes(currentAdminTab)) adminNav(currentAdminTab);
+    },err=>{ console.warn('Submissions listener:',err.message); showToast('⚠️ Could not load submissions: '+err.message); });
+  }catch(e){console.warn(e.message);}
+}
+
+/* ═══════════ ADMIN NAV ═══════════ */
+let currentAdminTab='dashboard';
+function adminNav(tab){
+  currentAdminTab=tab;
+  document.querySelectorAll('.admin-tab').forEach((el,i)=>{
+    const map=['dashboard','submissions','linktool','team'];
+    el.classList.toggle('active',map[i]===tab);
+  });
+  const body=document.getElementById('adminBody');
+  if(tab==='dashboard') body.innerHTML=renderDashboard();
+  else if(tab==='submissions') body.innerHTML=renderSubmissionsList();
+  else if(tab==='linktool') body.innerHTML=renderLinkTool();
+  else if(tab==='team') body.innerHTML=renderTeamAdmin();
+  setTimeout(()=>{ if(typeof lucide!=='undefined') lucide.createIcons(); },30);
+}
+
+function renderDashboard(){
+  const total=submissions.length;
+  const reviewed=submissions.filter(s=>s.reviewed).length;
+  const pendingReview=total-reviewed;
+  const updated=submissions.filter(s=>s.status==='updated').length;
+  const recent=submissions.slice(0,6);
+  return `
+  <div class="stats-row">
+    <div class="stat-card"><div class="l">Total Submissions</div><div class="v">${total}</div></div>
+    <div class="stat-card"><div class="l">Reviewed</div><div class="v" style="color:var(--success)">${reviewed}</div></div>
+    <div class="stat-card"><div class="l">Awaiting Review</div><div class="v" style="color:var(--warning)">${pendingReview}</div></div>
+    <div class="stat-card"><div class="l">Resubmitted / Updated</div><div class="v" style="color:var(--info)">${updated}</div></div>
+  </div>
+  <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;margin-bottom:12px">Recent Submissions</div>
+  <div class="sub-grid">
+    ${recent.map(subCardHTML).join('')||`<div class="empty" style="grid-column:1/-1"><div class="ic">📭</div><p>No submissions yet. Generate a link and send it to a client!</p></div>`}
+  </div>`;
+}
+
+function subCardHTML(s){
+  const statusPill = s.reviewed ? '<span class="pill pill-reviewed">✓ Reviewed</span>' : '<span class="pill pill-pending">⏳ New</span>';
+  return `
+  <div class="sub-card" onclick="openSubmissionDetail('${s.id}')">
+    <div class="top"><span class="tid">${s.id}</span>${statusPill}</div>
+    <div class="biz">${s.legalName||'(no business name)'}</div>
+    <div class="meta">${s.fillerName||'—'} · ${s.phone||''}</div>
+    <div class="meta">Submitted: ${s.submittedAt?new Date(s.submittedAt).toLocaleDateString('en-IN'):'—'}</div>
+  </div>`;
+}
+
+let _subSearch='';
+function renderSubmissionsList(){
+  return `
+  <div class="toolbar">
+    <input type="text" placeholder="🔍 Search by ticket ID, business name, phone..." oninput="_subSearch=this.value;adminNav('submissions')" value="${_subSearch}"/>
+    ${hasPerm('export')?`<button class="btn btn-sec" onclick="exportSubmissions()">⬇ Export All</button>`:''}
+  </div>
+  <div class="sub-grid" id="subGrid">${filteredSubs().map(subCardHTML).join('')||`<div class="empty" style="grid-column:1/-1"><div class="ic">📭</div><p>No submissions match.</p></div>`}</div>`;
+}
+function filteredSubs(){
+  if(!_subSearch) return submissions;
+  const q=_subSearch.toLowerCase();
+  return submissions.filter(s=>(s.id+s.legalName+s.phone+s.fillerName).toLowerCase().includes(q));
+}
+function exportSubmissions(){
+  const blob=new Blob([JSON.stringify(submissions,null,2)],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download='sparkedge-onboarding-'+new Date().toISOString().slice(0,10)+'.json'; a.click();
+  showToast('✅ Exported!');
+}
+
+function openSubmissionDetail(id){
+  const s=submissions.find(x=>x.id===id); if(!s) return;
+  const field=(l,v,isLink)=>`<div class="detail-field"><div class="l">${l}</div><div class="v">${v?(isLink?`<a href="${v}" target="_blank">${v} ↗</a>`:v):'<span style="color:var(--text-dim)">— not provided —</span>'}</div></div>`;
+  document.getElementById('adminBody').innerHTML=`
+  <button class="btn btn-sec" onclick="adminNav('${submissions.indexOf(s)>=0?'submissions':'dashboard'}')" style="margin-bottom:16px">← Back</button>
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;margin-bottom:6px">
+      <div><div class="badge">${s.id}</div><div class="h-title" style="margin-top:8px">${s.legalName||'(no business name)'}</div></div>
+      <div style="display:flex;gap:8px">
+        ${!s.reviewed?`<button class="btn btn-sec" onclick="markReviewed('${s.id}',true)">✓ Mark Reviewed</button>`:`<button class="btn btn-sec" onclick="markReviewed('${s.id}',false)">↺ Mark Unreviewed</button>`}
+        ${hasPerm('delete')?`<button class="btn btn-danger" onclick="deleteSubmission('${s.id}')">🗑 Delete</button>`:''}
+      </div>
+    </div>
+  </div>
+  <div class="card"><div class="sec-head"><div class="sec-icon">🏢</div><div class="sec-title">Business Identity</div></div>
+    ${field('Legal Name',s.legalName)}${field('Display Name',s.displayName)}${field('Tagline',s.tagline)}${field('About',s.about)}
+  </div>
+  <div class="card"><div class="sec-head"><div class="sec-icon">📞</div><div class="sec-title">Contact</div></div>
+    ${field('Phone',s.phone)}${field('WhatsApp',s.wa)}${field('Email',s.email)}${field('Address',s.address)}
+  </div>
+  <div class="card"><div class="sec-head"><div class="sec-icon">🎯</div><div class="sec-title">Target Audience</div></div>${field('Audience',s.audience)}</div>
+  <div class="card"><div class="sec-head"><div class="sec-icon">🎨</div><div class="sec-title">Branding</div></div>
+    ${field('Logo (Drive Link)',s.logo,true)}
+    ${field('Brand Colours',s.noColorPref?'No preference — SparkEdge to choose':[s.color1,s.color2].filter(Boolean).join(', '))}
+    ${field('Team/Faculty Photos (Drive Link)',s.teamPhotos,true)}
+  </div>
+  <div class="card"><div class="sec-head"><div class="sec-icon">🌐</div><div class="sec-title">Reference Websites</div></div>
+    ${field('Reference 1',s.ref1,true)}${field('Reference 2',s.ref2,true)}${field('Reference 3',s.ref3,true)}
+  </div>
+  <div class="card"><div class="sec-head"><div class="sec-icon">🛠</div><div class="sec-title">Services / Pricing</div></div>
+    ${field('Services / Products',s.services)}${field('Show Pricing?',s.showPricing)}
+  </div>
+  <div class="card"><div class="sec-head"><div class="sec-icon">🔗</div><div class="sec-title">Social Links</div></div>
+    ${field('Instagram',s.insta,true)}${field('Facebook',s.fb,true)}${field('YouTube',s.yt,true)}${field('Other',s.otherSocial,true)}
+  </div>
+  <div class="card"><div class="sec-head"><div class="sec-icon">📝</div><div class="sec-title">Notes</div></div>${field('Other Notes',s.notes)}</div>
+  <div class="card"><div class="sec-head"><div class="sec-icon">👤</div><div class="sec-title">Submission Meta</div></div>
+    ${field('Filled By',s.fillerName)}${field('Role',s.fillerRole)}
+    ${field('Status',s.status)}
+    ${field('Submitted At',s.submittedAt?new Date(s.submittedAt).toLocaleString('en-IN'):'')}
+    ${field('Last Updated',s.lastUpdatedAt?new Date(s.lastUpdatedAt).toLocaleString('en-IN'):'')}
+  </div>`;
+}
+
+async function markReviewed(id,val){
+  try{ await getDb().collection('onboarding_submissions').doc(id).set({reviewed:val},{merge:true}); showToast(val?'✅ Marked reviewed':'↺ Marked unreviewed'); setTimeout(()=>openSubmissionDetail(id),300); }
+  catch(e){ showToast('❌ Failed: '+e.message); }
+}
+async function deleteSubmission(id){
+  if(!hasPerm('delete')){ showToast('⛔ No delete permission.'); return; }
+  if(!confirm('Permanently delete submission '+id+'? This cannot be undone.')) return;
+  try{ await getDb().collection('onboarding_submissions').doc(id).delete(); showToast('🗑 Deleted.'); adminNav('submissions'); }
+  catch(e){ showToast('❌ Delete failed: '+e.message); }
+}
+
+/* ═══════════ LINK GENERATOR ═══════════ */
+function renderLinkTool(){
+  return `
+  <div class="card linktool" style="max-width:560px">
+    <div class="sec-head"><div class="sec-icon">🔗</div><div class="sec-title">Generate Onboarding Link</div></div>
+    <div class="fg"><label>Ticket ID</label><input id="lt_ticket" placeholder="SE-001" oninput="this.value=this.value.toUpperCase()"/></div>
+    <button class="btn btn-primary" onclick="genLink()">Generate Link</button>
+    <div id="lt_result"></div>
+  </div>
+  <div class="note-box" style="max-width:560px">💡 Tip: Paste the generated link directly into your payment confirmation message on WhatsApp (Admin Panel → Share with Client). The client fills it once; you'll see it live here.</div>`;
+}
+function genLink(){
+  const t=document.getElementById('lt_ticket').value.trim();
+  if(!t){ showToast('Enter a ticket ID first.'); return; }
+  const url=location.origin+location.pathname+'?ticket='+t;
+  const msg=`Hi! 🙏 Thanks for confirming your advance payment.\n\nTo get started, please fill this quick form with your business details — takes ~10 mins:\n${url}\n\nThis helps us build exactly what you need. 🚀\n\n— SparkEdge Team`;
+  document.getElementById('lt_result').innerHTML=`
+    <div class="linkbox"><span style="flex:1">${url}</span><button class="btn-sec btn-sm" onclick="navigator.clipboard.writeText('${url}').then(()=>showToast('✅ Link copied!'))">Copy</button></div>
+    <a class="btn btn-primary" style="margin-top:12px;width:100%;justify-content:center" href="https://wa.me/?text=${encodeURIComponent(msg)}" target="_blank">💬 Share via WhatsApp</a>`;
+}
+
+/* ═══════════ TEAM ADMIN ═══════════ */
+function renderTeamAdmin(){
+  if(!window.ADMIN_USER?.isOwner) return `<div class="empty"><div class="ic">🔒</div><p>Only the owner can manage team members.</p></div>`;
+  const members=getMembers();
+  return `
+  <div style="display:flex;justify-content:flex-end;margin-bottom:14px"><button class="btn btn-primary" onclick="openTeamForm()">＋ Add Member</button></div>
+  <div id="teamFormWrap"></div>
+  ${members.map(m=>`
+  <div class="team-row">
+    <div class="team-avatar">${(m.name||'?').charAt(0).toUpperCase()}</div>
+    <div style="flex:1;min-width:160px">
+      <div style="font-weight:700;font-size:14px">${m.name}</div>
+      <div style="font-size:11px;color:var(--accent)">${m.role||''}</div>
+      <div style="font-size:11px;color:var(--text-muted)">${m.email||''} ${m.wa?'· '+m.wa:''}</div>
+      <div style="margin-top:6px;display:flex;gap:5px;flex-wrap:wrap">${(m.permissions||[]).map(p=>`<span style="background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);color:var(--success);font-size:10px;padding:2px 8px;border-radius:5px">${p}</span>`).join('')}</div>
+      <div style="margin-top:6px"><span class="pill ${m.status==='active'?'pill-submitted':'pill-pending'}">${m.status==='active'?'✅ Active':'⛔ Suspended'}</span></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:6px">
+      <button class="btn-sec btn-sm" onclick="openTeamForm('${m.id}')">Edit</button>
+      <button class="btn-sec btn-sm" onclick="toggleMember('${m.id}')">${m.status==='active'?'Suspend':'Activate'}</button>
+      <button class="btn-danger btn-sm" onclick="removeMember('${m.id}')">Remove</button>
+    </div>
+  </div>`).join('')}`;
+}
+function openTeamForm(id){
+  const m=id?getMembers().find(x=>x.id===id):null;
+  document.getElementById('teamFormWrap').innerHTML=`
+  <div class="card" style="max-width:520px">
+    <div class="sec-title" style="margin-bottom:14px">${id?'Edit Member':'Add Member'}</div>
+    <div class="fg"><label>Name</label><input id="tm_name" value="${m?.name||''}"/></div>
+    <div class="fg"><label>Role</label><input id="tm_role" value="${m?.role||''}"/></div>
+    <div class="fg"><label>Email</label><input id="tm_email" value="${m?.email||''}"/></div>
+    <div class="fg"><label>WhatsApp</label><input id="tm_wa" value="${m?.wa||''}"/></div>
+    <div class="fg"><label>Password (min 6 chars)</label><input id="tm_pwd" value="${m?.password||''}"/></div>
+    <div class="fg"><label>Permissions</label>
+      <label class="chk-row"><input type="checkbox" id="tp_view" ${m?.permissions?.includes('view')?'checked':''}/> View submissions</label>
+      <label class="chk-row"><input type="checkbox" id="tp_delete" ${m?.permissions?.includes('delete')?'checked':''}/> Delete submissions</label>
+      <label class="chk-row"><input type="checkbox" id="tp_export" ${m?.permissions?.includes('export')?'checked':''}/> Export data</label>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:10px"><button class="btn btn-primary" onclick="saveTeamForm('${id||''}')">💾 Save</button><button class="btn btn-sec" onclick="document.getElementById('teamFormWrap').innerHTML=''">Cancel</button></div>
+  </div>`;
+}
+async function saveTeamForm(id){
+  const name=document.getElementById('tm_name').value.trim();
+  const pwd=document.getElementById('tm_pwd').value.trim();
+  if(!name||pwd.length<6){ alert('Name required, password min 6 chars.'); return; }
+  if(pwd==='RAUNAK@1'){ alert('Cannot use owner password.'); return; }
+  const perms=['view','delete','export'].filter(p=>document.getElementById('tp_'+p)?.checked);
+  const members=getMembers();
+  if(id){ const idx=members.findIndex(m=>m.id===id); if(idx>=0) members[idx]={...members[idx],name,role:document.getElementById('tm_role').value.trim(),email:document.getElementById('tm_email').value.trim(),wa:document.getElementById('tm_wa').value.trim(),password:pwd,permissions:perms}; }
+  else { members.push({id:'mem_'+Date.now(),name,role:document.getElementById('tm_role').value.trim(),email:document.getElementById('tm_email').value.trim(),wa:document.getElementById('tm_wa').value.trim(),password:pwd,permissions:perms,status:'active',addedAt:new Date().toLocaleDateString('en-IN')}); }
+  await saveMembers(members); document.getElementById('teamFormWrap').innerHTML=''; adminNav('team');
+}
+async function toggleMember(id){ const members=getMembers(); const m=members.find(x=>x.id===id); if(!m)return; m.status=m.status==='active'?'suspended':'active'; await saveMembers(members); adminNav('team'); }
+async function removeMember(id){ if(!confirm('Remove this member?')) return; const members=getMembers().filter(m=>m.id!==id); try{await getDb().collection('team').doc(id).delete();}catch{} await saveMembers(members); adminNav('team'); }
+
+setTimeout(()=>{ if(typeof lucide!=='undefined') lucide.createIcons(); },200);
+</script>
+</body>
+</html>
