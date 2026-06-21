@@ -4134,9 +4134,14 @@ async function saveMember(){
   if(pwd.length < 6){ alert('Password must be at least 6 characters.'); return; }
 
   const perms = ['view_tickets','edit_tickets','create_tickets','delete_tickets','view_finance','view_clients','export'].filter(p => {
-    const cb = document.getElementById('perm_'+p);
-    return cb && cb.checked;
-  });
+  const cb = document.getElementById('perm_'+p);
+  return cb && cb.checked;
+});
+
+// Preserve retention-portal-only permissions (vault, send) that aren't editable from this modal
+const existingMember = (editIdx >= 0 && members[editIdx]) ? members[editIdx] : null;
+const retentionOnlyPerms = (existingMember?.permissions || []).filter(p => ['vault','send'].includes(p));
+const finalPerms = [...new Set([...perms, ...retentionOnlyPerms])];
 
   const members = getMembers();
   const editIdx = parseInt(document.getElementById('memberModalEditIdx').value);
@@ -4152,7 +4157,7 @@ async function saveMember(){
     email: document.getElementById('mm_email').value.trim(),
     wa: document.getElementById('mm_wa').value.trim(),
     password: pwd,
-    permissions: perms,
+   permissions: finalPerms,
     status: (editIdx >= 0 && members[editIdx]) ? members[editIdx].status : 'active',
     addedAt: (editIdx >= 0 && members[editIdx]) ? members[editIdx].addedAt : new Date().toLocaleDateString('en-IN')
   };

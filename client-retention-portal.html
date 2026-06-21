@@ -732,8 +732,12 @@ function attachTeamListener(){
   window._teamListenerAttached = true;
   try{
     getDb().collection('team').onSnapshot(snap=>{
-      const fs=[];
-      snap.forEach(d=>fs.push({id:d.id,...d.data()}));
+  const fs=[];
+  snap.forEach(d=>{
+    const data = d.data();
+    if (data.role === 'owner' || data.role === 'Owner') return;
+    fs.push({id:d.id,...data});
+  });
       const merged=[...HARDCODED_MEMBERS];
       fs.forEach(fm=>{
         const idx=merged.findIndex(h=>h.id===fm.id);
@@ -825,11 +829,22 @@ function updateUserUI(){
   if(tl)tl.style.display=u.isOwner?'flex':'none';
 }
 
+const PERM_ALIASES = {
+  view:   ['view','view_tickets','view_clients'],
+  edit:   ['edit','edit_tickets','create_tickets'],
+  vault:  ['vault'],          // vault is retention-portal-specific, no admin.html equivalent
+  send:   ['send'],           // messaging is retention-portal-specific
+  export: ['export']
+};
 function has(perm){
   const u=window.PORTAL_USER;if(!u)return false;
   if(u.isOwner)return true;
-  return(u.permissions||[]).includes(perm)||u.permissions.includes('all');
+  const userPerms = u.permissions||[];
+  if(userPerms.includes('all')) return true;
+  const aliases = PERM_ALIASES[perm] || [perm];
+  return aliases.some(a => userPerms.includes(a));
 }
+
 
 function applyCaps(){
   // Hide export if no permission
@@ -2370,21 +2385,20 @@ function openTeamModal(id){
 }
 
 async function saveTeamMember(){
+  if(!window.PORTAL_USER?.isOwner){showToast('⛔ Only owner can manage team.');return;}
   const name=document.getElementById('tm_name').value.trim();
   const pwd=document.getElementById('tm_pwd').value.trim();
   if(!name){alert('Name required!');return;}
   if(!pwd||pwd.length<6){alert('Password must be at least 6 characters!');return;}
   if(pwd==='RAUNAK@1'){alert('Cannot use owner password!');return;}
   const perms=['view','edit','vault','send','export'].filter(p=>document.getElementById('tp_'+p)?.checked);
-  const members=getMembers();
-  const editId=document.getElementById('tm_editId').value;
-  if(!editId){
-    if(members.find(m=>m.password===pwd)){alert('Password already in use!');return;}
-    members.push({id:'mem_'+Date.now(),name,role:document.getElementById('tm_role').value.trim(),email:document.getElementById('tm_email').value.trim(),wa:document.getElementById('tm_wa').value.trim(),password:pwd,permissions:perms,status:'active',addedAt:new Date().toLocaleDateString('en-IN')});
-  }else{
-    const idx=members.findIndex(m=>m.id===editId);
-    if(idx>=0)members[idx]={...members[idx],name,role:document.getElementById('tm_role').value.trim(),email:document.getElementById('tm_email').value.trim(),wa:document.getElementById('tm_wa').value.trim(),password:pwd,permissions:perms};
-  }
+const members=getMembers();
+const editId=document.getElementById('tm_editId').value;
+const existing = editId ? members.find(m=>m.id===editId) : null;
+const adminOnlyPerms = (existing?.permissions || []).filter(p =>
+  ['view_tickets','edit_tickets','create_tickets','delete_tickets','view_finance','view_clients'].includes(p)
+);
+const finalPerms = [...new Set([...perms, ...adminOnlyPerms])];
   await saveMembers(members);
   closeModal('teamMemberModal');
   showToast('✅ Team member saved & synced!');
@@ -2392,6 +2406,7 @@ async function saveTeamMember(){
 }
 
 async function toggleMemberStatus(id){
+  if(!window.PORTAL_USER?.isOwner){showToast('⛔ Only owner can manage team.');return;}
   const members=getMembers();
   const m=members.find(x=>x.id===id);if(!m)return;
   m.status=m.status==='active'?'suspended':'active';
@@ -2401,6 +2416,7 @@ async function toggleMemberStatus(id){
 }
 
 async function deleteMember(id){
+  if(!window.PORTAL_USER?.isOwner){showToast('⛔ Only owner can manage team.');return;}
   if(!confirm('Remove this member? They lose access immediately.'))return;
   const members=getMembers().filter(m=>m.id!==id);
   try{await getDb().collection('team').doc(id).delete();}catch{}
