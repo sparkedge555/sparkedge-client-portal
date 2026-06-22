@@ -1108,65 +1108,74 @@ function toggleLoginEye(btn){
 const serviceCategories = {
   web: {
     label: '🌐 Web Design & Development',
-    order: 'Proposal → Invoice → SOW → Welcome Packet',
+    order: 'Proposal → Invoice → SOW → Welcome Packet → Handover',
     orderItems: [
       {step:'1st',label:'Proposal (before advance)',style:'rgba(59,130,246,.15)',color:'#3B82F6'},
       {step:'2nd',label:'Invoice (after advance)',style:'rgba(255,107,53,.2)',color:'var(--accent)'},
       {step:'3rd',label:'SOW / Agreement',style:'rgba(123,94,167,.2)',color:'#9B7FD4'},
       {step:'4th',label:'Welcome Packet (kickoff)',style:'rgba(34,197,94,.15)',color:'var(--success)'},
+      {step:'5th',label:'Delivery & Handover Note',style:'rgba(255,179,71,.15)',color:'var(--gold)'},
     ],
     docs: [
       {id:'proposal', step:'STEP 1', stepColor:'#3B82F6', label:'Client Proposal', icon:'📊'},
       {id:'invoice', step:'STEP 2', stepColor:'var(--accent)', label:'Invoice', icon:'🧾'},
       {id:'sow', step:'STEP 3', stepColor:'#9B7FD4', label:'SOW / Agreement', icon:'📋'},
       {id:'welcome', step:'STEP 4', stepColor:'var(--success)', label:'Welcome Packet', icon:'🎉'},
-      {id:'serviceagreement', step:'BONUS', stepColor:'var(--gold)', label:'Service Agreement', icon:'📝'},
+      {id:'web_handover', step:'STEP 5', stepColor:'var(--gold)', label:'Delivery & Handover', icon:'📦'},
     ]
   },
   billing: {
     label: '🖥 Billing Software',
-    order: 'Proposal → Invoice → Installation SOW → Handover',
+    order: 'Proposal → Invoice → Setup Agreement → Welcome Packet → Handover',
     orderItems: [
       {step:'1st',label:'Proposal',style:'rgba(59,130,246,.15)',color:'#3B82F6'},
       {step:'2nd',label:'Invoice (after payment)',style:'rgba(255,107,53,.2)',color:'var(--accent)'},
       {step:'3rd',label:'Setup Agreement',style:'rgba(123,94,167,.2)',color:'#9B7FD4'},
-      {step:'4th',label:'Handover Doc',style:'rgba(34,197,94,.15)',color:'var(--success)'},
+      {step:'4th',label:'Welcome Packet',style:'rgba(34,197,94,.15)',color:'var(--success)'},
+      {step:'5th',label:'Handover Doc',style:'rgba(255,179,71,.15)',color:'var(--gold)'},
     ],
     docs: [
       {id:'billing_proposal', step:'STEP 1', stepColor:'#3B82F6', label:'Billing Proposal', icon:'📊'},
       {id:'billing_invoice', step:'STEP 2', stepColor:'var(--accent)', label:'Invoice', icon:'🧾'},
       {id:'billing_sow', step:'STEP 3', stepColor:'#9B7FD4', label:'Setup Agreement', icon:'📋'},
-      {id:'billing_handover', step:'STEP 4', stepColor:'var(--success)', label:'Handover Doc', icon:'🎁'},
+      {id:'billing_welcome', step:'STEP 4', stepColor:'var(--success)', label:'Welcome Packet', icon:'🎉'},
+      {id:'billing_handover', step:'STEP 5', stepColor:'var(--gold)', label:'Handover Doc', icon:'🎁'},
     ]
   },
   design: {
     label: '🎨 Creative & Design Services',
-    order: 'Quote → Invoice → Delivery',
+    order: 'Proposal → Invoice → SOW / Agreement → Welcome Packet → Delivery',
     orderItems: [
-      {step:'1st',label:'Creative Quote',style:'rgba(59,130,246,.15)',color:'#3B82F6'},
+      {step:'1st',label:'Client Proposal',style:'rgba(59,130,246,.15)',color:'#3B82F6'},
       {step:'2nd',label:'Invoice',style:'rgba(255,107,53,.2)',color:'var(--accent)'},
-      {step:'3rd',label:'Delivery Note',style:'rgba(34,197,94,.15)',color:'var(--success)'},
+      {step:'3rd',label:'SOW / Agreement',style:'rgba(123,94,167,.2)',color:'#9B7FD4'},
+      {step:'4th',label:'Welcome Packet',style:'rgba(34,197,94,.15)',color:'var(--success)'},
+      {step:'5th',label:'Delivery Note',style:'rgba(255,179,71,.15)',color:'var(--gold)'},
     ],
     docs: [
-      {id:'design_quote', step:'QUOTE', stepColor:'#3B82F6', label:'Creative Quote', icon:'💡'},
-      {id:'design_invoice', step:'INVOICE', stepColor:'var(--accent)', label:'Invoice', icon:'🧾'},
-      {id:'design_delivery', step:'DELIVERY', stepColor:'var(--success)', label:'Delivery Note', icon:'📦'},
+      {id:'design_quote', step:'STEP 1', stepColor:'#3B82F6', label:'Client Proposal', icon:'📊'},
+      {id:'design_invoice', step:'STEP 2', stepColor:'var(--accent)', label:'Invoice', icon:'🧾'},
+      {id:'design_sow', step:'STEP 3', stepColor:'#9B7FD4', label:'SOW / Agreement', icon:'📋'},
+      {id:'design_welcome', step:'STEP 4', stepColor:'var(--success)', label:'Welcome Packet', icon:'🎉'},
+      {id:'design_delivery', step:'STEP 5', stepColor:'var(--gold)', label:'Delivery Note', icon:'📦'},
     ]
   },
   landing: {
     label: '📣 Landing Pages',
-    order: 'Proposal → Invoice → Brief Form → Delivery',
+    order: 'Proposal → Invoice → SOW / Agreement → Welcome Packet → Delivery',
     orderItems: [
       {step:'1st',label:'Landing Page Proposal',style:'rgba(59,130,246,.15)',color:'#3B82F6'},
       {step:'2nd',label:'Invoice',style:'rgba(255,107,53,.2)',color:'var(--accent)'},
-      {step:'3rd',label:'Content Brief',style:'rgba(123,94,167,.2)',color:'#9B7FD4'},
-      {step:'4th',label:'Delivery Note',style:'rgba(34,197,94,.15)',color:'var(--success)'},
+      {step:'3rd',label:'SOW / Agreement',style:'rgba(123,94,167,.2)',color:'#9B7FD4'},
+      {step:'4th',label:'Welcome Packet',style:'rgba(34,197,94,.15)',color:'var(--success)'},
+      {step:'5th',label:'Delivery & Handover Note',style:'rgba(255,179,71,.15)',color:'var(--gold)'},
     ],
     docs: [
       {id:'lp_proposal', step:'STEP 1', stepColor:'#3B82F6', label:'LP Proposal', icon:'📊'},
       {id:'lp_invoice', step:'STEP 2', stepColor:'var(--accent)', label:'Invoice', icon:'🧾'},
-      {id:'lp_brief', step:'STEP 3', stepColor:'#9B7FD4', label:'Content Brief', icon:'📝'},
-      {id:'lp_delivery', step:'STEP 4', stepColor:'var(--success)', label:'Delivery Note', icon:'📦'},
+      {id:'lp_sow', step:'STEP 3', stepColor:'#9B7FD4', label:'SOW / Agreement', icon:'📋'},
+      {id:'lp_welcome', step:'STEP 4', stepColor:'var(--success)', label:'Welcome Packet', icon:'🎉'},
+      {id:'lp_delivery', step:'STEP 5', stepColor:'var(--gold)', label:'Delivery Note', icon:'📦'},
     ]
   }
 };
@@ -1526,6 +1535,114 @@ const docMeta = {
       {id:'totalAmt',label:'Total Amount Paid (₹)',placeholder:'7999'},
       {id:'extras',label:'Notes',placeholder:'Client to update WhatsApp number in HTML line 47 if changed.',textarea:true},
     ]
+  },
+  web_handover: {
+    icon:'📦', title:'Delivery & Handover Note', sub:'Final project delivery — Web Service',
+    fields:[
+      {section:'Client Info'},
+      {id:'clientName',label:'Client Name',placeholder:'Vikram Joshi'},
+      {id:'businessName',label:'Business Name',placeholder:'Vikram Tech Academy'},
+      {id:'clientEmail',label:'Client Email',placeholder:'vikram@email.com'},
+      {section:'Delivery Details'},
+      {id:'deliveryDate',label:'Delivery Date',placeholder:'10 May 2025'},
+      {id:'liveUrl',label:'Live URL',placeholder:'https://vikramtechacademy.github.io'},
+      {id:'packageName',label:'Package Delivered',placeholder:'Growth Package'},
+      {id:'deliverables',label:'What Was Delivered',placeholder:'5-page responsive website, lead form, WhatsApp CTA, GitHub hosting setup',textarea:true},
+      {section:'Access & Files'},
+      {id:'driveLink',label:'GitHub / Drive Link',placeholder:'https://github.com/sparkedge/vikram-tech'},
+      {id:'revisionStatus',label:'Revision Rounds Used',placeholder:'1/1 used'},
+      {section:'Payment'},
+      {id:'totalAmt',label:'Total Amount Paid (₹)',placeholder:'12999'},
+      {id:'extras',label:'Handover Notes',placeholder:'Client briefed on how to update content. Support period: 14 days.',textarea:true},
+    ]
+  },
+  billing_welcome: {
+    icon:'🎉', title:'Welcome Packet', sub:'Client onboarding — Billing Software',
+    fields:[
+      {section:'Client Info'},
+      {id:'clientName',label:'Client Name',placeholder:'Sunita Agarwal'},
+      {id:'businessName',label:'Business Name',placeholder:'Sunita Medical Store'},
+      {id:'clientEmail',label:'Client Email',placeholder:'sunita@email.com'},
+      {section:'Project Details'},
+      {id:'packageName',label:'Software / Package Name',placeholder:'SparkBill — Medical Store Edition'},
+      {id:'startDate',label:'Setup Start Date',placeholder:'20 Apr 2025'},
+      {id:'deliveryDate',label:'Expected Handover Date',placeholder:'22 Apr 2025'},
+      {id:'totalAmt',label:'Total Fee (₹)',placeholder:'3999'},
+      {id:'advancePct',label:'Advance %',placeholder:'50'},
+      {id:'finalPct',label:'Final %',placeholder:'50'},
+    ]
+  },
+  design_sow: {
+    icon:'📋', title:'SOW / Agreement', sub:'Scope of Work — Creative & Design',
+    fields:[
+      {section:'Client Info'},
+      {id:'clientName',label:'Client Name',placeholder:'Mehak Arora'},
+      {id:'businessName',label:'Business / Brand',placeholder:'Mehak Photography Studio'},
+      {section:'Project Info'},
+      {id:'startDate',label:'Start Date',placeholder:'15 Apr 2025'},
+      {id:'deliveryDate',label:'Delivery Date',placeholder:'20 Apr 2025'},
+      {id:'serviceType',label:'Service Type',select:['Video Editing','Poster & Social Media Design','eBook / PDF Design','Logo & Branding','Mixed Services']},
+      {id:'totalAmt',label:'Total Quote (₹)',placeholder:'4999'},
+      {id:'advancePct',label:'Advance %',placeholder:'50'},
+      {id:'finalPct',label:'Final %',placeholder:'50'},
+      {section:'Scope'},
+      {id:'deliverables',label:'Deliverables',placeholder:'5 Instagram Reels (30-60 sec each) with captions & music',textarea:true},
+      {id:'revisions',label:'Revision Rounds Included',placeholder:'1 round (additional @ ₹200/round)'},
+      {id:'extras',label:'Additional Terms / Notes',placeholder:'Client to provide raw footage within 48 hrs of advance payment.',textarea:true},
+    ]
+  },
+  design_welcome: {
+    icon:'🎉', title:'Welcome Packet', sub:'Client onboarding — Creative & Design',
+    fields:[
+      {section:'Client Info'},
+      {id:'clientName',label:'Client Name',placeholder:'Mehak Arora'},
+      {id:'businessName',label:'Business / Brand',placeholder:'Mehak Photography Studio'},
+      {id:'clientEmail',label:'Client Email',placeholder:'mehak@email.com'},
+      {section:'Project Details'},
+      {id:'serviceType',label:'Service Type',placeholder:'Video Editing — 5 Instagram Reels'},
+      {id:'startDate',label:'Start Date',placeholder:'15 Apr 2025'},
+      {id:'deliveryDate',label:'Expected Delivery',placeholder:'20 Apr 2025'},
+      {id:'totalAmt',label:'Total Amount (₹)',placeholder:'4999'},
+      {id:'advancePct',label:'Advance %',placeholder:'50'},
+      {id:'finalPct',label:'Final %',placeholder:'50'},
+      {id:'revisions',label:'Revision Rounds',placeholder:'1 round'},
+    ]
+  },
+  lp_sow: {
+    icon:'📋', title:'SOW / Agreement', sub:'Scope of Work — Landing Page',
+    fields:[
+      {section:'Client Info'},
+      {id:'clientName',label:'Client Name',placeholder:'Arjun Singh'},
+      {id:'businessName',label:'Business Name',placeholder:'Arjun Fitness Academy'},
+      {section:'Project Info'},
+      {id:'startDate',label:'Start Date',placeholder:'17 Apr 2025'},
+      {id:'deliveryDate',label:'Delivery Date',placeholder:'20 Apr 2025'},
+      {id:'packageName',label:'Package Name',placeholder:'Landing Page Package'},
+      {id:'totalAmt',label:'Total Amount (₹)',placeholder:'7999'},
+      {id:'advancePct',label:'Advance %',placeholder:'50'},
+      {id:'finalPct',label:'Final %',placeholder:'50'},
+      {section:'Scope'},
+      {id:'ctaType',label:'Primary CTA',select:['WhatsApp Enquiry','Google Form','Phone Call','Email','Buy Now / Payment']},
+      {id:'pagesList',label:'Sections Included',placeholder:'Hero, About, Services, Testimonials, FAQ, CTA, Footer',textarea:true},
+      {id:'extras',label:'Additional Terms',placeholder:'Client to provide content & images within 48 hrs. 1 revision round included.',textarea:true},
+    ]
+  },
+  lp_welcome: {
+    icon:'🎉', title:'Welcome Packet', sub:'Client onboarding — Landing Page',
+    fields:[
+      {section:'Client Info'},
+      {id:'clientName',label:'Client Name',placeholder:'Arjun Singh'},
+      {id:'businessName',label:'Business Name',placeholder:'Arjun Fitness Academy'},
+      {id:'clientEmail',label:'Client Email',placeholder:'arjun@email.com'},
+      {section:'Project Details'},
+      {id:'packageName',label:'Package Name',placeholder:'Landing Page Package'},
+      {id:'startDate',label:'Start Date',placeholder:'17 Apr 2025'},
+      {id:'deliveryDate',label:'Expected Delivery',placeholder:'20 Apr 2025'},
+      {id:'totalAmt',label:'Total Amount (₹)',placeholder:'7999'},
+      {id:'advancePct',label:'Advance %',placeholder:'50'},
+      {id:'finalPct',label:'Final %',placeholder:'50'},
+      {id:'ctaType',label:'Primary CTA',select:['WhatsApp Enquiry','Google Form','Phone Call','Email','Buy Now / Payment']},
+    ]
   }
 };
 
@@ -1681,11 +1798,17 @@ function generateDoc(){
     case 'serviceagreement': return generateServiceAgreement();
     case 'billing_proposal': return generateBillingProposal();
     case 'billing_sow': return generateBillingSOW();
+    case 'billing_welcome': return generateBillingWelcome();
     case 'billing_handover': return generateBillingHandover();
     case 'design_quote': return generateDesignQuote();
+    case 'design_sow': return generateDesignSOW();
+    case 'design_welcome': return generateDesignWelcome();
     case 'design_delivery': case 'lp_delivery': return generateDeliveryNote();
+    case 'web_handover': return generateWebHandover();
     case 'lp_proposal': return generateLPProposal();
     case 'lp_brief': return generateLPBrief();
+    case 'lp_sow': return generateLPSOW();
+    case 'lp_welcome': return generateLPWelcome();
     default: return generateInvoice();
   }
 }
@@ -2785,6 +2908,39 @@ const fixedContentDefs = {
     {id:'fc_ownerEmail', label:'From Email', value:'sparkedge555@gmail.com'},
     {id:'fc_ownerPhone', label:'From Phone', value:'+91 91424 50715'},
   ],
+  web_handover: [
+    {id:'fc_ownerName', label:'From Name', value:'Raunak Karn'},
+    {id:'fc_ownerEmail', label:'From Email', value:'sparkedge555@gmail.com'},
+    {id:'fc_ownerPhone', label:'From Phone', value:'+91 91424 50715'},
+  ],
+  billing_welcome: [
+    {id:'fc_ownerName', label:'From Name', value:'Raunak Karn'},
+    {id:'fc_ownerEmail', label:'From Email', value:'sparkedge555@gmail.com'},
+    {id:'fc_ownerPhone', label:'From Phone', value:'+91 91424 50715'},
+    {id:'fc_contactWa', label:'WhatsApp for Support', value:'+91 91424 50715'},
+  ],
+  design_sow: [
+    {id:'fc_ownerName', label:'Provider Name', value:'Raunak Karn'},
+    {id:'fc_ownerEmail', label:'Provider Email', value:'sparkedge555@gmail.com'},
+    {id:'fc_ownerPhone', label:'Provider Phone', value:'+91 91424 50715'},
+  ],
+  design_welcome: [
+    {id:'fc_ownerName', label:'From Name', value:'Raunak Karn'},
+    {id:'fc_ownerEmail', label:'From Email', value:'sparkedge555@gmail.com'},
+    {id:'fc_ownerPhone', label:'From Phone', value:'+91 91424 50715'},
+    {id:'fc_contactWa', label:'Send Assets To WhatsApp', value:'+91 91424 50715'},
+  ],
+  lp_sow: [
+    {id:'fc_ownerName', label:'Provider Name', value:'Raunak Karn'},
+    {id:'fc_ownerEmail', label:'Provider Email', value:'sparkedge555@gmail.com'},
+    {id:'fc_ownerPhone', label:'Provider Phone', value:'+91 91424 50715'},
+  ],
+  lp_welcome: [
+    {id:'fc_ownerName', label:'From Name', value:'Raunak Karn'},
+    {id:'fc_ownerEmail', label:'From Email', value:'sparkedge555@gmail.com'},
+    {id:'fc_ownerPhone', label:'From Phone', value:'+91 91424 50715'},
+    {id:'fc_contactWa', label:'Send Assets To WhatsApp', value:'+91 91424 50715'},
+  ],
 };
 
 let fixedOverrides = {};
@@ -2848,6 +3004,424 @@ function resetFixedContent(){
   closeModal('fixedContentModal');
   renderPreview();
   showToast('↺ Fixed content reset to defaults.');
+}
+
+/* ─── NEW GENERATOR: Web Handover / Delivery Note ─── */
+function generateWebHandover(){
+  const cn=fv('clientName','[Client]'),bn=fv('businessName','[Business]'),ce=fv('clientEmail','[Email]');
+  const dd=fv('deliveryDate','[Date]'),pkg=fv('packageName','Growth Package'),liveUrl=fv('liveUrl',''),driveLink=fv('driveLink','');
+  const deliverables=fv('deliverables','Website files + GitHub hosting setup'),revStatus=fv('revisionStatus','1/1 used');
+  const total=fv('totalAmt','0'),notes=fv('extras','');
+  const fcOwner=getFC('fc_ownerName'),fcEmail=getFC('fc_ownerEmail'),fcPhone=getFC('fc_ownerPhone');
+  return docShell(`<style>*{margin:0;padding:0;box-sizing:border-box;}body{font-family:'DM Sans',sans-serif;background:#0A0A0F;color:#F0F0F8;min-height:100vh;display:flex;justify-content:center;padding:32px 16px;}
+.w{width:800px;max-width:100%;background:#0D1117;border:1px solid #1E1E2E;border-radius:20px;overflow:hidden;box-shadow:0 40px 120px rgba(255,179,71,.08);}
+.hdr{padding:32px 44px;background:linear-gradient(135deg,#0D1117,#0A1420);border-bottom:1px solid #1E1E2E;display:flex;justify-content:space-between;align-items:center;position:relative;}
+.hdr::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#FFB347,#FF6B35,#22C55E);}
+.brand-name{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;background:linear-gradient(135deg,#fff,#FFB347);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.brand-sub{font-size:10px;color:#8A8A9A;letter-spacing:2px;text-transform:uppercase;margin-top:2px;}
+.doc-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(255,179,71,.1);border:1px solid rgba(255,179,71,.3);border-radius:100px;padding:4px 12px;font-size:10px;font-weight:700;color:#FFB347;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;}
+.doc-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:#fff;text-align:right;}
+.body-s{padding:24px 44px;border-bottom:1px solid #1E1E2E;}
+.sec-label{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#55556A;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.sec-label::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,#1E1E2E,transparent);}
+.info-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;}
+.info-card{background:#12121C;border:1px solid #1E1E2E;border-radius:10px;padding:14px;}
+.ic-label{font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#55556A;margin-bottom:5px;}
+.ic-val{font-size:13px;font-weight:600;color:#E0E0F0;line-height:1.4;}
+.success-badge{background:rgba(34,197,94,.07);border:1px solid rgba(34,197,94,.2);border-radius:11px;padding:18px;display:flex;align-items:center;gap:14px;margin-top:12px;}
+.si{width:38px;height:38px;background:rgba(34,197,94,.15);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.notes{font-size:12px;color:#B0B0C0;line-height:1.8;background:#12121C;border:1px solid #1E1E2E;border-radius:10px;padding:16px;margin-top:12px;}
+.fstrip{background:#12121C;border-top:1px solid #1E1E2E;padding:13px 44px;display:flex;justify-content:space-between;}
+.fstrip span{font-size:10px;color:#55556A;}.fstrip strong{font-family:'Syne',sans-serif;font-size:11px;font-weight:700;color:#FFB347;}
+</style></head><body><div class="w">
+<div class="hdr">
+  <div><div class="brand-name">SparkEdge</div><div class="brand-sub">Web Design & Development</div></div>
+  <div><div class="doc-badge">📦 Delivery & Handover</div><div class="doc-title">PROJECT DELIVERED</div></div>
+</div>
+<div class="body-s"><div class="sec-label">Client Details</div>
+<div class="info-grid">
+  <div class="info-card"><div class="ic-label">Client Name</div><div class="ic-val">${cn}</div></div>
+  <div class="info-card"><div class="ic-label">Business</div><div class="ic-val">${bn}</div></div>
+  <div class="info-card"><div class="ic-label">Email</div><div class="ic-val">${ce}</div></div>
+  <div class="info-card"><div class="ic-label">Delivery Date</div><div class="ic-val">${dd}</div></div>
+</div></div>
+<div class="body-s"><div class="sec-label">Delivery Details</div>
+<div class="info-grid">
+  <div class="info-card"><div class="ic-label">Package Delivered</div><div class="ic-val">${pkg}</div></div>
+  <div class="info-card"><div class="ic-label">Revision Rounds Used</div><div class="ic-val">${revStatus}</div></div>
+  ${parseInt(total)>0?`<div class="info-card"><div class="ic-label">Total Paid</div><div class="ic-val" style="color:#22C55E;font-weight:700;">₹${parseInt(total).toLocaleString('en-IN')}</div></div>`:''}
+  ${liveUrl?`<div class="info-card" style="${!parseInt(total)?'grid-column:span 2':''}"><div class="ic-label">Live URL</div><div class="ic-val"><a href="${liveUrl}" style="color:#3B82F6;">${liveUrl}</a></div></div>`:''}
+  ${driveLink?`<div class="info-card" style="grid-column:span 2"><div class="ic-label">GitHub / Drive Link</div><div class="ic-val"><a href="${driveLink}" style="color:#9B7FD4;">${driveLink}</a></div></div>`:''}
+</div>
+<div class="success-badge"><div class="si">🚀</div><div><div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:#22C55E;">Website delivered & live!</div><div style="font-size:12px;color:#8A8A9A;margin-top:3px;">${deliverables}</div></div></div>
+${notes?`<div class="notes">${notes}</div>`:''}
+</div>
+<div class="fstrip"><span>© ${new Date().getFullYear()} SparkEdge · ${fcEmail} · ${fcPhone}</span><strong>SPARKEDGE</strong></div>
+</div></body></html>`);
+}
+
+/* ─── NEW GENERATOR: Billing Welcome Packet ─── */
+function generateBillingWelcome(){
+  const cn=fv('clientName','[Client]'),bn=fv('businessName','[Business]'),ce=fv('clientEmail','[Email]');
+  const pkg=fv('packageName','SparkBill Edition'),sd=fv('startDate','[Start]'),dd=fv('deliveryDate','[Handover]');
+  const total=parseInt(fv('totalAmt','3999'))||3999;
+  const advPct=fv('advancePct','50'),finPct=fv('finalPct','50');
+  const advAmt=Math.round(total*parseInt(advPct)/100),finAmt=total-advAmt;
+  const fcOwner=getFC('fc_ownerName'),fcEmail=getFC('fc_ownerEmail'),fcPhone=getFC('fc_ownerPhone'),fcWa=getFC('fc_contactWa');
+  return docShell(`<style>*{margin:0;padding:0;box-sizing:border-box;}body{font-family:'DM Sans',sans-serif;background:#0A0A0F;color:#F0F0F8;min-height:100vh;}
+.pg{max-width:820px;margin:0 auto;}
+.hero{background:linear-gradient(135deg,#0A0A0F,#0A1420,#0A0A0F);padding:48px 48px 36px;border-bottom:1px solid #1E1E2E;position:relative;overflow:hidden;}
+.hero::before{content:'';position:absolute;top:-80px;right:-60px;width:280px;height:280px;background:radial-gradient(circle,rgba(255,179,71,.1) 0%,transparent 65%);border-radius:50%;}
+.bb{display:flex;align-items:center;gap:10px;margin-bottom:30px;}.bi{width:38px;height:38px;background:linear-gradient(135deg,#FFB347,#FF6B35);border-radius:10px;display:flex;align-items:center;justify-content:center;}.bt{font-family:'Syne',sans-serif;font-size:19px;font-weight:800;background:linear-gradient(135deg,#fff,#FFB347);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.wb{display:inline-flex;align-items:center;gap:7px;background:rgba(255,179,71,.1);border:1px solid rgba(255,179,71,.25);border-radius:100px;padding:5px 14px;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#FFB347;margin-bottom:14px;}
+.ht{font-family:'Syne',sans-serif;font-size:36px;font-weight:800;line-height:1.15;background:linear-gradient(135deg,#fff 40%,#FFB347);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:10px;}
+.hs{font-size:13px;color:#7A7A9A;max-width:480px;line-height:1.7;margin-bottom:22px;}
+.ct{background:rgba(255,179,71,.06);border:1px solid rgba(255,179,71,.2);border-radius:11px;padding:14px 18px;display:inline-block;}
+.ctn{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:#fff;}.ctb{font-size:11px;color:#8a88aa;}
+.sec{padding:30px 48px;border-bottom:1px solid #1E1E2E;}
+.shtitle{font-family:'Syne',sans-serif;font-size:17px;font-weight:700;color:#fff;margin-bottom:18px;display:flex;align-items:center;gap:10px;}
+.si{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;}
+.gg{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.gc{background:#12121C;border:1px solid #1E1E2E;border-radius:11px;padding:16px;}
+.gl{font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#55556A;margin-bottom:5px;}
+.gv{font-family:'Syne',sans-serif;font-size:17px;font-weight:700;color:#FFB347;}.gs{font-size:10px;color:#8a88aa;margin-top:2px;}
+.steps{display:flex;flex-direction:column;gap:14px;}
+.step{display:flex;align-items:flex-start;gap:14px;background:#12121C;border:1px solid #1E1E2E;border-radius:11px;padding:16px;}
+.stepn{width:30px;height:30px;background:linear-gradient(135deg,#FFB347,#FF6B35);border-radius:7px;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:12px;font-weight:800;color:#fff;flex-shrink:0;}
+.step-t{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:#fff;margin-bottom:3px;}.step-d{font-size:12px;color:#8a88aa;line-height:1.5;}
+.payg{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.payc{background:#12121C;border:1px solid #1E1E2E;border-radius:11px;padding:18px;position:relative;overflow:hidden;}
+.payc.adv::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#FFB347,#FF6B35);}
+.payc.fin::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#6355ff,#9B8FFF);}
+.pp{font-family:'Syne',sans-serif;font-size:30px;font-weight:800;color:#fff;margin-bottom:3px;}.pl{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#55556A;margin-bottom:10px;}
+.pa{font-size:19px;font-weight:700;}.payc.adv .pa{color:#FFB347;}.payc.fin .pa{color:#9B8FFF;}
+.rl{display:flex;flex-direction:column;gap:9px;}
+.rule{display:flex;align-items:center;gap:10px;background:#12121C;border:1px solid #1E1E2E;border-radius:9px;padding:12px 14px;font-size:12px;color:#B0B0C0;}.ri{font-size:14px;flex-shrink:0;}
+.ft{padding:28px 48px;background:linear-gradient(135deg,#0f0f1a,#1a0f2e);text-align:center;}
+.fstrip{padding:13px 48px;display:flex;justify-content:space-between;background:#0a0a14;border-top:1px solid #1E1E2E;}
+.fstrip span{font-size:10px;color:#2a2660;}
+</style></head><body><div class="pg">
+<div class="hero">
+  <div class="bb"><div class="bi"><svg width="20" height="20" viewBox="0 0 28 28" fill="none"><path d="M16 3L6 16H14L12 25L22 12H14L16 3Z" fill="white"/></svg></div><div class="bt">SparkEdge</div></div>
+  <div class="wb">🎉 Welcome Aboard</div>
+  <div class="ht">Your Billing Software<br/>Setup Begins Now!</div>
+  <div class="hs">Everything you need to know about your local billing system setup and what to expect from SparkEdge.</div>
+  <div class="ct"><div style="font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#55556A;margin-bottom:4px;">Prepared for</div><div class="ctn">${cn}</div><div class="ctb">${bn} · ${ce}</div></div>
+</div>
+<div class="sec"><div class="shtitle"><div class="si" style="background:rgba(255,179,71,.15);">⚡</div>Your Project at a Glance</div>
+<div class="gg">
+  <div class="gc"><div class="gl">Software</div><div class="gv" style="font-size:13px;">${pkg}</div></div>
+  <div class="gc"><div class="gl">Setup Date</div><div class="gv" style="font-size:13px;">${sd}</div><div class="gs">→ Handover: ${dd}</div></div>
+</div></div>
+<div class="sec"><div class="shtitle"><div class="si" style="background:rgba(0,200,150,.1);">🗺️</div>How It Works</div>
+<div class="steps">
+${[['Setup & Config','We install and configure the billing system on your machine. Product catalogue & branding added.'],['Training Session','We train you (and your staff) on how to use the software — generating bills, printing, backup.'],['Testing','We test the full workflow with sample products to ensure everything works perfectly.'],['Handover','Software is fully yours. Final payment, documentation, and 30-day free support begins. 🎉']].map(([t,d],i)=>`
+<div class="step"><div class="stepn">${i+1}</div><div><div class="step-t">${t}</div><div class="step-d">${d}</div></div></div>`).join('')}
+</div></div>
+<div class="sec"><div class="shtitle"><div class="si" style="background:rgba(255,107,53,.1);">💰</div>Payment Schedule</div>
+<div class="payg">
+  <div class="payc adv"><div class="pl">Advance — Due Now</div><div class="pp">${advPct}%</div><div class="pa">₹${advAmt.toLocaleString('en-IN')}</div></div>
+  <div class="payc fin"><div class="pl">Final — On Handover</div><div class="pp">${finPct}%</div><div class="pa">₹${finAmt.toLocaleString('en-IN')}</div></div>
+</div>
+<div style="margin-top:14px;background:#12121C;border:1px solid #1E1E2E;border-radius:9px;padding:12px 16px;font-size:12px;color:#8a88aa;text-align:center;">Total: <strong style="color:#FFB347;">₹${total.toLocaleString('en-IN')}</strong> · UPI: <strong style="color:#FFB347;">raunakkarn555-2@okhdfcbank</strong></div>
+</div>
+<div class="sec" style="border-bottom:none;"><div class="shtitle"><div class="si" style="background:rgba(255,179,71,.1);">📌</div>Important Reminders</div>
+<div class="rl">
+${[['💻','Please keep your Windows PC ready on setup day.'],['📦','Provide your logo (PNG) and product/service list in advance.'],['💳','Final payment due before files and software are handed over.'],['🕐','We reply within 2–3 hrs, 9 AM–9 PM IST, Mon–Sat.'],['📲',`Primary: WhatsApp ${fcWa}. Backup: ${fcEmail}`]].map(([i,t])=>`<div class="rule"><span class="ri">${i}</span>${t}</div>`).join('')}
+</div></div>
+<div class="ft"><div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;background:linear-gradient(135deg,#fff,#FFB347);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">SparkEdge 🖥️</div>
+<div style="font-size:12px;color:#8a88aa;line-height:2;margin-top:6px;">We're excited to set up your billing system, ${cn}.<br>📧 ${fcEmail} &nbsp;·&nbsp; 📞 ${fcPhone}</div></div>
+<div class="fstrip"><span>Confidential · © ${new Date().getFullYear()} SparkEdge</span><span>sparkedge555@gmail.com</span></div>
+</div></body></html>`);
+}
+
+/* ─── NEW GENERATOR: Design SOW / Agreement ─── */
+function generateDesignSOW(){
+  const cn=fv('clientName','[Client]'),bn=fv('businessName','[Business]');
+  const sd=fv('startDate','[Start]'),dd=fv('deliveryDate','[Delivery]');
+  const sType=fv('serviceType','Creative Service');
+  const total=parseInt(fv('totalAmt','4999'))||4999;
+  const advPct=fv('advancePct','50'),finPct=fv('finalPct','50');
+  const advAmt=Math.round(total*parseInt(advPct)/100),finAmt=total-advAmt;
+  const deliverables=fv('deliverables','[Deliverables]'),revisions=fv('revisions','1 round'),extras=fv('extras','');
+  const fcOwner=getFC('fc_ownerName'),fcEmail=getFC('fc_ownerEmail'),fcPhone=getFC('fc_ownerPhone');
+  return docShell(`<style>*{margin:0;padding:0;box-sizing:border-box;}body{font-family:'DM Sans',sans-serif;background:#08080F;color:#F0F0F8;min-height:100vh;display:flex;justify-content:center;padding:32px 16px;}
+.w{width:800px;max-width:100%;background:#0D1117;border:1px solid #1E1E2E;border-radius:20px;overflow:hidden;}
+.hdr{padding:36px 44px;background:linear-gradient(135deg,#0D1117,#160D2E);border-bottom:1px solid #1E1E2E;position:relative;}
+.hdr::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#FF3CAC,#9B7FD4,#3B82F6);}
+.hdr-inner{display:flex;justify-content:space-between;align-items:flex-start;}
+.bn{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;background:linear-gradient(135deg,#fff,#FF3CAC);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.bs{font-size:10px;color:#8A8A9A;letter-spacing:2px;text-transform:uppercase;margin-top:2px;}
+.db{display:inline-flex;align-items:center;gap:6px;background:rgba(155,127,212,.1);border:1px solid rgba(155,127,212,.3);border-radius:100px;padding:4px 12px;font-size:10px;font-weight:700;color:#9B7FD4;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;}
+.dt{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:#fff;}
+.meta{display:grid;grid-template-columns:1fr 1fr;gap:18px;padding:24px 44px;border-bottom:1px solid #1E1E2E;}
+.mc{background:#12121C;border:1px solid #1E1E2E;border-radius:12px;padding:18px;position:relative;overflow:hidden;}
+.mc.cl::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#FF3CAC,#9B7FD4);}
+.mc.ag::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#9B7FD4,#3B82F6);}
+.ml{font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#55556A;margin-bottom:8px;}
+.mn{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:#fff;margin-bottom:6px;}.mr{font-size:12px;color:#8A8A9A;margin-bottom:3px;}.mr strong{color:#ccc;}
+.body-s{padding:22px 44px;border-bottom:1px solid #1E1E2E;}
+.sh{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+.sn{width:26px;height:26px;background:linear-gradient(135deg,#FF3CAC,#9B7FD4);border-radius:7px;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:12px;font-weight:800;color:#fff;flex-shrink:0;}
+.st{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:#fff;}
+.sc{font-size:12px;color:#B0B0C0;line-height:1.9;padding-left:36px;}.sc strong{color:#E0E0F0;}
+.pays{display:flex;flex-direction:column;gap:8px;margin-top:10px;padding-left:36px;}
+.ps{display:flex;align-items:center;gap:12px;background:#12121C;border:1px solid #1E1E2E;border-radius:8px;padding:11px 14px;}
+.ps-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}.ps-name{flex:1;font-size:12px;color:#ccc;}.ps-amt{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:#FF3CAC;}
+.sigs{padding:24px 44px;display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+.sg{background:#12121C;border:1px solid #1E1E2E;border-radius:12px;padding:18px;}
+.sg-r{font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#55556A;margin-bottom:12px;}
+.sg-l{height:1px;background:linear-gradient(90deg,#1E1E2E,transparent);margin:14px 0 8px;}
+.sg-n{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:#fff;}.sg-d{font-size:11px;color:#8A8A9A;margin-top:3px;}
+.fstrip{background:#12121C;border-top:1px solid #1E1E2E;padding:12px 44px;display:flex;justify-content:space-between;}
+.fstrip span{font-size:10px;color:#55556A;}.fstrip strong{font-family:'Syne',sans-serif;font-size:11px;font-weight:700;color:#FF3CAC;}
+</style></head><body><div class="w">
+<div class="hdr"><div class="hdr-inner">
+  <div><div class="bn">SparkEdge</div><div class="bs">Creative & Design Services</div></div>
+  <div style="text-align:right;"><div class="db">📋 SOW / Agreement</div><div class="dt">SCOPE OF WORK</div><div style="margin-top:6px;display:inline-block;background:rgba(255,60,172,.1);border:1px solid rgba(255,60,172,.25);color:#FF3CAC;font-size:11px;font-weight:600;padding:3px 12px;border-radius:100px;">${sType}</div></div>
+</div></div>
+<div class="meta">
+  <div class="mc cl"><div class="ml">Client</div><div class="mn">${cn}</div><div class="mr"><strong>Business:</strong> ${bn}</div><div class="mr"><strong>Start:</strong> ${sd} → ${dd}</div></div>
+  <div class="mc ag"><div class="ml">Service Provider</div><div class="mn">SparkEdge</div><div class="mr"><strong>Contact:</strong> ${fcOwner}</div><div class="mr"><strong>Email:</strong> ${fcEmail}</div><div class="mr"><strong>Phone:</strong> ${fcPhone}</div></div>
+</div>
+${[
+  ['1','Deliverables',`<strong>${sType}</strong> for <strong>${bn}</strong>.<br>${deliverables}`,''],
+  ['2','Payment Terms',`Total fee: <strong style="color:#FF3CAC;">₹${total.toLocaleString('en-IN')}</strong>. Work begins after advance payment.`,'pays'],
+  ['3','Revision Policy',`${revisions} of free revisions included. Additional revisions charged separately.`,''],
+  ['4','Client Responsibilities','Client must provide all raw materials (footage, text, logos, brand colors) before work begins.',''],
+  ['5','Additional Terms',extras||'All rights to final deliverables transfer to client upon final payment.',''],
+].map(([num,title,body,extra])=>`
+  <div class="body-s"><div class="sh"><div class="sn">${num}</div><div class="st">${title}</div></div><div class="sc">${body}</div>
+  ${extra==='pays'?`<div class="pays"><div class="ps"><div class="ps-dot" style="background:#FF3CAC;"></div><span class="ps-name">Advance (${advPct}%) — Before Work</span><span class="ps-amt">₹${advAmt.toLocaleString('en-IN')}</span></div><div class="ps"><div class="ps-dot" style="background:#9B7FD4;"></div><span class="ps-name">Final (${finPct}%) — On Delivery</span><span class="ps-amt">₹${finAmt.toLocaleString('en-IN')}</span></div></div>`:''}
+  </div>`).join('')}
+<div class="sigs">
+  <div class="sg"><div class="sg-r">Client</div><div class="sg-l"></div><div class="sg-n">${cn}</div><div class="sg-d">${bn}</div></div>
+  <div class="sg"><div class="sg-r">SparkEdge</div><div class="sg-l"></div><div class="sg-n">${fcOwner}</div><div class="sg-d">${fcEmail}</div></div>
+</div>
+<div class="fstrip"><span>© ${new Date().getFullYear()} SparkEdge · Confidential</span><strong>SPARKEDGE</strong></div>
+</div></body></html>`);
+}
+
+/* ─── NEW GENERATOR: Design Welcome Packet ─── */
+function generateDesignWelcome(){
+  const cn=fv('clientName','[Client]'),bn=fv('businessName','[Business]'),ce=fv('clientEmail','[Email]');
+  const sType=fv('serviceType','Creative Service'),sd=fv('startDate','[Start]'),dd=fv('deliveryDate','[Delivery]');
+  const total=parseInt(fv('totalAmt','4999'))||4999;
+  const advPct=fv('advancePct','50'),finPct=fv('finalPct','50');
+  const advAmt=Math.round(total*parseInt(advPct)/100),finAmt=total-advAmt;
+  const revisions=fv('revisions','1 round');
+  const fcOwner=getFC('fc_ownerName'),fcEmail=getFC('fc_ownerEmail'),fcPhone=getFC('fc_ownerPhone'),fcWa=getFC('fc_contactWa');
+  return docShell(`<style>*{margin:0;padding:0;box-sizing:border-box;}body{font-family:'DM Sans',sans-serif;background:#0A0A0F;color:#F0F0F8;min-height:100vh;}
+.pg{max-width:820px;margin:0 auto;}
+.hero{background:linear-gradient(135deg,#0A0A0F,#160D2E,#0A0A0F);padding:48px 48px 36px;border-bottom:1px solid #1E1E2E;position:relative;overflow:hidden;}
+.hero::before{content:'';position:absolute;top:-80px;right:-60px;width:280px;height:280px;background:radial-gradient(circle,rgba(255,60,172,.12) 0%,transparent 65%);border-radius:50%;}
+.bb{display:flex;align-items:center;gap:10px;margin-bottom:30px;}.bi{width:38px;height:38px;background:linear-gradient(135deg,#FF3CAC,#9B7FD4);border-radius:10px;display:flex;align-items:center;justify-content:center;}.bt{font-family:'Syne',sans-serif;font-size:19px;font-weight:800;background:linear-gradient(135deg,#fff,#FF3CAC);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.wb{display:inline-flex;align-items:center;gap:7px;background:rgba(255,60,172,.1);border:1px solid rgba(255,60,172,.25);border-radius:100px;padding:5px 14px;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#FF3CAC;margin-bottom:14px;}
+.ht{font-family:'Syne',sans-serif;font-size:36px;font-weight:800;line-height:1.15;background:linear-gradient(135deg,#fff 40%,#FF3CAC);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:10px;}
+.hs{font-size:13px;color:#7A7A9A;max-width:480px;line-height:1.7;margin-bottom:22px;}
+.ct{background:rgba(255,60,172,.06);border:1px solid rgba(255,60,172,.2);border-radius:11px;padding:14px 18px;display:inline-block;}
+.ctn{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:#fff;}.ctb{font-size:11px;color:#8a88aa;}
+.sec{padding:30px 48px;border-bottom:1px solid #1E1E2E;}
+.shtitle{font-family:'Syne',sans-serif;font-size:17px;font-weight:700;color:#fff;margin-bottom:18px;display:flex;align-items:center;gap:10px;}
+.si{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;}
+.gg{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.gc{background:#12121C;border:1px solid #1E1E2E;border-radius:11px;padding:16px;}
+.gl{font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#55556A;margin-bottom:5px;}
+.gv{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:#FF3CAC;}.gs{font-size:10px;color:#8a88aa;margin-top:2px;}
+.steps{display:flex;flex-direction:column;gap:14px;}
+.step{display:flex;align-items:flex-start;gap:14px;background:#12121C;border:1px solid #1E1E2E;border-radius:11px;padding:16px;}
+.stepn{width:30px;height:30px;background:linear-gradient(135deg,#FF3CAC,#9B7FD4);border-radius:7px;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:12px;font-weight:800;color:#fff;flex-shrink:0;}
+.step-t{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:#fff;margin-bottom:3px;}.step-d{font-size:12px;color:#8a88aa;line-height:1.5;}
+.payg{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.payc{background:#12121C;border:1px solid #1E1E2E;border-radius:11px;padding:18px;position:relative;overflow:hidden;}
+.payc.adv::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#FF3CAC,#FF6B35);}
+.payc.fin::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#9B7FD4,#6355ff);}
+.pp{font-family:'Syne',sans-serif;font-size:30px;font-weight:800;color:#fff;margin-bottom:3px;}.pl{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#55556A;margin-bottom:10px;}
+.pa{font-size:19px;font-weight:700;}.payc.adv .pa{color:#FF3CAC;}.payc.fin .pa{color:#9B7FD4;}
+.rl{display:flex;flex-direction:column;gap:9px;}
+.rule{display:flex;align-items:center;gap:10px;background:#12121C;border:1px solid #1E1E2E;border-radius:9px;padding:12px 14px;font-size:12px;color:#B0B0C0;}.ri{font-size:14px;flex-shrink:0;}
+.ft{padding:28px 48px;background:linear-gradient(135deg,#0f0f1a,#1a0f3a);text-align:center;}
+.fstrip{padding:13px 48px;display:flex;justify-content:space-between;background:#0a0a14;border-top:1px solid #1E1E2E;}
+.fstrip span{font-size:10px;color:#2a2660;}
+</style></head><body><div class="pg">
+<div class="hero">
+  <div class="bb"><div class="bi"><svg width="20" height="20" viewBox="0 0 28 28" fill="none"><path d="M16 3L6 16H14L12 25L22 12H14L16 3Z" fill="white"/></svg></div><div class="bt">SparkEdge</div></div>
+  <div class="wb">🎉 Welcome Aboard</div>
+  <div class="ht">Let's Create<br/>Something Beautiful!</div>
+  <div class="hs">We're excited to work on your creative project. Here's everything you need to know to get started.</div>
+  <div class="ct"><div style="font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#55556A;margin-bottom:4px;">Prepared for</div><div class="ctn">${cn}</div><div class="ctb">${bn} · ${ce}</div></div>
+</div>
+<div class="sec"><div class="shtitle"><div class="si" style="background:rgba(255,60,172,.15);">⚡</div>Your Project at a Glance</div>
+<div class="gg">
+  <div class="gc"><div class="gl">Service</div><div class="gv">${sType}</div></div>
+  <div class="gc"><div class="gl">Revisions</div><div class="gv">${revisions}</div></div>
+  <div class="gc"><div class="gl">Timeline</div><div class="gv" style="font-size:13px;">${sd}</div><div class="gs">→ Delivery: ${dd}</div></div>
+</div></div>
+<div class="sec"><div class="shtitle"><div class="si" style="background:rgba(0,200,150,.1);">🗺️</div>How It Works</div>
+<div class="steps">
+${[['Brief & Assets','Share all raw files (footage, text, logo, brand colors) via WhatsApp or Google Drive.'],['Creation','We create your deliverables based on your brief and brand. Preview link shared for review.'],['Revisions','One revision round — send ALL feedback in one message for fastest turnaround.'],['Final Delivery','Final payment → final files sent. Full rights transferred. 🎉']].map(([t,d],i)=>`
+<div class="step"><div class="stepn">${i+1}</div><div><div class="step-t">${t}</div><div class="step-d">${d}</div></div></div>`).join('')}
+</div></div>
+<div class="sec"><div class="shtitle"><div class="si" style="background:rgba(255,60,172,.1);">💰</div>Payment Schedule</div>
+<div class="payg">
+  <div class="payc adv"><div class="pl">Advance — Due Now</div><div class="pp">${advPct}%</div><div class="pa">₹${advAmt.toLocaleString('en-IN')}</div></div>
+  <div class="payc fin"><div class="pl">Final — On Delivery</div><div class="pp">${finPct}%</div><div class="pa">₹${finAmt.toLocaleString('en-IN')}</div></div>
+</div>
+<div style="margin-top:14px;background:#12121C;border:1px solid #1E1E2E;border-radius:9px;padding:12px 16px;font-size:12px;color:#8a88aa;text-align:center;">Total: <strong style="color:#FF3CAC;">₹${total.toLocaleString('en-IN')}</strong> · UPI: <strong style="color:#FFB347;">raunakkarn555-2@okhdfcbank</strong></div>
+</div>
+<div class="sec" style="border-bottom:none;"><div class="shtitle"><div class="si" style="background:rgba(255,179,71,.1);">📌</div>Important Reminders</div>
+<div class="rl">
+${[['📁','Share ALL raw assets before work begins.'],['📝','Send revision feedback in ONE message only.'],['💳','Final files sent only after final payment.'],['🕐','We reply within 2–3 hrs, 9 AM–9 PM IST, Mon–Sat.'],['📲',`WhatsApp: ${fcWa} · Email: ${fcEmail}`]].map(([i,t])=>`<div class="rule"><span class="ri">${i}</span>${t}</div>`).join('')}
+</div></div>
+<div class="ft"><div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;background:linear-gradient(135deg,#fff,#FF3CAC);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">SparkEdge 🎨</div>
+<div style="font-size:12px;color:#8a88aa;line-height:2;margin-top:6px;">We're thrilled to create something amazing for ${bn}.<br>📧 ${fcEmail} &nbsp;·&nbsp; 📞 ${fcPhone}</div></div>
+<div class="fstrip"><span>Confidential · © ${new Date().getFullYear()} SparkEdge</span><span>${fcEmail}</span></div>
+</div></body></html>`);
+}
+
+/* ─── NEW GENERATOR: Landing Page SOW / Agreement ─── */
+function generateLPSOW(){
+  const cn=fv('clientName','[Client]'),bn=fv('businessName','[Business]');
+  const sd=fv('startDate','[Start]'),dd=fv('deliveryDate','[Delivery]');
+  const pkg=fv('packageName','Landing Page Package');
+  const total=parseInt(fv('totalAmt','7999'))||7999;
+  const advPct=fv('advancePct','50'),finPct=fv('finalPct','50');
+  const advAmt=Math.round(total*parseInt(advPct)/100),finAmt=total-advAmt;
+  const cta=fv('ctaType','WhatsApp Enquiry'),sections=fv('pagesList','Hero, About, Services, Testimonials, FAQ, CTA, Footer');
+  const extras=fv('extras','Client to provide content & images within 48 hrs. 1 revision round included.');
+  const fcOwner=getFC('fc_ownerName'),fcEmail=getFC('fc_ownerEmail'),fcPhone=getFC('fc_ownerPhone');
+  return docShell(`<style>*{margin:0;padding:0;box-sizing:border-box;}body{font-family:'DM Sans',sans-serif;background:#08080F;color:#F0F0F8;min-height:100vh;display:flex;justify-content:center;padding:32px 16px;}
+.w{width:800px;max-width:100%;background:#0D1117;border:1px solid #1E1E2E;border-radius:20px;overflow:hidden;}
+.hdr{padding:36px 44px;background:linear-gradient(135deg,#0D1117,#080C1A);border-bottom:1px solid #1E1E2E;position:relative;}
+.hdr::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#3B82F6,#8B5CF6,#22C55E);}
+.hdr-inner{display:flex;justify-content:space-between;align-items:flex-start;}
+.bn{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;background:linear-gradient(135deg,#fff,#3B82F6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.bs{font-size:10px;color:#8A8A9A;letter-spacing:2px;text-transform:uppercase;margin-top:2px;}
+.db{display:inline-flex;align-items:center;gap:6px;background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.3);border-radius:100px;padding:4px 12px;font-size:10px;font-weight:700;color:#3B82F6;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;}
+.dt{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:#fff;}
+.meta{display:grid;grid-template-columns:1fr 1fr;gap:18px;padding:24px 44px;border-bottom:1px solid #1E1E2E;}
+.mc{background:#12121C;border:1px solid #1E1E2E;border-radius:12px;padding:18px;position:relative;overflow:hidden;}
+.mc.cl::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#3B82F6,#8B5CF6);}
+.mc.ag::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#22C55E,#3B82F6);}
+.ml{font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#55556A;margin-bottom:8px;}
+.mn{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:#fff;margin-bottom:6px;}.mr{font-size:12px;color:#8A8A9A;margin-bottom:3px;}.mr strong{color:#ccc;}
+.body-s{padding:22px 44px;border-bottom:1px solid #1E1E2E;}
+.sh{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+.sn{width:26px;height:26px;background:linear-gradient(135deg,#3B82F6,#8B5CF6);border-radius:7px;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:12px;font-weight:800;color:#fff;flex-shrink:0;}
+.st{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:#fff;}
+.sc{font-size:12px;color:#B0B0C0;line-height:1.9;padding-left:36px;}.sc strong{color:#E0E0F0;}
+.pays{display:flex;flex-direction:column;gap:8px;margin-top:10px;padding-left:36px;}
+.ps{display:flex;align-items:center;gap:12px;background:#12121C;border:1px solid #1E1E2E;border-radius:8px;padding:11px 14px;}
+.ps-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}.ps-name{flex:1;font-size:12px;color:#ccc;}.ps-amt{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:#3B82F6;}
+.sigs{padding:24px 44px;display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+.sg{background:#12121C;border:1px solid #1E1E2E;border-radius:12px;padding:18px;}
+.sg-r{font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#55556A;margin-bottom:12px;}
+.sg-l{height:1px;background:linear-gradient(90deg,#1E1E2E,transparent);margin:14px 0 8px;}
+.sg-n{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:#fff;}.sg-d{font-size:11px;color:#8A8A9A;margin-top:3px;}
+.fstrip{background:#12121C;border-top:1px solid #1E1E2E;padding:12px 44px;display:flex;justify-content:space-between;}
+.fstrip span{font-size:10px;color:#55556A;}.fstrip strong{font-family:'Syne',sans-serif;font-size:11px;font-weight:700;color:#3B82F6;}
+</style></head><body><div class="w">
+<div class="hdr"><div class="hdr-inner">
+  <div><div class="bn">SparkEdge</div><div class="bs">Landing Pages</div></div>
+  <div style="text-align:right;"><div class="db">📋 SOW / Agreement</div><div class="dt">SCOPE OF WORK</div><div style="margin-top:6px;font-size:11px;color:#8A8A9A;">${pkg}</div></div>
+</div></div>
+<div class="meta">
+  <div class="mc cl"><div class="ml">Client</div><div class="mn">${cn}</div><div class="mr"><strong>Business:</strong> ${bn}</div><div class="mr"><strong>Timeline:</strong> ${sd} → ${dd}</div></div>
+  <div class="mc ag"><div class="ml">Service Provider</div><div class="mn">SparkEdge</div><div class="mr"><strong>Contact:</strong> ${fcOwner}</div><div class="mr"><strong>Email:</strong> ${fcEmail}</div><div class="mr"><strong>Phone:</strong> ${fcPhone}</div></div>
+</div>
+${[
+  ['1','Project Scope',`SparkEdge will design and develop a conversion-optimised landing page for <strong>${bn}</strong>.<br><strong>Sections:</strong> ${sections}<br><strong>Primary CTA:</strong> ${cta}`,''],
+  ['2','Payment Terms',`Total fee: <strong style="color:#3B82F6;">₹${total.toLocaleString('en-IN')}</strong>. Work begins after advance payment.`,'pays'],
+  ['3','Revisions & Timeline','1 revision round included. Client must provide all content and images before work begins.',''],
+  ['4','Client Responsibilities','Provide: logo, images, tagline, benefits, testimonials, and CTA details within 48 hrs of advance payment.',''],
+  ['5','Additional Terms',extras,''],
+].map(([num,title,body,extra])=>`
+  <div class="body-s"><div class="sh"><div class="sn">${num}</div><div class="st">${title}</div></div><div class="sc">${body}</div>
+  ${extra==='pays'?`<div class="pays"><div class="ps"><div class="ps-dot" style="background:#3B82F6;"></div><span class="ps-name">Advance (${advPct}%) — Before Work</span><span class="ps-amt">₹${advAmt.toLocaleString('en-IN')}</span></div><div class="ps"><div class="ps-dot" style="background:#8B5CF6;"></div><span class="ps-name">Final (${finPct}%) — On Delivery</span><span class="ps-amt">₹${finAmt.toLocaleString('en-IN')}</span></div></div>`:''}
+  </div>`).join('')}
+<div class="sigs">
+  <div class="sg"><div class="sg-r">Client</div><div class="sg-l"></div><div class="sg-n">${cn}</div><div class="sg-d">${bn}</div></div>
+  <div class="sg"><div class="sg-r">SparkEdge</div><div class="sg-l"></div><div class="sg-n">${fcOwner}</div><div class="sg-d">${fcEmail}</div></div>
+</div>
+<div class="fstrip"><span>© ${new Date().getFullYear()} SparkEdge · Confidential</span><strong>SPARKEDGE</strong></div>
+</div></body></html>`);
+}
+
+/* ─── NEW GENERATOR: Landing Page Welcome Packet ─── */
+function generateLPWelcome(){
+  const cn=fv('clientName','[Client]'),bn=fv('businessName','[Business]'),ce=fv('clientEmail','[Email]');
+  const pkg=fv('packageName','Landing Page Package'),sd=fv('startDate','[Start]'),dd=fv('deliveryDate','[Delivery]');
+  const total=parseInt(fv('totalAmt','7999'))||7999;
+  const advPct=fv('advancePct','50'),finPct=fv('finalPct','50');
+  const advAmt=Math.round(total*parseInt(advPct)/100),finAmt=total-advAmt;
+  const cta=fv('ctaType','WhatsApp Enquiry');
+  const fcOwner=getFC('fc_ownerName'),fcEmail=getFC('fc_ownerEmail'),fcPhone=getFC('fc_ownerPhone'),fcWa=getFC('fc_contactWa');
+  return docShell(`<style>*{margin:0;padding:0;box-sizing:border-box;}body{font-family:'DM Sans',sans-serif;background:#0A0A0F;color:#F0F0F8;min-height:100vh;}
+.pg{max-width:820px;margin:0 auto;}
+.hero{background:linear-gradient(135deg,#0A0A0F,#0A0C20,#0A0A0F);padding:48px 48px 36px;border-bottom:1px solid #1A1A2E;position:relative;overflow:hidden;}
+.hero::before{content:'';position:absolute;top:-80px;right:-60px;width:280px;height:280px;background:radial-gradient(circle,rgba(59,130,246,.12) 0%,transparent 65%);border-radius:50%;}
+.bb{display:flex;align-items:center;gap:10px;margin-bottom:30px;}.bi{width:38px;height:38px;background:linear-gradient(135deg,#3B82F6,#8B5CF6);border-radius:10px;display:flex;align-items:center;justify-content:center;}.bt{font-family:'Syne',sans-serif;font-size:19px;font-weight:800;background:linear-gradient(135deg,#fff,#3B82F6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.wb{display:inline-flex;align-items:center;gap:7px;background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.25);border-radius:100px;padding:5px 14px;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#3B82F6;margin-bottom:14px;}
+.ht{font-family:'Syne',sans-serif;font-size:36px;font-weight:800;line-height:1.15;background:linear-gradient(135deg,#fff 40%,#3B82F6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:10px;}
+.hs{font-size:13px;color:#7A7A9A;max-width:480px;line-height:1.7;margin-bottom:22px;}
+.ct{background:rgba(59,130,246,.06);border:1px solid rgba(59,130,246,.2);border-radius:11px;padding:14px 18px;display:inline-block;}
+.ctn{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:#fff;}.ctb{font-size:11px;color:#8a88aa;}
+.sec{padding:30px 48px;border-bottom:1px solid #1A1A2E;}
+.shtitle{font-family:'Syne',sans-serif;font-size:17px;font-weight:700;color:#fff;margin-bottom:18px;display:flex;align-items:center;gap:10px;}
+.si{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;}
+.gg{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.gc{background:#0E0E1E;border:1px solid #1A1A2E;border-radius:11px;padding:16px;}
+.gl{font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#3A3A5A;margin-bottom:5px;}
+.gv{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:#3B82F6;}.gs{font-size:10px;color:#8a88aa;margin-top:2px;}
+.steps{display:flex;flex-direction:column;gap:14px;}
+.step{display:flex;align-items:flex-start;gap:14px;background:#0E0E1E;border:1px solid #1A1A2E;border-radius:11px;padding:16px;}
+.stepn{width:30px;height:30px;background:linear-gradient(135deg,#3B82F6,#8B5CF6);border-radius:7px;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:12px;font-weight:800;color:#fff;flex-shrink:0;}
+.step-t{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:#fff;margin-bottom:3px;}.step-d{font-size:12px;color:#8a88aa;line-height:1.5;}
+.payg{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.payc{background:#0E0E1E;border:1px solid #1A1A2E;border-radius:11px;padding:18px;position:relative;overflow:hidden;}
+.payc.adv::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#3B82F6,#8B5CF6);}
+.payc.fin::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#8B5CF6,#22C55E);}
+.pp{font-family:'Syne',sans-serif;font-size:30px;font-weight:800;color:#fff;margin-bottom:3px;}.pl{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#3A3A5A;margin-bottom:10px;}
+.pa{font-size:19px;font-weight:700;}.payc.adv .pa{color:#3B82F6;}.payc.fin .pa{color:#8B5CF6;}
+.rl{display:flex;flex-direction:column;gap:9px;}
+.rule{display:flex;align-items:center;gap:10px;background:#0E0E1E;border:1px solid #1A1A2E;border-radius:9px;padding:12px 14px;font-size:12px;color:#B0B0C0;}.ri{font-size:14px;flex-shrink:0;}
+.ft{padding:28px 48px;background:linear-gradient(135deg,#0f0f1a,#080C1A);text-align:center;}
+.fstrip{padding:13px 48px;display:flex;justify-content:space-between;background:#08080F;border-top:1px solid #1A1A2E;}
+.fstrip span{font-size:10px;color:#2a2660;}
+</style></head><body><div class="pg">
+<div class="hero">
+  <div class="bb"><div class="bi"><svg width="20" height="20" viewBox="0 0 28 28" fill="none"><path d="M16 3L6 16H14L12 25L22 12H14L16 3Z" fill="white"/></svg></div><div class="bt">SparkEdge</div></div>
+  <div class="wb">🎉 Welcome Aboard</div>
+  <div class="ht">Your Landing Page<br/>Journey Starts Now!</div>
+  <div class="hs">We're building a high-conversion landing page for ${bn}. Here's what to expect and how to get started.</div>
+  <div class="ct"><div style="font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#3A3A5A;margin-bottom:4px;">Prepared for</div><div class="ctn">${cn}</div><div class="ctb">${bn} · ${ce}</div></div>
+</div>
+<div class="sec"><div class="shtitle"><div class="si" style="background:rgba(59,130,246,.15);">⚡</div>Your Project at a Glance</div>
+<div class="gg">
+  <div class="gc"><div class="gl">Package</div><div class="gv">${pkg}</div></div>
+  <div class="gc"><div class="gl">Primary CTA</div><div class="gv" style="font-size:13px;">${cta}</div></div>
+  <div class="gc"><div class="gl">Timeline</div><div class="gv" style="font-size:13px;">${sd}</div><div class="gs">→ Delivery: ${dd}</div></div>
+</div></div>
+<div class="sec"><div class="shtitle"><div class="si" style="background:rgba(0,200,150,.1);">🗺️</div>How It Works</div>
+<div class="steps">
+${[['Content & Brief','Share your tagline, images, testimonials, and content via our WhatsApp or Drive. We guide you.'],['Design & Build','We design a high-converting landing page optimised for your CTA and target audience.'],['Review & Revisions','Preview link shared. One revision round — send ALL feedback in one message.'],['Go Live!','Final payment → site deployed on GitHub Pages. Live URL handed over. 🎉']].map(([t,d],i)=>`
+<div class="step"><div class="stepn">${i+1}</div><div><div class="step-t">${t}</div><div class="step-d">${d}</div></div></div>`).join('')}
+</div></div>
+<div class="sec"><div class="shtitle"><div class="si" style="background:rgba(59,130,246,.1);">💰</div>Payment Schedule</div>
+<div class="payg">
+  <div class="payc adv"><div class="pl">Advance — Due Now</div><div class="pp">${advPct}%</div><div class="pa">₹${advAmt.toLocaleString('en-IN')}</div></div>
+  <div class="payc fin"><div class="pl">Final — On Delivery</div><div class="pp">${finPct}%</div><div class="pa">₹${finAmt.toLocaleString('en-IN')}</div></div>
+</div>
+<div style="margin-top:14px;background:#0E0E1E;border:1px solid #1A1A2E;border-radius:9px;padding:12px 16px;font-size:12px;color:#8a88aa;text-align:center;">Total: <strong style="color:#3B82F6;">₹${total.toLocaleString('en-IN')}</strong> · UPI: <strong style="color:#FFB347;">raunakkarn555-2@okhdfcbank</strong></div>
+</div>
+<div class="sec" style="border-bottom:none;"><div class="shtitle"><div class="si" style="background:rgba(255,179,71,.1);">📌</div>Important Reminders</div>
+<div class="rl">
+${[['📋','Share content (tagline, images, testimonials) ASAP after advance.'],['📝','Send revision feedback in ONE message only.'],['💳','Final payment due before site goes live.'],['🕐','We reply within 2–3 hrs, 9 AM–9 PM IST, Mon–Sat.'],['📲',`WhatsApp: ${fcWa} · Email: ${fcEmail}`]].map(([i,t])=>`<div class="rule"><span class="ri">${i}</span>${t}</div>`).join('')}
+</div></div>
+<div class="ft"><div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;background:linear-gradient(135deg,#fff,#3B82F6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">SparkEdge 📣</div>
+<div style="font-size:12px;color:#8a88aa;line-height:2;margin-top:6px;">Building a page that converts for ${bn}.<br>📧 ${fcEmail} &nbsp;·&nbsp; 📞 ${fcPhone}</div></div>
+<div class="fstrip"><span>Confidential · © ${new Date().getFullYear()} SparkEdge</span><span>${fcEmail}</span></div>
+</div></body></html>`);
 }
 
 </script>
