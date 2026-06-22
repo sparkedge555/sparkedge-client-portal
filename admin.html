@@ -753,7 +753,7 @@ if(sess){
 const members = getMembers();
 const member = members.find(m => m.password === val && m.status === 'active');
 if(member){
-  window.SE_USER = {name:member.name, role:member.role, permissions:member.permissions||[], memberId:member.id};
+window.SE_USER = {name:member.name, role:member.role, permissions:(member.permissions&&member.permissions.admin)||[], memberId:member.id};
   sessionStorage.setItem('se_session', JSON.stringify(window.SE_USER));
   doUnlock();
   return;
@@ -4032,7 +4032,7 @@ if(countEl) countEl.textContent = members.length + ' member(s)';
       'view_clients':'👥 View Clients',
       'export':'⬇ Export/Import'
     };
-    const permTags = (m.permissions||[]).map(p => `<span style="background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.25);border-radius:5px;padding:2px 8px;font-size:10px;font-weight:600;color:#3B82F6;margin:2px;">${permLabels[p]||p}</span>`).join('');
+    const permTags = ((m.permissions&&m.permissions.admin)||[]).map(p =>`<span style="background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.25);border-radius:5px;padding:2px 8px;font-size:10px;font-weight:600;color:#3B82F6;margin:2px;">${permLabels[p]||p}</span>`).join('');
     return `<div class="team-card" style="margin-bottom:10px;">
       <div class="team-avatar" style="font-size:18px;">${(m.name||'?').charAt(0).toUpperCase()}</div>
       <div style="flex:1;min-width:0;">
@@ -4083,10 +4083,11 @@ function openEditMemberModal(idx){
   document.getElementById('mm_password').value = m.password||'';
   document.getElementById('mm_preset').value = 'custom';
   // Restore checkboxes
-  ['view_tickets','edit_tickets','create_tickets','delete_tickets','view_finance','view_clients','export'].forEach(p => {
-    const cb = document.getElementById('perm_'+p);
-    if(cb) cb.checked = (m.permissions||[]).includes(p);
-  });
+const myPerms=(m.permissions&&m.permissions.admin)||[];
+['view_tickets','edit_tickets','create_tickets','delete_tickets','view_finance','view_clients','export'].forEach(p => {
+  const cb = document.getElementById('perm_'+p);
+  if(cb) cb.checked = myPerms.includes(p);
+});
   document.getElementById('memberModalEditIdx').value = idx;
   document.getElementById('memberModal').classList.add('open');
 }
@@ -4112,7 +4113,7 @@ async function saveMember(){
   if(!name){ alert('Name is required.'); return; }
   if(!pwd){ alert('Password is required for member login.'); return; }
   if(pwd === 'RAUNAK@1'){ alert('Member cannot use the owner password.'); return; }
- if(pwd.length < 6){ alert('Password must be at least 6 characters.'); return; }
+  if(pwd.length < 6){ alert('Password must be at least 6 characters.'); return; }
 
   const members = getMembers();
   const editIdx = parseInt(document.getElementById('memberModalEditIdx').value);
@@ -4122,29 +4123,26 @@ async function saveMember(){
     return cb && cb.checked;
   });
 
-  const existingMember = (editIdx >= 0 && members[editIdx]) ? members[editIdx] : null;
-  const foreignPerms = (existingMember?.permissions || []).filter(p =>
-    ['vault','send','generate_docs','save_drafts','view_team'].includes(p)
-  );
-  const finalPerms = [...new Set([...perms, ...foreignPerms])];
-
-  // Check password uniqueness
   const isDup = members.some((m,i) => m.password === pwd && i !== editIdx);
   if(isDup){ alert('This password is already used by another member. Use a unique password.'); return; }
 
+  const existing = (editIdx >= 0 && members[editIdx]) ? members[editIdx] : null;
+  let permsObj = (existing && typeof existing.permissions === 'object' && !Array.isArray(existing.permissions)) ? existing.permissions : {};
+  permsObj = { ...permsObj, admin: perms };
+
   const memberData = {
-    id: (editIdx >= 0 && members[editIdx]) ? members[editIdx].id : ('mem_'+Date.now()),
+    id: existing ? existing.id : ('mem_'+Date.now()),
     name,
     role: document.getElementById('mm_role').value,
     email: document.getElementById('mm_email').value.trim(),
     wa: document.getElementById('mm_wa').value.trim(),
     password: pwd,
-   permissions: finalPerms,
-    status: (editIdx >= 0 && members[editIdx]) ? members[editIdx].status : 'active',
-    addedAt: (editIdx >= 0 && members[editIdx]) ? members[editIdx].addedAt : new Date().toLocaleDateString('en-IN')
+    permissions: permsObj,
+    status: existing ? existing.status : 'active',
+    addedAt: existing ? existing.addedAt : new Date().toLocaleDateString('en-IN')
   };
 
-  if(editIdx >= 0 && members[editIdx]){
+  if(existing){
     members[editIdx] = memberData;
     showToast('✅ Member updated!');
   } else {
@@ -4152,9 +4150,9 @@ async function saveMember(){
     showToast('✅ Member added! They can now login with their password.');
   }
   await saveMembers(members);
-window._teamCache = members;
-document.getElementById('memberModal').classList.remove('open');
-renderTeamPage();
+  window._teamCache = members;
+  document.getElementById('memberModal').classList.remove('open');
+  renderTeamPage();
 }
 
 async function toggleMemberStatus(idx){

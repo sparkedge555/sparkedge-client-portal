@@ -948,9 +948,9 @@ async function doLogin(){
 
   if(member){
     window.CRM_USER = {
-      name: member.name, role: member.role, isOwner: false,
-      permissions: member.permissions || [], memberId: member.id
-    };
+  name: member.name, role: member.role, isOwner: false,
+  permissions: (member.permissions&&member.permissions.crm) || [], memberId: member.id
+};
     sessionStorage.setItem(CRM_SESS_KEY, JSON.stringify(window.CRM_USER));
     hideCrmLogin();
     return;
@@ -3183,7 +3183,7 @@ if(!window.CRM_USER?.isOwner){
         &nbsp;·&nbsp; Status: <strong style="color:${m.status==='active'?'var(--success)':'var(--danger)'}">${m.status}</strong>
       </div>
       <div class="team-perms">
-        ${Object.entries(CRM_PERMS).map(([k,v])=>`<span class="perm-chip ${(m.permissions||[]).includes(k)?'':'denied'}">${(m.permissions||[]).includes(k)?'✅':'❌'} ${v}</span>`).join('')}
+        js${Object.entries(CRM_PERMS).map(([k,v])=>`<span class="perm-chip ${((m.permissions&&m.permissions.crm)||[]).includes(k)?'':'denied'}">${(m.permissions||[]).includes(k)?'✅':'❌'} ${v}</span>`).join('')}
       </div>
       <div class="team-actions">
         <button class="btn-sm" onclick="editMember('${m.id}')">✏️ Edit</button>
@@ -3254,10 +3254,11 @@ function editMember(id){
   document.getElementById('m_email').value=m.email||'';
   document.getElementById('m_wa').value=m.wa||'';
   document.getElementById('m_pwd').value=m.password||'';
-  Object.keys(CRM_PERMS).filter(k=>k!=='manage_team').forEach(k=>{
-    const el=document.getElementById('mp_'+k);
-    if(el) el.checked=(m.permissions||[]).includes(k);
-  });
+ const myPerms=(m.permissions&&m.permissions.crm)||[];
+Object.keys(CRM_PERMS).filter(k=>k!=='manage_team').forEach(k=>{
+  const el=document.getElementById('mp_'+k);
+  if(el) el.checked=myPerms.includes(k);
+});
   document.getElementById('memberModal').classList.add('open');
 }
 function applyPreset(v){
@@ -3278,9 +3279,9 @@ function applyPreset(v){
   const ownPermKeys=Object.keys(CRM_PERMS).filter(k=>k!=='manage_team');
   const crmPerms=ownPermKeys.filter(k=>document.getElementById('mp_'+k)?.checked);
   const members=crmGetMembers();
-  const existingMember=editMemberId?members.find(x=>x.id===editMemberId):null;
-  const foreignPerms=(existingMember?.permissions||[]).filter(p=>!ownPermKeys.includes(p));
-  const perms=[...new Set([...crmPerms, ...foreignPerms])];
+ const existingMember=editMemberId?members.find(x=>x.id===editMemberId):null;
+let permsObj=(existingMember&&typeof existingMember.permissions==='object'&&!Array.isArray(existingMember.permissions))?existingMember.permissions:{};
+permsObj={...permsObj, crm: crmPerms};
   if(!editMemberId){
     // Check dupe password
     if(members.find(m=>m.password===pwd)){alert('This password is already used by another member!');return;}
@@ -3289,12 +3290,12 @@ function applyPreset(v){
       role:document.getElementById('m_role').value.trim(),
       email:document.getElementById('m_email').value.trim(),
       wa:document.getElementById('m_wa').value.trim(),
-      password:pwd,permissions:perms,status:'active',
+      password:pwd,permissions:permsObj,status:'active',
       addedAt:new Date().toLocaleDateString('en-IN')
     });
   } else {
     const idx=members.findIndex(x=>x.id===editMemberId);
-    if(idx>-1) members[idx]={...members[idx],name,role:document.getElementById('m_role').value.trim(),email:document.getElementById('m_email').value.trim(),wa:document.getElementById('m_wa').value.trim(),password:pwd,permissions:perms};
+    if(idx>-1) members[idx]={...members[idx],name,role:document.getElementById('m_role').value.trim(),email:document.getElementById('m_email').value.trim(),wa:document.getElementById('m_wa').value.trim(),password:pwd,permissions:permsObj};
   }
   await crmSaveMembers(members);
   closeMemberModal();

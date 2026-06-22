@@ -885,7 +885,7 @@ function attachDocsTeamListener(){
             setTimeout(doLogout, 1500);
             return;
           }
-          window.DOCS_USER.permissions = me.permissions || [];
+         window.DOCS_USER.permissions = (me.permissions && me.permissions.docs) || [];
           sessionStorage.setItem('se_docs_session', JSON.stringify(window.DOCS_USER));
           updateUserBadge();
         }
@@ -953,7 +953,7 @@ async function doLogin(){
   const members = getMembers();
   const member = members.find(m => m.password === val && m.status === 'active');
   if(member){
-    window.DOCS_USER = {name:member.name, role:member.role, permissions:member.permissions||[], memberId:member.id};
+    window.DOCS_USER = {name:member.name, role:member.role, permissions:(member.permissions&&member.permissions.docs)||[], memberId:member.id};
     sessionStorage.setItem('se_docs_session', JSON.stringify(window.DOCS_USER));
     unlockDocs();
     return;
@@ -3622,7 +3622,7 @@ function renderTeamPage(){
   }
 
   const membersHTML = members.map((m,i)=>{
-    const permTags = (m.permissions||[]).map(p=>`<span class="perm-tag">${PERM_LABELS[p]||p}</span>`).join('');
+    const permTags = ((m.permissions&&m.permissions.docs)||[]).map(p =>`<span class="perm-tag">${PERM_LABELS[p]||p}</span>`).join('');
     const active = m.status !== 'suspended';
     return `<div class="team-card">
       <div class="team-avatar">${(m.name||'?').charAt(0).toUpperCase()}</div>
@@ -3672,10 +3672,11 @@ function openEditMemberModal(idx){
   document.getElementById('mm_wa').value=m.wa||'';
   document.getElementById('mm_password').value=m.password||'';
   document.getElementById('memberModalEditIdx').value=idx;
-  ['generate_docs','save_drafts','export','view_team'].forEach(p=>{
-    const cb = document.getElementById('pm_'+p);
-    if(cb) cb.checked = (m.permissions||[]).includes(p);
-  });
+ const myPerms=(m.permissions&&m.permissions.docs)||[];
+['generate_docs','save_drafts','export','view_team'].forEach(p => {
+  const cb = document.getElementById('pm_'+p);
+  if(cb) cb.checked = myPerms.includes(p);
+});
   document.getElementById('memberModal').classList.add('open');
 }
 
@@ -3717,11 +3718,9 @@ async function saveMember(){
   const members = getMembers();
   const editIdx = parseInt(document.getElementById('memberModalEditIdx').value);
 
-  const existingMember = (editIdx >= 0 && members[editIdx]) ? members[editIdx] : null;
-  const foreignPerms = (existingMember?.permissions || []).filter(p =>
-    !['generate_docs','save_drafts','export','view_team'].includes(p)
-  );
-  const perms = [...new Set([...docsPerms, ...foreignPerms])];
+const existingMember = (editIdx >= 0 && members[editIdx]) ? members[editIdx] : null;
+let permsObj = (existingMember && typeof existingMember.permissions === 'object' && !Array.isArray(existingMember.permissions)) ? existingMember.permissions : {};
+permsObj = { ...permsObj, docs: docsPerms };
   const isDup = members.some((m,i)=>m.password===pwd && i!==editIdx);
   if(isDup){ alert('This password is already used. Choose a unique one.'); return; }
 
@@ -3732,7 +3731,7 @@ async function saveMember(){
     email: document.getElementById('mm_email').value.trim(),
     wa: document.getElementById('mm_wa').value.trim(),
     password: pwd,
-    permissions: perms,
+    permissions: permsObj,
     status: (editIdx>=0 && members[editIdx]) ? members[editIdx].status : 'active',
     addedAt: (editIdx>=0 && members[editIdx]) ? members[editIdx].addedAt : new Date().toLocaleDateString('en-IN')
   };

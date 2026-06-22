@@ -815,7 +815,7 @@ async function doLogin(){
     }catch(e){}
   }
   if(member){
-    window.PORTAL_USER={name:member.name,role:member.role,isOwner:false,permissions:member.permissions||[],memberId:member.id};
+    window.PORTAL_USER={name:member.name,role:member.role,isOwner:false,permissions:(member.permissions&&member.permissions.retention)||[],memberId:member.id};
     sessionStorage.setItem('se_ret_session',JSON.stringify(window.PORTAL_USER));
     unlockPortal();return;
   }
@@ -853,8 +853,7 @@ const PERM_ALIASES = {
 function has(perm){
   const u=window.PORTAL_USER;if(!u)return false;
   if(u.isOwner)return true;
-  const userPerms = u.permissions||[];
-  if(userPerms.includes('all')) return true;
+  const userPerms = (u.permissions && u.permissions.retention) || [];
   const aliases = PERM_ALIASES[perm] || [perm];
   return aliases.some(a => userPerms.includes(a));
 }
@@ -2439,7 +2438,7 @@ function renderTeam(){
       <div style="font-size:11px;color:var(--accent);margin-top:2px">${m.role||'Team Member'}</div>
       <div style="font-size:11px;color:var(--text-muted);margin-top:4px">${m.email||''} ${m.wa?'· WA: '+m.wa:''} · Added: ${m.addedAt||'—'}</div>
       <div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:5px">
-        ${(m.permissions||[]).map(p=>`<span style="background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);color:var(--success);font-size:10px;font-weight:600;padding:2px 8px;border-radius:5px">${p}</span>`).join('')}
+${((m.permissions&&m.permissions.retention)||[]).map(p=>`<span style="background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);color:var(--success);font-size:10px;font-weight:600;padding:2px 8px;border-radius:5px">${p}</span>`).join('')}
         ${!(m.permissions||[]).length?'<span style="font-size:11px;color:var(--text-dim)">No permissions</span>':''}
       </div>
       <div style="margin-top:6px">
@@ -2466,7 +2465,8 @@ function openTeamModal(id){
     document.getElementById('tm_wa').value=m.wa||'';
     document.getElementById('tm_pwd').value=m.password||'';
     document.getElementById('tm_editId').value=id;
-    ['view','edit','vault','send','export'].forEach(p=>{const el=document.getElementById('tp_'+p);if(el)el.checked=(m.permissions||[]).includes(p);});
+const myPerms=(m.permissions&&m.permissions.retention)||[];
+['view','edit','vault','send','export'].forEach(p=>{const el=document.getElementById('tp_'+p);if(el)el.checked=myPerms.includes(p);});
   }else{
     ['tm_name','tm_role','tm_email','tm_wa','tm_pwd'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
     document.getElementById('tm_editId').value='';
@@ -2490,28 +2490,16 @@ async function saveTeamMember(){
   const members=getMembers();
   const editId=document.getElementById('tm_editId').value;
   const existing = editId ? members.find(m=>m.id===editId) : null;
-  const foreignPerms = (existing?.permissions || []).filter(p =>
-    ['view_tickets','edit_tickets','create_tickets','delete_tickets','view_finance','view_clients','generate_docs','save_drafts','view_team'].includes(p)
-  );
-  const perms = [...new Set([...retentionPerms, ...foreignPerms])];
 
   if(existing){
-    // Update existing member in place
-    existing.name=name;
-    existing.role=role;
-    existing.email=email;
-    existing.wa=wa;
-    existing.password=pwd;
-    existing.permissions=perms;
+    existing.name=name; existing.role=role; existing.email=email; existing.wa=wa; existing.password=pwd;
+    if(typeof existing.permissions !== 'object' || Array.isArray(existing.permissions)) existing.permissions = {};
+    existing.permissions.retention = retentionPerms;
   } else {
-    // Add new member to the array
     members.push({
-      id:'mem_'+Date.now(),
-      name,role,email,wa,
-      password:pwd,
-      permissions:perms,
-      status:'active',
-      addedAt:new Date().toISOString().slice(0,10)
+      id:'mem_'+Date.now(), name,role,email,wa, password:pwd,
+      permissions:{ retention: retentionPerms },
+      status:'active', addedAt:new Date().toISOString().slice(0,10)
     });
   }
 

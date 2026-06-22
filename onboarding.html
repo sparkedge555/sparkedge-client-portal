@@ -420,7 +420,7 @@ m=fs.find(x=>x.password===v&&x.status==='active');
     }catch(e){}
   }
   if(m){
-    window.ADMIN_USER={name:m.name,role:m.role,isOwner:false,permissions:m.permissions||[],memberId:m.id};
+    window.ADMIN_USER={name:m.name,role:m.role,isOwner:false,permissions:(m.permissions&&m.permissions.onboarding)||[],memberId:m.id};
     sessionStorage.setItem('se_onb_session',JSON.stringify(window.ADMIN_USER));
     return enterAdmin();
   }
@@ -633,7 +633,7 @@ function renderTeamAdmin(){
       <div style="font-weight:700;font-size:14px">${m.name}</div>
       <div style="font-size:11px;color:var(--accent)">${m.role||''}</div>
       <div style="font-size:11px;color:var(--text-muted)">${m.email||''} ${m.wa?'· '+m.wa:''}</div>
-      <div style="margin-top:6px;display:flex;gap:5px;flex-wrap:wrap">${(m.permissions||[]).map(p=>`<span style="background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);color:var(--success);font-size:10px;padding:2px 8px;border-radius:5px">${p}</span>`).join('')}</div>
+      <div style="margin-top:6px;display:flex;gap:5px;flex-wrap:wrap">${((m.permissions&&m.permissions.onboarding)||[]).map(p=>`<span style="background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);color:var(--success);font-size:10px;padding:2px 8px;border-radius:5px">${p}</span>`).join('')}</div>
       <div style="margin-top:6px"><span class="pill ${m.status==='active'?'pill-submitted':'pill-pending'}">${m.status==='active'?'✅ Active':'⛔ Suspended'}</span></div>
     </div>
     <div style="display:flex;flex-direction:column;gap:6px">
@@ -654,9 +654,9 @@ function openTeamForm(id){
     <div class="fg"><label>WhatsApp</label><input id="tm_wa" value="${m?.wa||''}"/></div>
     <div class="fg"><label>Password (min 6 chars)</label><input id="tm_pwd" value="${m?.password||''}"/></div>
     <div class="fg"><label>Permissions</label>
-      <label class="chk-row"><input type="checkbox" id="tp_view" ${m?.permissions?.includes('view')?'checked':''}/> View submissions</label>
-      <label class="chk-row"><input type="checkbox" id="tp_delete" ${m?.permissions?.includes('delete')?'checked':''}/> Delete submissions</label>
-      <label class="chk-row"><input type="checkbox" id="tp_export" ${m?.permissions?.includes('export')?'checked':''}/> Export data</label>
+      <label class="chk-row"><input type="checkbox" id="tp_view" ${m?.permissions?.onboarding?.includes('view')?'checked':''}/>View submissions</label>
+      <label class="chk-row"><input type="checkbox" id="tp_delete" ${m?.permissions?.onboarding?.includes('delete')?'checked':''}/> Delete submissions</label>
+      <label class="chk-row"><input type="checkbox" id="tp_export" ${m?.permissions?.onboarding?.includes('export')?'checked':''}/> Export data</label>
     </div>
     <div style="display:flex;gap:10px;margin-top:10px"><button class="btn btn-primary" onclick="saveTeamForm('${id||''}')">💾 Save</button><button class="btn btn-sec" onclick="document.getElementById('teamFormWrap').innerHTML=''">Cancel</button></div>
   </div>`;
@@ -670,10 +670,10 @@ async function saveTeamForm(id){
   const onboardingPerms=ownPermKeys.filter(p=>document.getElementById('tp_'+p)?.checked);
   const members=getMembers();
   const existingMember=id?members.find(m=>m.id===id):null;
-  const foreignPerms=(existingMember?.permissions||[]).filter(p=>!ownPermKeys.includes(p));
-  const perms=[...new Set([...onboardingPerms, ...foreignPerms])];
-  if(id){ const idx=members.findIndex(m=>m.id===id); if(idx>=0) members[idx]={...members[idx],name,role:document.getElementById('tm_role').value.trim(),email:document.getElementById('tm_email').value.trim(),wa:document.getElementById('tm_wa').value.trim(),password:pwd,permissions:perms}; }
-  else { members.push({id:'mem_'+Date.now(),name,role:document.getElementById('tm_role').value.trim(),email:document.getElementById('tm_email').value.trim(),wa:document.getElementById('tm_wa').value.trim(),password:pwd,permissions:perms,status:'active',addedAt:new Date().toLocaleDateString('en-IN')}); }
+  let permsObj=(existingMember&&typeof existingMember.permissions==='object'&&!Array.isArray(existingMember.permissions))?existingMember.permissions:{};
+permsObj={...permsObj, onboarding: onboardingPerms};
+  if(id){ const idx=members.findIndex(m=>m.id===id); if(idx>=0) members[idx]={...members[idx],name,role:document.getElementById('tm_role').value.trim(),email:document.getElementById('tm_email').value.trim(),wa:document.getElementById('tm_wa').value.trim(),password:pwd,permissions:permsObj}; }
+  else { members.push({id:'mem_'+Date.now(),name,role:document.getElementById('tm_role').value.trim(),email:document.getElementById('tm_email').value.trim(),wa:document.getElementById('tm_wa').value.trim(),password:pwd,permissions:permsObj,status:'active',addedAt:new Date().toLocaleDateString('en-IN')}); }
   await saveMembers(members); document.getElementById('teamFormWrap').innerHTML=''; adminNav('team');
 }
 async function toggleMember(id){ const members=getMembers(); const m=members.find(x=>x.id===id); if(!m)return; m.status=m.status==='active'?'suspended':'active'; await saveMembers(members); adminNav('team'); }

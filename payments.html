@@ -581,7 +581,7 @@ function refreshMyPermissions(){
     return;
   }
 
-  const newPerms=me.permissions||[];
+  const newPerms=(me.permissions&&me.permissions.payments)||[];
   const oldPerms=u.permissions||[];
   const changed=JSON.stringify([...newPerms].sort())!==JSON.stringify([...oldPerms].sort());
   if(changed){
@@ -677,7 +677,7 @@ m=fs.find(x=>x.password===val&&x.status==='active');
     }catch(e){console.warn('Firestore login fallback failed:',e.message);}
   }
   if(m){
-    window.PORTAL_USER={name:m.name,role:m.role||'Team Member',isOwner:false,permissions:m.permissions||[],memberId:m.id};
+   window.PORTAL_USER={name:m.name,role:m.role||'Team Member',isOwner:false,permissions:(m.permissions&&m.permissions.payments)||[],memberId:m.id};
     sessionStorage.setItem('se_pay_session',JSON.stringify(window.PORTAL_USER));
     unlockUI();return;
   }
@@ -1301,7 +1301,8 @@ function openTeamModal(id){
     document.getElementById('tm_bankAcc').value=pd.bankAcc||'';
     document.getElementById('tm_ifsc').value=pd.ifsc||'';
     document.getElementById('tm_walletNum').value=pd.walletNum||'';
-    ['claim','addpay','partners','viewall','addany'].forEach(p=>{const el=document.getElementById('tp_'+p);if(el)el.checked=(m.permissions||[]).includes(p);});
+    const myPerms=(m.permissions&&m.permissions.payments)||[];
+['claim','addpay','partners','viewall','addany'].forEach(p=>{const el=document.getElementById('tp_'+p);if(el)el.checked=myPerms.includes(p);});
   }else{
    ['tm_name','tm_role','tm_wa','tm_email','tm_pwd','tm_salary','tm_upi','tm_bankHolder','tm_bankName','tm_bankAcc','tm_ifsc','tm_walletNum'].forEach(id=>document.getElementById(id).value='');
     document.getElementById('tm_payMethod').value='upi';
@@ -1321,8 +1322,8 @@ async function saveTeamMember(){
   const members=getMembers();
   const editId=editTeamId;
   const existingMember=editId?members.find(m=>m.id===editId):null;
-  const foreignPerms=(existingMember?.permissions||[]).filter(p=>!ownPermKeys.includes(p));
-  const perms=[...new Set([...paymentsPerms, ...foreignPerms])];
+  let permsObj=(existingMember&&typeof existingMember.permissions==='object'&&!Array.isArray(existingMember.permissions))?existingMember.permissions:{};
+permsObj={...permsObj, payments: paymentsPerms};
   const isDup=members.some(m=>m.password===pwd&&m.id!==editId);
   if(isDup){alert('Password already in use by another member!');return;}
   const memberData={
@@ -1341,7 +1342,7 @@ async function saveTeamMember(){
       ifsc:document.getElementById('tm_ifsc').value.trim(),
       walletNum:document.getElementById('tm_walletNum').value.trim()
     },
-    permissions:perms,
+    permissions:permsObj,,
     status:editId?(members.find(m=>m.id===editId)?.status||'active'):'active',
     addedAt:editId?(members.find(m=>m.id===editId)?.addedAt||new Date().toLocaleDateString('en-IN')):new Date().toLocaleDateString('en-IN')
   };
