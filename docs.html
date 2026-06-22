@@ -878,7 +878,7 @@ function attachDocsTeamListener(){
       localStorage.setItem(AUTH_KEY, JSON.stringify(fsMembers));
 
    if(window.DOCS_USER && window.DOCS_USER.role !== 'owner'){
-        const me = merged.find(m => m.id === window.DOCS_USER.memberId);
+        const me = fsMembers.find(m => m.id === window.DOCS_USER.memberId);
         if(me){
           if(me.status !== 'active'){
             showToast('⛔ Your access was suspended. Logging out...', 3000);
@@ -957,8 +957,8 @@ function unlockDocs(){
   setTimeout(()=>{ screen.style.display='none'; screen.style.opacity=''; }, 300);
   document.getElementById('appWrap').style.display='block';
   updateUserBadge();
-   attachDocsTeamListener(); 
-  initApp();
+  attachDocsTeamListener();
+  setTimeout(initApp, 100);
 }
 
 function updateUserBadge(){
@@ -1018,10 +1018,12 @@ function buildSidebar(){
     </div>`;
   } else {
     html += `<div class="sb-divider"></div>`;
-    // Member guide note
+    html += `<div style="font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-dim);padding:4px 12px 2px;">Member Tools</div>`;
+    html += `<button class="sb-action" onclick="closeSidebar();showTeamSection();">👥&nbsp; View Team</button>`;
+    html += `<div class="sb-divider"></div>`;
     html += `<div style="background:rgba(59,130,246,.06);border:1px solid rgba(59,130,246,.18);border-radius:9px;padding:10px 12px;margin:4px 4px 6px;font-size:11px;color:var(--text-muted);line-height:1.7;">
       <strong style="color:#3B82F6;">🧑‍💻 Your Access</strong><br/>
-      You have access to: Doc Generator + your assigned permissions only. Contact Raunak for access changes.
+      You have access to: Doc Generator + your assigned permissions. Contact Raunak for access changes.
     </div>`;
   }
 
