@@ -607,7 +607,21 @@ function genLink(){
 
 /* ═══════════ TEAM ADMIN ═══════════ */
 function renderTeamAdmin(){
-  if(!window.ADMIN_USER?.isOwner) return `<div class="empty"><div class="ic">🔒</div><p>Only the owner can manage team members.</p></div>`;
+  if(!window.ADMIN_USER?.isOwner){
+  const members=getMembers();
+  return`<div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;margin-bottom:16px">Team Members</div>
+  <div class="team-row" style="border:1px solid rgba(255,107,53,.3);background:rgba(255,107,53,.05);margin-bottom:10px">
+    <div class="team-avatar" style="background:linear-gradient(135deg,#FFB347,#FF6B35)">👑</div>
+    <div style="flex:1"><div style="font-weight:700">Raunak Karn <span style="font-size:10px;padding:2px 8px;border-radius:10px;background:rgba(255,107,53,.15);color:var(--accent);font-weight:800">OWNER</span></div><div style="font-size:11px;color:#888">Founder · Full Access</div></div>
+    <span style="font-size:10px;padding:2px 8px;border-radius:10px;background:rgba(34,197,94,.12);color:#22C55E;font-weight:700">✅ Active</span>
+  </div>
+  ${members.map(m=>`<div class="team-row">
+    <div class="team-avatar">${(m.name||'?').charAt(0).toUpperCase()}</div>
+    <div style="flex:1"><div style="font-weight:700">${m.name}</div><div style="font-size:11px;color:#888">${m.role||'Member'}</div>
+    <span style="font-size:10px;padding:2px 8px;border-radius:10px;font-weight:700;${m.status==='active'?'background:rgba(34,197,94,.12);color:#22C55E':'background:rgba(239,68,68,.1);color:#EF4444'}">${m.status==='active'?'✅ Active':'⛔ Suspended'}</span>
+    </div>
+  </div>`).join('')||'<p style="color:#888;font-size:13px;padding:10px 0">No other members yet.</p>'}`;
+}
   const members=getMembers();
   return `
   <div style="display:flex;justify-content:flex-end;margin-bottom:14px"><button class="btn btn-primary" onclick="openTeamForm()">＋ Add Member</button></div>

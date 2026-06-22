@@ -3091,9 +3091,8 @@ function renderSettings(){
 
 
 function renderTeamPage(){
- if(!window.CRM_USER?.isOwner){
-  // Member view — show owner card + team list, NO edit/delete buttons
-  const members = getTeamMembers(); // whatever your getMembers fn is called
+if(!window.CRM_USER?.isOwner){
+  const members = crmGetMembers();
   const memberCards = members.map(m=>`
     <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin-bottom:10px;display:flex;align-items:center;gap:14px">
       <div style="width:44px;height:44px;border-radius:11px;background:linear-gradient(135deg,#3B82F6,#7B5EA7);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:#fff">${(m.name||'?').charAt(0).toUpperCase()}</div>
@@ -3107,7 +3106,6 @@ function renderTeamPage(){
     <div class="page-eyebrow">🧑‍💻 Team</div>
     <div class="page-title">Team Members</div>
     <div class="page-sub">Your team at SparkEdge</div>
-    <!-- Owner Fixed Card -->
     <div style="background:rgba(255,107,53,.05);border:1px solid rgba(255,107,53,.25);border-radius:12px;padding:16px 18px;margin-bottom:10px;display:flex;align-items:center;gap:14px">
       <div style="width:44px;height:44px;border-radius:11px;background:linear-gradient(135deg,#FFB347,#FF6B35);display:flex;align-items:center;justify-content:center;font-size:18px">👑</div>
       <div style="flex:1">

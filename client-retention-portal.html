@@ -501,7 +501,8 @@ tbody td .td-sub{font-size:10px;color:var(--text-dim);margin-top:2px}
   <div class="sb-divider"></div>
   <div class="sb-label">Tools</div>
   <button class="sb-link" id="sbTeamLink" onclick="navTo('team')" style="display:none"><span class="s-icon"><span class="l-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span></span>Team</button>
- <button class="sb-link" onclick="window.open('admin.html','_blank')" style="color:var(--accent)"><span class="s-icon"><span class="l-icon"><svg width="16" height="16" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg></span></span>Admin Panel ↗</button>
+  <button class="sb-link" onclick="navTo('workflow')"><span class="s-icon"><span class="l-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path d="M3 6l6-3 6 3 6-3v15l-6 3-6-3-6 3V6z"/><path d="M9 3v15M15 6v15"/></svg></span></span>Workflow Guide</button>
+  <button class="sb-link" onclick="window.open('admin.html','_blank')" style="color:var(--accent)"><span class="s-icon"><span class="l-icon"><svg width="16" height="16" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg></span></span>Admin Panel ↗</button>
 <button class="sb-link" onclick="window.open('crm.html','_blank')" style="color:var(--info)"><span class="s-icon"><span class="l-icon"><svg width="16" height="16" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2" fill="currentColor"/></svg></span></span>Lead CRM ↗</button>
 
   <div style="flex:1"></div>
@@ -839,7 +840,7 @@ function updateUserUI(){
   if(n)n.textContent=u.name;
   if(r)r.textContent=u.role;
   if(lb)lb.style.display='flex';
-  if(tl)tl.style.display=u.isOwner?'flex':'none';
+  if(tl)tl.style.display='flex';
 }
 
 const PERM_ALIASES = {
@@ -1033,8 +1034,8 @@ function renderSection(s){
     templates:renderTemplates,
     analytics:renderAnalytics,
     table:renderTable,
-    team:renderTeam,
-    workflow:renderWorkflow,
+ team:renderTeam,
+workflow:renderWorkflow,
   };
   el.innerHTML=(map[s]||renderDashboard)();
 }
@@ -2361,13 +2362,50 @@ function renderWorkflow(){
     </div>`}`;
 }
 
+function renderWorkflow(){
+  const isOwner=window.PORTAL_USER?.isOwner;
+  return`
+  <div class="page-eyebrow">🗺️ Workflow Guide</div>
+  <div class="page-title">How to Use This Portal</div>
+  <div class="page-sub">${isOwner?'Full owner guide — team, clients, renewals, retention':'Your daily workflow — quick reference'}</div>
+  ${isOwner?`
+  <div style="background:rgba(255,107,53,.06);border:1px solid rgba(255,107,53,.2);border-radius:14px;padding:20px;margin-bottom:20px">
+    <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:800;color:var(--accent);margin-bottom:14px">👑 Owner Workflow</div>
+    ${[['1','Add Team Members','Go to Team → Add Member. Set password and permissions (view/edit/vault/send/export).'],['2','Add Clients','Go to Clients → + Add Client. Tag as VIP or regular.'],['3','Send Messages','Go to Renewals or Newsletter → select template → send to client.'],['4','Track Activity','Send Log shows all messages sent. Analytics shows send counts.'],['5','Manage Retention','Vault stores credentials per client. VIP tag gives special treatment.'],['6','Suspend Members','Team → Suspend instantly blocks access across all devices.']].map(([n,t,d])=>`<div style="display:flex;gap:14px;margin-bottom:14px"><div style="width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:#fff;flex-shrink:0">${n}</div><div><div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:700;margin-bottom:3px">${t}</div><div style="font-size:12px;color:var(--text-muted);line-height:1.7">${d}</div></div></div>`).join('')}
+  </div>`:`
+  <div style="background:rgba(59,130,246,.06);border:1px solid rgba(59,130,246,.2);border-radius:14px;padding:20px;margin-bottom:20px">
+    <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:800;color:#3B82F6;margin-bottom:14px">🧑‍💻 Your Daily Workflow</div>
+    ${[['1','Login','Open client-retention-portal.html and enter your Team Member password.'],['2','Check Renewals','Go to Renewals → review clients due for follow-up today.'],['3','Send Messages','Select a client → pick a template → send. Log auto-saves.'],['4','Update Notes','Add notes for clients you spoke to using the Edit button.'],['5','View Team','See who else is on the team in the Team section — read only.']].map(([n,t,d])=>`<div style="display:flex;gap:14px;margin-bottom:14px"><div style="width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#3B82F6,#7B5EA7);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:#fff;flex-shrink:0">${n}</div><div><div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:700;margin-bottom:3px">${t}</div><div style="font-size:12px;color:var(--text-muted);line-height:1.7">${d}</div></div></div>`).join('')}
+  </div>`}`;
+}
 /* ════════════════════════════════════
    TEAM PAGE
 ════════════════════════════════════ */
 function renderTeam(){
-  if(!window.PORTAL_USER?.isOwner){
-    return`<div class="empty"><div class="empty-icon">🔒</div><p>Only the owner can manage team members.</p></div>`;
-  }
+ if(!window.PORTAL_USER?.isOwner){
+  const members=getMembers();
+  return`
+  <div class="page-eyebrow">🧑‍💻 Team</div>
+  <div class="page-title">Team Members</div>
+  <div class="page-sub">Your SparkEdge team</div>
+  <div style="background:rgba(255,107,53,.05);border:1px solid rgba(255,107,53,.25);border-radius:12px;padding:16px 18px;margin-bottom:10px;display:flex;align-items:center;gap:14px">
+    <div style="width:44px;height:44px;border-radius:11px;background:linear-gradient(135deg,#FFB347,#FF6B35);display:flex;align-items:center;justify-content:center;font-size:18px">👑</div>
+    <div style="flex:1">
+      <div style="font-size:14px;font-weight:700">Raunak (Owner) <span style="font-size:10px;padding:2px 9px;border-radius:10px;font-weight:800;background:rgba(255,107,53,.15);border:1px solid rgba(255,107,53,.35);color:var(--accent)">OWNER</span></div>
+      <div style="font-size:11px;color:var(--accent);margin-top:2px">Full Access · All Permissions · Cannot be removed</div>
+    </div>
+    <span class="pill pill-active">Active</span>
+  </div>
+  ${members.map(m=>`
+  <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin-bottom:10px;display:flex;align-items:center;gap:14px">
+    <div style="width:44px;height:44px;border-radius:11px;background:linear-gradient(135deg,#3B82F6,#7B5EA7);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:#fff">${initials(m.name)}</div>
+    <div style="flex:1">
+      <div style="font-size:14px;font-weight:700">${m.name}</div>
+      <div style="font-size:11px;color:var(--accent);margin-top:2px">${m.role||'Team Member'}</div>
+      <span class="${m.status==='active'?'pill pill-active':'pill pill-inactive'}">${m.status==='active'?'✅ Active':'⛔ Suspended'}</span>
+    </div>
+  </div>`).join('')||'<div class="empty"><div class="empty-icon">👥</div><p>No other members yet.</p></div>'}`;
+}
   const members=getMembers();
   return`
   <div class="page-eyebrow">🧑‍💻 Team</div>
