@@ -1342,7 +1342,7 @@ permsObj={...permsObj, payments: paymentsPerms};
       ifsc:document.getElementById('tm_ifsc').value.trim(),
       walletNum:document.getElementById('tm_walletNum').value.trim()
     },
-    permissions:permsObj,,
+    permissions:permsObj,
     status:editId?(members.find(m=>m.id===editId)?.status||'active'):'active',
     addedAt:editId?(members.find(m=>m.id===editId)?.addedAt||new Date().toLocaleDateString('en-IN')):new Date().toLocaleDateString('en-IN')
   };
