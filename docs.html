@@ -904,18 +904,33 @@ function attachDocsTeamListener(){
 window.DOCS_USER = null;
 
 (function(){
-  // Restore session
+  let sess;
+  try{ sess = sessionStorage.getItem('se_docs_session'); }catch(e){ sess = null; }
+  if(!sess) return;
+
   try{
-    const sess = sessionStorage.getItem('se_docs_session');
-    if(sess){
-      window.DOCS_USER = JSON.parse(sess);
-      document.getElementById('loginScreen').style.display='none';
-      document.getElementById('appWrap').style.display='block';
-      updateUserBadge();
-      attachDocsTeamListener();
-      setTimeout(initApp,50);
-    }
-  }catch{}
+    window.DOCS_USER = JSON.parse(sess);
+  }catch(e){
+    console.warn('[Docs] Could not parse saved session:', e.message);
+    return;
+  }
+
+  document.getElementById('loginScreen').style.display='none';
+  document.getElementById('appWrap').style.display='block';
+
+  // Render the doc generator FIRST and on its own — this must never
+  // be skipped just because the sidebar or team sync has a problem.
+  setTimeout(function(){
+    try{ initApp(); }catch(e){ console.error('[Docs] initApp failed:', e); }
+  }, 0);
+
+  setTimeout(function(){
+    try{ updateUserBadge(); }catch(e){ console.error('[Docs] updateUserBadge failed:', e); }
+  }, 0);
+
+  setTimeout(function(){
+    try{ attachDocsTeamListener(); }catch(e){ console.error('[Docs] attachDocsTeamListener failed:', e); }
+  }, 0);
 })();
 
 async function doLogin(){
@@ -956,9 +971,18 @@ function unlockDocs(){
   screen.style.opacity='0'; screen.style.transition='opacity .3s';
   setTimeout(()=>{ screen.style.display='none'; screen.style.opacity=''; }, 300);
   document.getElementById('appWrap').style.display='block';
-  updateUserBadge();
-  attachDocsTeamListener();
-  setTimeout(initApp, 100);
+
+  setTimeout(function(){
+    try{ initApp(); }catch(e){ console.error('[Docs] initApp failed:', e); }
+  }, 0);
+
+  setTimeout(function(){
+    try{ updateUserBadge(); }catch(e){ console.error('[Docs] updateUserBadge failed:', e); }
+  }, 0);
+
+  setTimeout(function(){
+    try{ attachDocsTeamListener(); }catch(e){ console.error('[Docs] attachDocsTeamListener failed:', e); }
+  }, 0);
 }
 
 function updateUserBadge(){
@@ -971,7 +995,11 @@ function updateUserBadge(){
   if(nameEl) nameEl.textContent = u.name;
   if(roleEl) roleEl.textContent = u.role === 'owner' ? '👑 Owner' : (u.role || 'Team Member');
   if(avatarEl) avatarEl.textContent = (u.name||'?').charAt(0).toUpperCase();
-  buildSidebar();
+  try{
+    buildSidebar();
+  }catch(e){
+    console.error('[Docs] buildSidebar failed — sidebar may be incomplete:', e);
+  }
 }
 
 function buildSidebar(){
@@ -1818,8 +1846,8 @@ document.getElementById('editOverlay').addEventListener('click',function(e){if(e
 
 /* ─── INIT ─── */
 function initApp(){
-  renderDraftsPanel();
-  switchCategory('web');
+  try{ renderDraftsPanel(); }catch(e){ console.error('[Docs] renderDraftsPanel failed:', e); }
+  try{ switchCategory('web'); }catch(e){ console.error('[Docs] switchCategory failed:', e); }
 }
 
 /* ════════════════════════════════════
