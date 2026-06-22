@@ -1308,9 +1308,13 @@ async function saveTeamMember(){
   if(!name){alert('Name required!');return;}
   if(!pwd||pwd.length<6){alert('Password must be ≥6 chars!');return;}
   if(pwd==='RAUNAK@1'){alert('Cannot use owner password!');return;}
-  const perms=['claim','addpay','partners','viewall','addany'].filter(p=>document.getElementById('tp_'+p)?.checked);
+  const ownPermKeys=['claim','addpay','partners','viewall','addany'];
+  const paymentsPerms=ownPermKeys.filter(p=>document.getElementById('tp_'+p)?.checked);
   const members=getMembers();
   const editId=editTeamId;
+  const existingMember=editId?members.find(m=>m.id===editId):null;
+  const foreignPerms=(existingMember?.permissions||[]).filter(p=>!ownPermKeys.includes(p));
+  const perms=[...new Set([...paymentsPerms, ...foreignPerms])];
   const isDup=members.some(m=>m.password===pwd&&m.id!==editId);
   if(isDup){alert('Password already in use by another member!');return;}
   const memberData={

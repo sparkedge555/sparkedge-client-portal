@@ -650,8 +650,12 @@ async function saveTeamForm(id){
   const pwd=document.getElementById('tm_pwd').value.trim();
   if(!name||pwd.length<6){ alert('Name required, password min 6 chars.'); return; }
   if(pwd==='RAUNAK@1'){ alert('Cannot use owner password.'); return; }
-  const perms=['view','delete','export'].filter(p=>document.getElementById('tp_'+p)?.checked);
+  const ownPermKeys=['view','delete','export'];
+  const onboardingPerms=ownPermKeys.filter(p=>document.getElementById('tp_'+p)?.checked);
   const members=getMembers();
+  const existingMember=id?members.find(m=>m.id===id):null;
+  const foreignPerms=(existingMember?.permissions||[]).filter(p=>!ownPermKeys.includes(p));
+  const perms=[...new Set([...onboardingPerms, ...foreignPerms])];
   if(id){ const idx=members.findIndex(m=>m.id===id); if(idx>=0) members[idx]={...members[idx],name,role:document.getElementById('tm_role').value.trim(),email:document.getElementById('tm_email').value.trim(),wa:document.getElementById('tm_wa').value.trim(),password:pwd,permissions:perms}; }
   else { members.push({id:'mem_'+Date.now(),name,role:document.getElementById('tm_role').value.trim(),email:document.getElementById('tm_email').value.trim(),wa:document.getElementById('tm_wa').value.trim(),password:pwd,permissions:perms,status:'active',addedAt:new Date().toLocaleDateString('en-IN')}); }
   await saveMembers(members); document.getElementById('teamFormWrap').innerHTML=''; adminNav('team');

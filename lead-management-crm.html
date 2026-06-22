@@ -3251,8 +3251,12 @@ function applyPreset(v){
   if(!name){alert('Name is required!');return;}
   if(!pwd||pwd.length<6){alert('Password must be at least 6 characters!');return;}
   if(pwd==='RAUNAK@1'){alert('Cannot use the owner password!');return;}
-  const perms=Object.keys(CRM_PERMS).filter(k=>k!=='manage_team'&&document.getElementById('mp_'+k)?.checked);
+  const ownPermKeys=Object.keys(CRM_PERMS).filter(k=>k!=='manage_team');
+  const crmPerms=ownPermKeys.filter(k=>document.getElementById('mp_'+k)?.checked);
   const members=crmGetMembers();
+  const existingMember=editMemberId?members.find(x=>x.id===editMemberId):null;
+  const foreignPerms=(existingMember?.permissions||[]).filter(p=>!ownPermKeys.includes(p));
+  const perms=[...new Set([...crmPerms, ...foreignPerms])];
   if(!editMemberId){
     // Check dupe password
     if(members.find(m=>m.password===pwd)){alert('This password is already used by another member!');return;}
