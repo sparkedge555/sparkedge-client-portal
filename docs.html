@@ -2964,10 +2964,8 @@ async function deleteMemberFromFirestore(memberId) { try { await getDbDocs().col
 
 
 function showTeamSection(){
-  if(!isOwner()){
-    showToast('⛔ Only the owner can manage the team.');
-    return;
-  }
+ // Both owner and members can VIEW the team section
+// Only owner can add/edit/delete (already blocked inside renderTeamPage)
   // Hide doc UI
   ['hero','category-bar','doc-tabs-wrap','order-bar','guides-wrap','main','footer'].forEach(cls=>{
     const el = document.querySelector('.'+cls);

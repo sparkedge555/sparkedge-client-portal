@@ -989,7 +989,7 @@ function updateCrmUserUI(){
   if(sb) sb.style.display = u.isOwner ? 'flex' : 'none';
   // Sidebar team link — owner only
  const tl = document.getElementById('sidebarTeamLink');
-  if(tl) tl.style.display = u.isOwner ? 'flex' : 'none';
+  if(tl) tl.style.display = 'flex'; // Always show team link
   const pl = document.getElementById('sidebarPerfLink');
   if(pl) pl.style.display = u.isOwner ? 'flex' : 'none';
 }
@@ -3091,7 +3091,33 @@ function renderSettings(){
 
 
 function renderTeamPage(){
-  if(!window.CRM_USER?.isOwner) return `<div class="empty"><div class="empty-icon">🔒</div><p>Only the owner can manage team members.</p></div>`;
+ if(!window.CRM_USER?.isOwner){
+  // Member view — show owner card + team list, NO edit/delete buttons
+  const members = getTeamMembers(); // whatever your getMembers fn is called
+  const memberCards = members.map(m=>`
+    <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin-bottom:10px;display:flex;align-items:center;gap:14px">
+      <div style="width:44px;height:44px;border-radius:11px;background:linear-gradient(135deg,#3B82F6,#7B5EA7);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:#fff">${(m.name||'?').charAt(0).toUpperCase()}</div>
+      <div style="flex:1">
+        <div style="font-size:14px;font-weight:700">${m.name}</div>
+        <div style="font-size:11px;color:var(--accent);margin-top:2px">${m.role||'Team Member'}</div>
+        <span style="font-size:10px;padding:2px 8px;border-radius:10px;font-weight:700;${m.status==='active'?'background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.3);color:#22C55E':'background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:#EF4444'}">${m.status==='active'?'✅ Active':'⛔ Suspended'}</span>
+      </div>
+    </div>`).join('');
+  return `
+    <div class="page-eyebrow">🧑‍💻 Team</div>
+    <div class="page-title">Team Members</div>
+    <div class="page-sub">Your team at SparkEdge</div>
+    <!-- Owner Fixed Card -->
+    <div style="background:rgba(255,107,53,.05);border:1px solid rgba(255,107,53,.25);border-radius:12px;padding:16px 18px;margin-bottom:10px;display:flex;align-items:center;gap:14px">
+      <div style="width:44px;height:44px;border-radius:11px;background:linear-gradient(135deg,#FFB347,#FF6B35);display:flex;align-items:center;justify-content:center;font-size:18px">👑</div>
+      <div style="flex:1">
+        <div style="font-size:14px;font-weight:700">Raunak Karn <span style="font-size:10px;padding:2px 9px;border-radius:10px;font-weight:800;background:rgba(255,107,53,.15);border:1px solid rgba(255,107,53,.35);color:var(--accent)">OWNER</span></div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:2px">Founder & Lead Designer · Full Access</div>
+      </div>
+      <span style="font-size:10px;padding:2px 8px;border-radius:10px;font-weight:700;background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.3);color:#22C55E">✅ Active</span>
+    </div>
+    ${memberCards}`;
+}
   const members=crmGetMembers();
 
   return `

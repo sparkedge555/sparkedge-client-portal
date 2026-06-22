@@ -285,6 +285,7 @@ a{color:var(--accent);text-decoration:none}
     <div class="admin-tab" onclick="adminNav('submissions')">📋 Submissions</div>
     <div class="admin-tab" onclick="adminNav('linktool')">🔗 Generate Link</div>
     <div class="admin-tab" onclick="adminNav('team')">🧑‍💻 Team</div>
+    <div class="admin-tab" onclick="adminNav('workflow')">🗺️ Workflow</div>
   </div>
   <div class="admin-body" id="adminBody"></div>
 </div>
@@ -465,7 +466,7 @@ let currentAdminTab='dashboard';
 function adminNav(tab){
   currentAdminTab=tab;
   document.querySelectorAll('.admin-tab').forEach((el,i)=>{
-    const map=['dashboard','submissions','linktool','team'];
+    const map=['dashboard','submissions','linktool','team','workflow'];
     el.classList.toggle('active',map[i]===tab);
   });
   const body=document.getElementById('adminBody');
@@ -473,6 +474,7 @@ function adminNav(tab){
   else if(tab==='submissions') body.innerHTML=renderSubmissionsList();
   else if(tab==='linktool') body.innerHTML=renderLinkTool();
   else if(tab==='team') body.innerHTML=renderTeamAdmin();
+  else if(tab==='workflow') body.innerHTML=renderOnboardingWorkflow();
   setTimeout(()=>{ if(typeof lucide!=='undefined') lucide.createIcons(); },30);
 }
 
@@ -662,6 +664,39 @@ async function saveTeamForm(id){
 }
 async function toggleMember(id){ const members=getMembers(); const m=members.find(x=>x.id===id); if(!m)return; m.status=m.status==='active'?'suspended':'active'; await saveMembers(members); adminNav('team'); }
 async function removeMember(id){ if(!confirm('Remove this member?')) return; const members=getMembers().filter(m=>m.id!==id); try{await getDb().collection('team').doc(id).delete();}catch{} await saveMembers(members); adminNav('team'); }
+
+function renderOnboardingWorkflow(){
+  const isOwner = window.ADMIN_USER?.isOwner;
+  return `
+    <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;margin-bottom:4px">🗺️ Workflow Guide</div>
+    <div style="font-size:13px;color:#888;margin-bottom:20px">${isOwner?'Full owner guide — onboarding, team & submissions':'Your daily workflow — quick reference'}</div>
+    ${isOwner?`
+    <div style="background:rgba(255,107,53,.06);border:1px solid rgba(255,107,53,.2);border-radius:14px;padding:20px;margin-bottom:20px">
+      <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:800;color:#FF6B35;margin-bottom:14px">👑 Owner Workflow</div>
+      ${[['1','Share Onboarding Link','Go to Generate Link tab → pick service → copy link → send to client via WhatsApp.'],
+         ['2','Client Fills Form','Client opens the link and submits their business details. Submission appears in Submissions tab instantly.'],
+         ['3','Review Submissions','Go to Submissions → open any entry → review all client info filled in.'],
+         ['4','Add Team Members','Go to Team tab → + Add Member. Set their password and permissions. They can then log in from any device.'],
+         ['5','Suspend a Member','Team tab → Suspend button next to any member. They lose access immediately on all devices.']
+        ].map(([n,t,d])=>`<div style="display:flex;gap:14px;margin-bottom:14px">
+          <div style="width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#FF6B35,#FF3CAC);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:#fff;flex-shrink:0">${n}</div>
+          <div><div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:700;margin-bottom:3px">${t}</div>
+          <div style="font-size:12px;color:#888;line-height:1.7">${d}</div></div>
+        </div>`).join('')}
+    </div>`:`
+    <div style="background:rgba(59,130,246,.06);border:1px solid rgba(59,130,246,.2);border-radius:14px;padding:20px;margin-bottom:20px">
+      <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:800;color:#3B82F6;margin-bottom:14px">🧑‍💻 Your Daily Workflow</div>
+      ${[['1','Login','Open onboarding.html and enter your Team Member password to access the admin panel.'],
+         ['2','Generate Links','Go to Generate Link tab → select the right service → copy and send to client on WhatsApp.'],
+         ['3','Check Submissions','Go to Submissions tab → review what clients have filled in for their projects.'],
+         ['4','View Team','Team tab shows all members and the owner — read only view for you.']
+        ].map(([n,t,d])=>`<div style="display:flex;gap:14px;margin-bottom:14px">
+          <div style="width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#3B82F6,#7B5EA7);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:#fff;flex-shrink:0">${n}</div>
+          <div><div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:700;margin-bottom:3px">${t}</div>
+          <div style="font-size:12px;color:#888;line-height:1.7">${d}</div></div>
+        </div>`).join('')}
+    </div>`}`;
+}
 
 setTimeout(()=>{ if(typeof lucide!=='undefined') lucide.createIcons(); },200);
 </script>
