@@ -3183,7 +3183,10 @@ if(!window.CRM_USER?.isOwner){
         &nbsp;·&nbsp; Status: <strong style="color:${m.status==='active'?'var(--success)':'var(--danger)'}">${m.status}</strong>
       </div>
       <div class="team-perms">
-        js${Object.entries(CRM_PERMS).map(([k,v])=>`<span class="perm-chip ${((m.permissions&&m.permissions.crm)||[]).includes(k)?'':'denied'}">${(m.permissions||[]).includes(k)?'✅':'❌'} ${v}</span>`).join('')}
+        ${(()=>{
+          const myCrmPerms = Array.isArray(m.permissions) ? m.permissions : ((m.permissions && m.permissions.crm) || []);
+          return Object.entries(CRM_PERMS).map(([k,v])=>`<span class="perm-chip ${myCrmPerms.includes(k)?'':'denied'}">${myCrmPerms.includes(k)?'✅':'❌'} ${v}</span>`).join('');
+        })()}
       </div>
       <div class="team-actions">
         <button class="btn-sm" onclick="editMember('${m.id}')">✏️ Edit</button>
