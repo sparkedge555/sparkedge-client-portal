@@ -773,7 +773,7 @@ try {
       if(idx >= 0) merged[idx] = fm; else merged.push(fm);
     });
     window._teamCache = merged;
-    window.SE_USER = {name:fsMember.name, role:fsMember.role, permissions:fsMember.permissions||[], memberId:fsMember.id};
+    window.SE_USER = {name:fsMember.name, role:fsMember.role, permissions:(fsMember.permissions&&fsMember.permissions.admin)||[], memberId:fsMember.id};
     sessionStorage.setItem('se_session', JSON.stringify(window.SE_USER));
     doUnlock();
     return;
@@ -3881,7 +3881,9 @@ const PERM_DEFS = {
 function canDo(action){
   if(!window.SE_USER) return false;
   if(window.SE_USER.role === 'owner') return true;
-  const perms = window.SE_USER.permissions || [];
+  let perms = window.SE_USER.permissions || [];
+  // Handle both formats: array OR {admin:[...]} object
+  if(!Array.isArray(perms)) perms = perms.admin || [];
   return perms.includes(action);
 }
 
@@ -3897,10 +3899,12 @@ function applyPermissions(){
     if(addBtn) addBtn.style.display = 'none';
     // Show settings lock
     showSettingsLock();
-    // Restrict new ticket
+    // Restrict new ticket button
     if(!canDo('create_tickets')){
       const nb = document.getElementById('newTicketBtn');
       if(nb){ nb.style.opacity='.4'; nb.onclick=()=>showToast('⛔ No permission to create tickets'); }
+      const navNewTicket = document.getElementById('nav-newticket');
+      if(navNewTicket){ navNewTicket.style.opacity='.4'; navNewTicket.onclick=(e)=>{e.stopPropagation();showToast('⛔ No permission to create tickets');}; }
     }
     // Restrict export
     if(!canDo('export')){
@@ -3909,8 +3913,22 @@ function applyPermissions(){
       if(eb){ eb.style.opacity='.4'; eb.onclick=()=>showToast('⛔ No permission to export'); }
       if(ib){ ib.style.opacity='.4'; ib.onclick=()=>showToast('⛔ No permission to import'); }
     }
+    // Restrict finance nav
+    if(!canDo('view_finance')){
+      const fn = document.getElementById('nav-finance');
+      if(fn){ fn.style.opacity='.4'; fn.onclick=(e)=>{e.stopPropagation();showToast('⛔ No permission to view finance');}; }
+    }
+    // Restrict clients nav
+    if(!canDo('view_clients')){
+      const cn = document.getElementById('nav-clients');
+      if(cn){ cn.style.opacity='.4'; cn.onclick=(e)=>{e.stopPropagation();showToast('⛔ No permission to view clients');}; }
+    }
+    // Restrict tickets nav
+    if(!canDo('view_tickets')){
+      const tn = document.getElementById('nav-tickets');
+      if(tn){ tn.style.opacity='.4'; tn.onclick=(e)=>{e.stopPropagation();showToast('⛔ No permission to view tickets');}; }
+    }
   } else {
-    // Owner: show settings unlocked
     hideSettingsLock();
   }
 }
@@ -3965,25 +3983,35 @@ function changeSettingsPwd(){
 /* Override showPage to apply settings lock each time */
 const _origShowPage = showPage;
 window.showPage = function(page){
+  // Permission gate for non-owners
+  if(!isOwner()){
+    if(page==='finance' && !canDo('view_finance')){ showToast('⛔ No permission to view finance.'); return; }
+    if(page==='clients' && !canDo('view_clients')){ showToast('⛔ No permission to view clients.'); return; }
+    if((page==='tickets'||page==='editor') && !canDo('view_tickets')){ showToast('⛔ No permission to view tickets.'); return; }
+    if(page==='newticket' && !canDo('create_tickets')){ showToast('⛔ No permission to create tickets.'); return; }
+  }
   _origShowPage(page);
   if(page === 'settings'){
-    if(!isOwner()){
-      showSettingsLock();
-    } else {
-      hideSettingsLock();
-      loadSettings();
-    }
+    if(!isOwner()){ showSettingsLock(); } else { hideSettingsLock(); loadSettings(); }
     setTimeout(() => lucide.createIcons(), 50);
   }
-  if(page === 'team'){
-    renderTeamPage();
-  }
+  if(page === 'team'){ renderTeamPage(); }
 };
 
 /* ══════════════════════════════════════════════════════
    TEAM / MEMBER MANAGEMENT (FULL REWRITE)
 ══════════════════════════════════════════════════════ */
 function renderTeamPage(){
+  // For non-owners: if cache is empty, try fetching from Firestore first
+  if(!isOwner() && window._teamCache.length === 0) {
+    getDb().collection('team').get().then(snapshot => {
+      const fsMembers = [];
+      snapshot.forEach(doc => fsMembers.push({ id: doc.id, ...doc.data() }));
+      window._teamCache = fsMembers;
+      renderTeamPage();
+    }).catch(()=>{});
+    return;
+  }
   const members = getMembers();
   const list = document.getElementById('teamMemberList');
   const addBtn = document.getElementById('addMemberBtnWrap');
