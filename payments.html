@@ -1259,15 +1259,6 @@ function renderTeam(){
   <span class="pill pill-active">Active</span>
 </div>
   ${window.PORTAL_USER.isOwner?`<div style="margin-bottom:14px"><button class="btn btn-primary" onclick="openTeamModal()"><i data-lucide="user-plus" style="width:13px;height:13px;stroke:#fff;fill:none;"></i> Add Team Member</button></div>`:''}
-//   <!-- Owner Fixed Card -->
-// <div style="background:rgba(255,107,53,.05);border:1px solid rgba(255,107,53,.25);border-radius:12px;padding:16px 18px;margin-bottom:10px;display:flex;align-items:center;gap:14px">
-//   <div style="width:42px;height:42px;border-radius:11px;background:linear-gradient(135deg,#FFB347,#FF6B35);display:flex;align-items:center;justify-content:center;font-size:18px">👑</div>
-//   <div style="flex:1">
-//     <div style="font-weight:700;font-size:14px">Raunak Karn <span style="font-size:10px;padding:2px 8px;border-radius:10px;font-weight:800;background:rgba(255,107,53,.15);border:1px solid rgba(255,107,53,.35);color:var(--accent)">OWNER</span></div>
-//     <div style="font-size:11px;color:var(--accent);margin-top:2px">Full Access · Cannot be removed</div>
-//   </div>
-//   <span class="pill pill-active">Active</span>
-// </div>
   ${members.length?members.map(m=>`
   <div class="card" style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
     <div style="width:42px;height:42px;border-radius:11px;background:var(--grad);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;color:#fff">${initials(m.name)}</div>
