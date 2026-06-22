@@ -815,8 +815,8 @@ async function doLogin(){
     }catch(e){}
   }
   if(member){
-    window.PORTAL_USER={name:member.name,role:member.role,isOwner:false,permissions:(member.permissions&&member.permissions.retention)||[],memberId:member.id};
-    sessionStorage.setItem('se_ret_session',JSON.stringify(window.PORTAL_USER));
+  window.PORTAL_USER={name:member.name,role:member.role,isOwner:false,permissions:(member.permissions&&member.permissions.retention)||member.permissions||[],memberId:member.id};
+   sessionStorage.setItem('se_ret_session',JSON.stringify(window.PORTAL_USER));
     unlockPortal();return;
   }
   err.style.display='block';
@@ -853,19 +853,40 @@ const PERM_ALIASES = {
 function has(perm){
   const u=window.PORTAL_USER;if(!u)return false;
   if(u.isOwner)return true;
-  const userPerms = (u.permissions && u.permissions.retention) || [];
+  // PORTAL_USER.permissions is already a flat array (extracted at login)
+  // Handle both formats defensively
+  let userPerms = u.permissions || [];
+  if(!Array.isArray(userPerms)) userPerms = userPerms.retention || [];
   const aliases = PERM_ALIASES[perm] || [perm];
   return aliases.some(a => userPerms.includes(a));
 }
 
 
 function applyCaps(){
-  // Hide export if no permission
+  // Called both at login AND after every renderSection
   if(!has('export')){
     document.querySelectorAll('[data-cap="export"]').forEach(el=>el.style.display='none');
   }
   if(!has('edit')){
     document.querySelectorAll('[data-cap="edit"]').forEach(el=>el.style.display='none');
+    document.querySelectorAll('button[onclick="openAddClient()"]').forEach(el=>{
+      el.style.opacity='.4';
+      el.onclick=function(){showToast('⛔ No permission to add clients.');};
+    });
+    document.querySelectorAll('button[onclick*="editClient"]').forEach(el=>{
+      el.style.opacity='.4';
+      el.onclick=function(e){e.stopPropagation();showToast('⛔ No permission to edit clients.');};
+    });
+    document.querySelectorAll('button[onclick*="deleteClient"]').forEach(el=>{
+      el.style.opacity='.4';
+      el.onclick=function(e){e.stopPropagation();showToast('⛔ No permission to delete clients.');};
+    });
+  }
+  // Navbar Add Client button (outside mainContent, so handled separately)
+  const navAddBtn = document.querySelector('nav button[onclick="openAddClient()"]');
+  if(navAddBtn && !has('edit')){
+    navAddBtn.style.opacity = '.4';
+    navAddBtn.onclick = function(){ showToast('⛔ No permission to add clients.'); };
   }
 }
 
@@ -1033,10 +1054,12 @@ function renderSection(s){
     templates:renderTemplates,
     analytics:renderAnalytics,
     table:renderTable,
- team:renderTeam,
-workflow:renderWorkflow,
+    team:renderTeam,
+    workflow:renderWorkflow,
   };
   el.innerHTML=(map[s]||renderDashboard)();
+  // Re-apply caps after every render since DOM is rebuilt
+  setTimeout(()=>applyCaps(), 0);
 }
 
 /* ════════════════════════════════════
