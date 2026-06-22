@@ -2883,7 +2883,7 @@ function resetFixedContent(){
       <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--text);">🧑‍💻 Team &amp; Access Management</div>
       <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">Add members, set passwords and permissions for Docs workspace access.</div>
     </div>
-    <button class="mm-btn-save" onclick="openAddMemberModal()" style="padding:10px 20px;font-size:13px;background:linear-gradient(135deg,var(--accent),var(--accent-2));border:none;border-radius:10px;color:#fff;font-family:'Syne',sans-serif;font-weight:700;cursor:pointer;">+ Invite Member</button>
+    <button class="mm-btn-save" id="docsInviteMemberBtn" onclick="openAddMemberModal()" style="padding:10px 20px;font-size:13px;background:linear-gradient(135deg,var(--accent),var(--accent-2));border:none;border-radius:10px;color:#fff;font-family:'Syne',sans-serif;font-weight:700;cursor:pointer;">+ Invite Member</button>
   </div>
 
   <!-- Stats -->
@@ -2906,8 +2906,7 @@ function resetFixedContent(){
   </div>
 
   <!-- Owner guide note -->
-  <div style="background:rgba(255,179,71,.06);border:1px solid rgba(255,179,71,.2);border-radius:12px;padding:16px 18px;margin-bottom:20px;">
-    <div style="font-size:12px;font-weight:700;color:var(--gold);margin-bottom:8px;">📋 How to onboard a new member</div>
+  <div id="docsOwnerGuideNote" style="background:rgba(255,179,71,.06);border:1px solid rgba(255,179,71,.2);border-radius:12px;padding:16px 18px;margin-bottom:20px;">   <div style="font-size:12px;font-weight:700;color:var(--gold);margin-bottom:8px;">📋 How to onboard a new member</div>
     <div style="font-size:12px;color:var(--text-muted);line-height:1.9;">
       1. Click <strong style="color:var(--text);">+ Invite Member</strong> → fill their name, role, email, WhatsApp, and set a unique password.<br/>
       2. Assign permissions (what they can do in Docs).<br/>
@@ -2994,8 +2993,6 @@ async function deleteMemberFromFirestore(memberId) { try { await getDbDocs().col
 
 
 function showTeamSection(){
- // Both owner and members can VIEW the team section
-// Only owner can add/edit/delete (already blocked inside renderTeamPage)
   // Hide doc UI
   ['hero','category-bar','doc-tabs-wrap','order-bar','guides-wrap','main','footer'].forEach(cls=>{
     const el = document.querySelector('.'+cls);
@@ -3004,6 +3001,13 @@ function showTeamSection(){
   const drafts = document.getElementById('draftsSection');
   if(drafts) drafts.style.display='none';
   document.getElementById('teamSection').style.display='block';
+
+  // Owner-only controls — hidden for team members
+  const inviteBtn = document.getElementById('docsInviteMemberBtn');
+  if(inviteBtn) inviteBtn.style.display = isOwner() ? 'inline-block' : 'none';
+  const guideNote = document.getElementById('docsOwnerGuideNote');
+  if(guideNote) guideNote.style.display = isOwner() ? 'block' : 'none';
+
   renderTeamPage();
   closeSidebar();
 }
@@ -3019,17 +3023,31 @@ function hideTeamSection(){
 function renderTeamPage(){
   const members = getMembers();
   const list = document.getElementById('teamMemberList');
-  // Stats
+  const owner = isOwner();
+
   document.getElementById('ts_total').textContent = members.length;
   document.getElementById('ts_active').textContent = members.filter(m=>m.status==='active').length;
   document.getElementById('ts_suspended').textContent = members.filter(m=>m.status==='suspended').length;
 
+  // Fixed Owner card — always shown, never editable/removable, same as admin.html / retention portal
+  const ownerCardHTML = `<div class="team-card" style="border:1px solid rgba(255,107,53,.35);background:linear-gradient(135deg,rgba(255,107,53,.07),rgba(255,60,172,.04));margin-bottom:10px;">
+    <div class="team-avatar" style="background:linear-gradient(135deg,var(--gold),var(--accent));">👑</div>
+    <div class="team-card-info">
+      <div class="team-card-name">Raunak Karn <span style="font-size:9px;padding:2px 8px;border-radius:10px;font-weight:800;background:rgba(255,107,53,.15);border:1px solid rgba(255,107,53,.35);color:var(--accent);letter-spacing:.5px;margin-left:6px;">OWNER</span></div>
+      <div class="team-card-role">Founder · Full Access</div>
+      <div class="team-card-meta">sparkedge555@gmail.com · +91 91424 50715</div>
+      <div class="team-card-perms"><span class="perm-tag">👑 All Permissions</span></div>
+      <span class="status-badge active">● Active</span>
+    </div>
+    <div style="font-size:10px;color:var(--text-dim);text-align:right;max-width:90px;line-height:1.5;">🔒 Fixed — cannot be edited or removed</div>
+  </div>`;
+
   if(!members.length){
-    list.innerHTML = `<div class="team-empty"><div style="font-size:36px;margin-bottom:12px;">🧑‍💻</div><div style="font-size:14px;font-weight:600;color:var(--text-muted);margin-bottom:4px;">No team members yet</div><div style="font-size:12px;">Click "+ Invite Member" to add your first member.</div></div>`;
+    list.innerHTML = ownerCardHTML + `<div class="team-empty"><div style="font-size:36px;margin-bottom:12px;">🧑‍💻</div><div style="font-size:14px;font-weight:600;color:var(--text-muted);margin-bottom:4px;">No team members yet</div><div style="font-size:12px;">${owner?'Click "+ Invite Member" to add your first member.':'No team members have been added yet.'}</div></div>`;
     return;
   }
 
-  list.innerHTML = members.map((m,i)=>{
+  const membersHTML = members.map((m,i)=>{
     const permTags = (m.permissions||[]).map(p=>`<span class="perm-tag">${PERM_LABELS[p]||p}</span>`).join('');
     const active = m.status !== 'suspended';
     return `<div class="team-card">
@@ -3041,17 +3059,21 @@ function renderTeamPage(){
         <div class="team-card-perms">${permTags||'<span style="font-size:11px;color:var(--text-dim);">No permissions</span>'}</div>
         <span class="status-badge ${active?'active':'suspended'}">${active?'● Active':'● Suspended'}</span>
       </div>
-      <div class="team-card-actions">
+      ${owner ? `<div class="team-card-actions">
         <button class="t-btn t-btn-edit" onclick="openEditMemberModal(${i})">✏️ Edit</button>
         <button class="t-btn ${active?'t-btn-suspend':'t-btn-activate'}" onclick="toggleMemberStatus(${i})">${active?'⛔ Suspend':'✅ Activate'}</button>
         <button class="t-btn t-btn-welcome" onclick="downloadWelcomeNote(${i})">📩 Welcome</button>
         <button class="t-btn t-btn-del" onclick="deleteMember(${i})">🗑 Remove</button>
-      </div>
+      </div>` : `<div style="font-size:10px;color:var(--text-dim);text-align:right;max-width:90px;">👁 View only</div>`}
     </div>`;
   }).join('');
+
+  list.innerHTML = ownerCardHTML + membersHTML;
 }
 
 function openAddMemberModal(){
+  if(!isOwner()){ showToast('⛔ Only the owner can add team members.'); return; }
+  // ...rest of function stays same
   document.getElementById('memberModalTitle').textContent = '➕ Invite Member';
   document.getElementById('mm_name').value='';
   document.getElementById('mm_role').value='';
@@ -3064,6 +3086,8 @@ function openAddMemberModal(){
 }
 
 function openEditMemberModal(idx){
+  if(!isOwner()){ showToast('⛔ Only the owner can edit team members.'); return; }
+  // ...rest stays same
   const members = getMembers();
   const m = members[idx];
   if(!m) return;
@@ -3103,6 +3127,8 @@ function applyPermPreset(preset){
 }
 
 async function saveMember(){
+  if(!isOwner()){ showToast('⛔ Only the owner can manage team members.'); return; }
+  // ...rest stays same
   const name = document.getElementById('mm_name').value.trim();
   const pwd  = document.getElementById('mm_password').value.trim();
   if(!name){ alert('Name is required.'); return; }
@@ -3146,6 +3172,8 @@ async function saveMember(){
 }
 
 async function toggleMemberStatus(idx){
+  if(!isOwner()){ showToast('⛔ Only the owner can suspend/activate members.'); return; }
+  // ...rest stays same
   const members = getMembers();
   if(!members[idx]) return;
   members[idx].status = members[idx].status==='active' ? 'suspended' : 'active';
@@ -3156,6 +3184,8 @@ async function toggleMemberStatus(idx){
 }
 
 async function deleteMember(idx){
+  if(!isOwner()){ showToast('⛔ Only the owner can remove team members.'); return; }
+  // ...rest stays same
   if(!confirm('Remove this member? They lose access immediately.')) return;
   const members = getMembers();
   const removed = members[idx];
@@ -3167,7 +3197,66 @@ async function deleteMember(idx){
   showToast('🗑 '+removed?.name+' removed from all devices.');
 }
 
+
+function downloadWelcomeNote(idx){
+  if(!isOwner()){ showToast('⛔ Only the owner can do this.'); return; }
+  const members = getMembers();
+  const m = members[idx];
+  if(!m){ showToast('Member not found.'); return; }
+
+  const permsText = (m.permissions||[]).map(p => PERM_LABELS[p]||p).join(', ') || 'None assigned';
+
+  const txt = `══════════════════════════════════════
+  WELCOME TO SPARKEDGE DOCS WORKSPACE
+══════════════════════════════════════
+
+Hi ${m.name}! 👋
+
+You've been added to the SparkEdge internal
+Document Generator workspace.
+
+─────────────────────────────────────
+YOUR LOGIN DETAILS
+─────────────────────────────────────
+Tool URL  : [Share your docs.html link here]
+Password  : ${m.password}
+Your Role : ${m.role || 'Team Member'}
+
+─────────────────────────────────────
+YOUR PERMISSIONS
+─────────────────────────────────────
+${permsText}
+
+─────────────────────────────────────
+HOW TO LOGIN
+─────────────────────────────────────
+1. Open the Docs tool link above
+2. Enter your password: ${m.password}
+3. Click "Enter Workspace"
+
+─────────────────────────────────────
+NEED HELP?
+─────────────────────────────────────
+WhatsApp Raunak: +91 91424 50715
+Email          : sparkedge555@gmail.com
+
+Generated : ${new Date().toLocaleString('en-IN')}
+══════════════════════════════════════
+SparkEdge © ${new Date().getFullYear()} · Internal Use Only
+══════════════════════════════════════`;
+
+  const blob = new Blob([txt], {type:'text/plain'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'welcome-' + m.name.replace(/\s+/g,'-').toLowerCase() + '.txt';
+  a.click();
+  URL.revokeObjectURL(a.href);
+  showToast('📩 Welcome note for ' + m.name + ' downloaded!');
+}
+
+
 function downloadMemberConfig(idx){
+  if(!isOwner()){ showToast('⛔ Only the owner can do this.'); return; }
   const members = getMembers();
   const m = members[idx];
   if(!m){ showToast('Member not found.'); return; }
