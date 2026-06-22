@@ -2479,9 +2479,13 @@ async function saveTeamMember(){
   if(!window.PORTAL_USER?.isOwner){showToast('⛔ Only owner can manage team.');return;}
   const name=document.getElementById('tm_name').value.trim();
   const pwd=document.getElementById('tm_pwd').value.trim();
+  const role=document.getElementById('tm_role').value.trim();
+  const email=document.getElementById('tm_email').value.trim();
+  const wa=document.getElementById('tm_wa').value.trim();
   if(!name){alert('Name required!');return;}
   if(!pwd||pwd.length<6){alert('Password must be at least 6 characters!');return;}
   if(pwd==='RAUNAK@1'){alert('Cannot use owner password!');return;}
+
   const retentionPerms=['view','edit','vault','send','export'].filter(p=>document.getElementById('tp_'+p)?.checked);
   const members=getMembers();
   const editId=document.getElementById('tm_editId').value;
@@ -2490,6 +2494,27 @@ async function saveTeamMember(){
     ['view_tickets','edit_tickets','create_tickets','delete_tickets','view_finance','view_clients','generate_docs','save_drafts','view_team'].includes(p)
   );
   const perms = [...new Set([...retentionPerms, ...foreignPerms])];
+
+  if(existing){
+    // Update existing member in place
+    existing.name=name;
+    existing.role=role;
+    existing.email=email;
+    existing.wa=wa;
+    existing.password=pwd;
+    existing.permissions=perms;
+  } else {
+    // Add new member to the array
+    members.push({
+      id:'mem_'+Date.now(),
+      name,role,email,wa,
+      password:pwd,
+      permissions:perms,
+      status:'active',
+      addedAt:new Date().toISOString().slice(0,10)
+    });
+  }
+
   await saveMembers(members);
   closeModal('teamMemberModal');
   showToast('✅ Team member saved & synced!');
